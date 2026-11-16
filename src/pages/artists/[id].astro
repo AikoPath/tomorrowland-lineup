@@ -1,6 +1,8 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/artist-page.ts';
+import { musicTabs as toMusicTabs } from '../../artist/music-player.ts';
+import MusicPlayer from '../../components/MusicPlayer.astro';
 import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
@@ -16,7 +18,8 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 
 const { artist, sets } = Astro.props;
-const links = artistLinks(artist);
+const socialLinks = artistLinks(artist).social;
+const musicTabs = toMusicTabs(artist);
 ---
 
 <Base title={`${artist.name} – ${SITE_NAME}`}>
@@ -92,30 +95,14 @@ const links = artistLinks(artist);
         }
       </section>
 
-      {
-        links.music.length > 0 && (
-          <section>
-            <h2>Listen</h2>
-            <ul class="links">
-              {links.music.map((link) => (
-                <li>
-                  <a href={link.url} class="pill pill-filled" rel="noopener" target="_blank">
-                    <PlatformIcon platform={link.key} />
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )
-      }
+      {musicTabs.length > 0 && <MusicPlayer tabs={musicTabs} />}
 
       {
-        links.social.length > 0 && (
+        socialLinks.length > 0 && (
           <section>
             <h2>Follow</h2>
             <ul class="links">
-              {links.social.map((link) => (
+              {socialLinks.map((link) => (
                 <li>
                   <a href={link.url} class="pill" rel="noopener" target="_blank">
                     <PlatformIcon platform={link.key} />
@@ -360,17 +347,6 @@ const links = artistLinks(artist);
   .pill:hover,
   .pill:focus-visible {
     border-color: var(--color-accent);
-  }
-
-  .pill-filled {
-    border-color: transparent;
-    background: var(--gradient-accent);
-  }
-
-  .pill-filled:hover,
-  .pill-filled:focus-visible {
-    border-color: var(--color-accent);
-    filter: brightness(1.15);
   }
 
   .edit {
