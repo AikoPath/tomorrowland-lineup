@@ -11,6 +11,18 @@ data/
 └── sets/<YYYY-MM-DD>.yml   The sets of one festival day
 ```
 
+## Import from Tomorrowland
+
+`npm run import:lineup` reads the Tomorrowland line-up JSON and writes the files in this directory. Run it again when Tomorrowland changes the lineup.
+
+- Artist files: the import adds only the keys that are empty. It does not change a value that a contributor wrote.
+- `stages.yml`: the import adds the stages that are missing. It does not change the names in the file.
+- Set files: the import writes the file of each day again. Changes in a set file go away at the next import.
+
+The import skips the "More to be announced" entries and each link that the schema does not accept. It writes a warning for each skipped link. At the end, it validates all files.
+
+The import makes the ids from the names. If two names give the same id, the import stops. Then add the name and an id to `ARTIST_ID_OVERRIDES` in `scripts/import-lineup/convert.ts`, for example `Halo: 'halo-thailand'`.
+
 ## Ids
 
 An id contains lowercase letters, digits and single hyphens, for example `charlotte-de-witte`. The name of an artist file is the artist id.

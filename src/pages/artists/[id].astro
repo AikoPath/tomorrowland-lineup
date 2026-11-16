@@ -1,0 +1,399 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/artist-page.ts';
+import PlatformIcon from '../../components/PlatformIcon.astro';
+import { loadLineup } from '../../data/load.ts';
+import Base from '../../layouts/Base.astro';
+import { artistUrl } from '../../urls.ts';
+
+export const getStaticPaths = (async () => {
+  const lineup = await loadLineup();
+  return lineup.artists.map((artist) => ({
+    params: { id: artist.id },
+    props: { artist, sets: artistSets(lineup, artist.id) },
+  }));
+}) satisfies GetStaticPaths;
+
+const { artist, sets } = Astro.props;
+const links = artistLinks(artist);
+---
+
+<Base title={`${artist.name} – Tomorrowland lineup`}>
+  <div class="page">
+    <nav class="top">
+      <a href="/" class="back">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2"></path>
+        </svg>
+        Timetable
+      </a>
+    </nav>
+
+    <header class="hero">
+      <div class="photo">
+        {
+          artist.image ? (
+            <img src={artist.image} alt="" />
+          ) : (
+            <span class="initial" aria-hidden="true">
+              {artist.name.charAt(0)}
+            </span>
+          )
+        }
+      </div>
+      <div class="hero-text">
+        <p class="eyebrow">Artist</p>
+        <h1>{artist.name}</h1>
+        {
+          artist.genres && (
+            <ul class="genres">
+              {artist.genres.map((genre) => (
+                <li>{genre}</li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>{sets.length === 1 ? 'Set' : 'Sets'}</h2>
+        {
+          sets.length > 0 ? (
+            <ul class="sets">
+              {sets.map((set) => (
+                <li class="set">
+                  <p class="set-day">{formatDay(set.date)}</p>
+                  <p class="set-time">
+                    {formatTime(set.start)}
+                    <span class="dash">–</span>
+                    {formatTime(set.end)}
+                  </p>
+                  <p class="set-stage">{set.stage.name}</p>
+                  {set.otherArtists.length > 0 && (
+                    <p class="set-b2b">
+                      <span class="b2b-tag">B2B</span>
+                      {set.otherArtists.map((other, index) => (
+                        <>
+                          {index > 0 && <span class="b2b-join">&</span>}
+                          <a href={artistUrl(other.id)}>{other.name}</a>
+                        </>
+                      ))}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="empty">The timetable has no sets for this artist yet.</p>
+          )
+        }
+      </section>
+
+      {
+        links.music.length > 0 && (
+          <section>
+            <h2>Listen</h2>
+            <ul class="links">
+              {links.music.map((link) => (
+                <li>
+                  <a href={link.url} class="pill pill-filled" rel="noopener" target="_blank">
+                    <PlatformIcon platform={link.key} />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      {
+        links.social.length > 0 && (
+          <section>
+            <h2>Follow</h2>
+            <ul class="links">
+              {links.social.map((link) => (
+                <li>
+                  <a href={link.url} class="pill" rel="noopener" target="_blank">
+                    <PlatformIcon platform={link.key} />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </main>
+  </div>
+</Base>
+
+<style>
+  .page {
+    min-height: 100vh;
+  }
+
+  .top {
+    position: absolute;
+    z-index: 1;
+    padding: 1rem;
+  }
+
+  .back {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.5rem 0.875rem 0.5rem 0.625rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-background) 60%, transparent);
+    backdrop-filter: blur(8px);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  .hero {
+    position: relative;
+  }
+
+  .photo {
+    position: relative;
+    aspect-ratio: 1;
+    max-height: 70vh;
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at 30% 20%, var(--color-surface), var(--color-background) 70%);
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .photo::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 45%, var(--color-background));
+    content: '';
+  }
+
+  .initial {
+    display: grid;
+    height: 100%;
+    place-items: center;
+    color: var(--color-accent);
+    font-size: 8rem;
+    font-weight: 700;
+    opacity: 0.5;
+  }
+
+  .hero-text {
+    position: relative;
+    max-width: 40rem;
+    margin: -5rem auto 0;
+    padding: 0 1.25rem;
+  }
+
+  .eyebrow,
+  h2,
+  .set-day,
+  .set-stage,
+  .b2b-tag {
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  h1 {
+    margin: 0.25rem 0 0;
+    font-size: clamp(2.25rem, 10vw, 3.5rem);
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .genres li {
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--color-accent-dark);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  main {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 0.5rem 1.25rem 3rem;
+  }
+
+  section {
+    margin-top: 2.25rem;
+  }
+
+  h2 {
+    margin: 0 0 0.875rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .sets {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .set {
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--color-line);
+    border-left: 3px solid var(--color-accent);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+  }
+
+  .set p {
+    margin: 0;
+  }
+
+  .set-day {
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .set-time {
+    margin-top: 0.25rem !important;
+    font-size: 1.75rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .dash {
+    margin: 0 0.25rem;
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .set-stage {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .set-b2b {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    align-items: center;
+    margin-top: 0.75rem !important;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .b2b-tag {
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--gradient-accent);
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .b2b-join {
+    color: var(--color-text-muted);
+  }
+
+  .set-b2b a {
+    font-weight: 600;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 0.2em;
+  }
+
+  .empty {
+    color: var(--color-text-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  .pill {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1.125rem;
+    border: 1px solid var(--color-accent-dark);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+
+  .pill:hover,
+  .pill:focus-visible {
+    border-color: var(--color-accent);
+  }
+
+  .pill-filled {
+    border-color: transparent;
+    background: var(--gradient-accent);
+  }
+
+  .pill-filled:hover,
+  .pill-filled:focus-visible {
+    border-color: var(--color-accent);
+    filter: brightness(1.15);
+  }
+
+  @media (min-width: 48rem) {
+    .hero {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-end;
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 5rem 1.25rem 0;
+    }
+
+    .photo {
+      flex: none;
+      width: 16rem;
+      border-radius: 1rem;
+    }
+
+    .photo::after {
+      display: none;
+    }
+
+    .hero-text {
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      max-width: 52rem;
+    }
+  }
+</style>
