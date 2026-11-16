@@ -21,7 +21,7 @@ data/
 
 The import skips the "More to be announced" entries and each link that the schema does not accept. It writes a warning for each skipped link. At the end, it validates all files.
 
-The import makes the ids from the names. If two names give the same id, the import stops. Then add an id to `ARTIST_ID_OVERRIDES` in `scripts/import-lineup/convert.ts`.
+The import makes the ids from the names. If two names give the same id, the import stops. Then add the name and an id to `ARTIST_ID_OVERRIDES` in `scripts/import-lineup/convert.ts`, for example `'HALŌ': 'halo-macron'`.
 
 ## Ids
 

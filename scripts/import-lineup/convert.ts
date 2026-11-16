@@ -48,12 +48,12 @@ const ARTIST_FIELD_PATHS: Record<ArtistField, readonly string[]> = {
 const PLACEHOLDER_ARTIST = 'more to be announced';
 
 /**
- * Artist ids by Tomorrowland artist id, for names that give the same id. Each id stays the same across imports,
- * also when the JSON order changes.
+ * Artist ids by the artist name in the Tomorrowland JSON, for names that give the same id. Each id stays the same
+ * across imports, also when the JSON order changes.
  */
 export const ARTIST_ID_OVERRIDES: Readonly<Record<string, string>> = {
-  // "HALŌ". The artist "Halo" (3018190326) has the id "halo".
-  '1992358032': 'halo-1992358032',
+  // The artist "Halo" has the id "halo".
+  'HALŌ': 'halo-macron',
 };
 
 export interface ImportedArtist {
@@ -106,7 +106,7 @@ export function convertLineup(
   const artists: ImportedArtist[] = [];
   const addArtist = (artist: TomorrowlandArtist) => {
     if (artistIds.has(artist.id)) return artistIds.get(artist.id)!;
-    const id = claimId(artistIdOverrides[artist.id] ?? toId(artist.name), artist, artists.map((a) => a.id), 'artist');
+    const id = claimId(artistIdOverrides[artist.name.trim()] ?? toId(artist.name), artist, artists.map((a) => a.id), 'artist');
     artistIds.set(artist.id, id);
     artists.push({ id, name: artist.name.trim(), fields: artistFields(artist, warnings) });
     return id;
@@ -135,7 +135,7 @@ function claimId(id: string, source: { id: string; name: string }, usedIds: stri
   if (usedIds.includes(id)) {
     throw new Error(
       `Two ${kind}s have the id "${id}". "${source.name}" (Tomorrowland id ${source.id}) needs an entry in ` +
-        (kind === 'artist' ? 'ARTIST_ID_OVERRIDES' : 'the import script'),
+        (kind === 'artist' ? `ARTIST_ID_OVERRIDES, for example '${source.name}': '${id}-2'` : 'the import script'),
     );
   }
   return id;
