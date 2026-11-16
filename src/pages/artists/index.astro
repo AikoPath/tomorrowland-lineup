@@ -1,0 +1,277 @@
+---
+import { artistListEntries, filterOptions } from '../../artist-list/artist-list.ts';
+import { loadLineup } from '../../data/load.ts';
+import Base from '../../layouts/Base.astro';
+import { SITE_NAME } from '../../site.ts';
+import { dayLabel } from '../../timetable/layout.ts';
+import { artistUrl } from '../../urls.ts';
+
+const lineup = await loadLineup();
+const entries = artistListEntries(lineup);
+const options = filterOptions(lineup);
+// Escape "<", so that a genre in the data cannot close the script element.
+const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceAll('<', '\\u003c');
+---
+
+<Base title={`Artists · ${SITE_NAME}`}>
+  <div class="page">
+    <header class="page-header">
+      <a href="/" class="back">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2"></path>
+        </svg>
+        Timetable
+      </a>
+      <h1>Artists</h1>
+    </header>
+
+    <form class="filters" role="search" aria-label="Find artists">
+      <input type="search" name="q" placeholder="Search by name" aria-label="Artist name" autocomplete="off" />
+      <div class="selects">
+        <select name="day" aria-label="Day">
+          <option value="">All days</option>
+          {options.dates.map((date) => <option value={date}>{dayLabel(date)}</option>)}
+        </select>
+        <select name="stage" aria-label="Stage">
+          <option value="">All stages</option>
+          {options.stages.map((stage) => <option value={stage.id}>{stage.name}</option>)}
+        </select>
+        {
+          options.genres.length > 0 && (
+            <select name="genre" aria-label="Genre">
+              <option value="">All genres</option>
+              {options.genres.map((genre) => (
+                <option value={genre}>{genre}</option>
+              ))}
+            </select>
+          )
+        }
+      </div>
+    </form>
+
+    <main>
+      <p class="count" aria-live="polite">{entries.length} artists</p>
+      <p class="empty" hidden>No artist matches the filters.</p>
+      <ul class="artists">
+        {
+          entries.map(({ artist, sets }, index) => (
+            <li data-index={index}>
+              <a href={artistUrl(artist.id)}>
+                <span class="photo">
+                  {artist.image ? (
+                    <img src={artist.image} alt="" loading="lazy" decoding="async" />
+                  ) : (
+                    <span class="initial" aria-hidden="true">
+                      {artist.name.charAt(0)}
+                    </span>
+                  )}
+                </span>
+                <span class="text">
+                  <span class="name">{artist.name}</span>
+                  {sets.map(({ date, stage }) => (
+                    <span class="set">
+                      {dayLabel(date)} · {stage.name}
+                    </span>
+                  ))}
+                  {artist.genres && <span class="genres">{artist.genres.join(' · ')}</span>}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </main>
+  </div>
+  <script is:inline type="application/json" id="artist-filter-data" set:html={filterData} />
+</Base>
+
+<script>
+  import { matchesFilter, type ArtistFilter, type FilterData } from '../../artist-list/artist-list.ts';
+
+  const form = document.querySelector<HTMLFormElement>('.filters')!;
+  const count = document.querySelector<HTMLElement>('.count')!;
+  const empty = document.querySelector<HTMLElement>('.empty')!;
+  const items = [...document.querySelectorAll<HTMLLIElement>('.artists li')];
+  const data: FilterData[] = JSON.parse(document.getElementById('artist-filter-data')!.textContent!);
+  const fields = ['q', 'day', 'stage', 'genre'] as const;
+
+  function field(name: (typeof fields)[number]) {
+    return form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
+  }
+
+  // The URL keeps the filters, so that a user can share a filtered list.
+  const params = new URLSearchParams(location.search);
+  for (const name of fields) {
+    const input = field(name);
+    const value = params.get(name);
+    if (input && value) input.value = value;
+  }
+
+  function applyFilter() {
+    const filter: ArtistFilter = {
+      query: field('q')?.value ?? '',
+      date: field('day')?.value ?? '',
+      stage: field('stage')?.value ?? '',
+      genre: field('genre')?.value ?? '',
+    };
+    let shown = 0;
+    items.forEach((item, index) => {
+      const match = matchesFilter(data[index], filter);
+      item.hidden = !match;
+      if (match) shown += 1;
+    });
+    count.textContent = shown === 1 ? '1 artist' : `${shown} artists`;
+    empty.hidden = shown > 0;
+
+    const url = new URL(location.href);
+    for (const name of fields) {
+      const value = field(name)?.value.trim();
+      if (value) url.searchParams.set(name, value);
+      else url.searchParams.delete(name);
+    }
+    history.replaceState(null, '', url);
+  }
+
+  form.addEventListener('input', applyFilter);
+  form.addEventListener('submit', (event) => event.preventDefault());
+  // The browser can restore the form values when the user comes back to the page.
+  window.addEventListener('pageshow', applyFilter);
+  applyFilter();
+</script>
+
+<style>
+  .page {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 1rem 1.25rem 3rem;
+  }
+
+  .back {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+
+  h1 {
+    margin: 0.75rem 0 0;
+    font-size: clamp(2rem, 8vw, 3rem);
+    line-height: 1.05;
+  }
+
+  .filters {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    margin: 0 -1.25rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .selects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    min-width: 0;
+    gap: 0.5rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: var(--color-accent);
+  }
+
+  .count,
+  .empty {
+    margin: 1rem 0 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .artists li[hidden] {
+    display: none;
+  }
+
+  .artists a {
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--color-line);
+    text-decoration: none;
+  }
+
+  .artists a:hover .name,
+  .artists a:focus-visible .name {
+    color: var(--color-accent);
+  }
+
+  .photo {
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--color-surface);
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .initial {
+    display: grid;
+    height: 100%;
+    place-items: center;
+    color: var(--color-accent);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .name {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .set,
+  .genres {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .genres {
+    color: var(--color-accent);
+  }
+</style>

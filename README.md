@@ -34,6 +34,8 @@ A static host can serve the `dist/` directory. The host does not need a server r
 data/            The lineup data in YAML. See data/README.md.
 public/          Files that Astro copies to dist/ with no change
 scripts/         The import of the Tomorrowland Thailand 2026 lineup
+src/artist/      The data of the artist page
+src/artist-list/ The artist list and its filter
 src/components/  The parts of the pages
 src/data/        The schema and the loader of the lineup data
 src/layouts/     The page layout that all pages use

@@ -3,7 +3,7 @@ import type { Lineup } from '../data/schema';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, layoutDay } from '../timetable/layout';
-import { artistUrl, dayUrl } from '../urls';
+import { ARTIST_LIST_URL, artistUrl, dayUrl } from '../urls';
 
 interface Props {
   lineup: Lineup;
@@ -22,7 +22,10 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 <Base title={`Timetable ${dayLabel(date)} · ${SITE_NAME}`}>
   <div class="page">
   <header class="page-header">
-    <h1>{SITE_NAME}</h1>
+    <div class="title-row">
+      <h1>{SITE_NAME}</h1>
+      <a href={ARTIST_LIST_URL} class="artists-link">All artists</a>
+    </div>
     <nav class="days" aria-label="Festival days">
       {
         lineup.days.map(({ date: tabDate }) => (
@@ -81,9 +84,24 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     padding: 0.75rem 1rem 0.5rem;
   }
 
+  .title-row {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
   h1 {
-    margin: 0 0 0.5rem;
+    margin: 0;
     font-size: 1.25rem;
+  }
+
+  .artists-link {
+    flex: none;
+    color: var(--color-accent);
+    font-size: 0.875rem;
+    font-weight: 600;
   }
 
   .days {
