@@ -26,7 +26,11 @@ export function artistSets(lineup: Lineup, artistId: string): ArtistSet[] {
   );
 }
 
-export interface Link {
+export type SocialKey = keyof NonNullable<Artist['social']>;
+export type MusicKey = keyof NonNullable<Artist['music']>;
+
+export interface Link<K extends string = SocialKey | MusicKey> {
+  key: K;
   label: string;
   url: string;
 }
@@ -37,34 +41,35 @@ const socialLabels = {
   x: 'X',
   facebook: 'Facebook',
   website: 'Website',
-} satisfies Record<keyof NonNullable<Artist['social']>, string>;
+} satisfies Record<SocialKey, string>;
 
 const musicLabels = {
   spotify: 'Spotify',
   apple_music: 'Apple Music',
   youtube: 'YouTube',
   soundcloud: 'SoundCloud',
-} satisfies Record<keyof NonNullable<Artist['music']>, string>;
+} satisfies Record<MusicKey, string>;
 
-export function artistLinks(artist: Artist): { social: Link[]; music: Link[] } {
+export function artistLinks(artist: Artist): { social: Link<SocialKey>[]; music: Link<MusicKey>[] } {
   return {
     social: toLinks(socialLabels, artist.social),
     music: toLinks(musicLabels, artist.music),
   };
 }
 
-function toLinks<K extends string>(labels: Record<K, string>, urls: Partial<Record<K, string>> = {}): Link[] {
+function toLinks<K extends string>(labels: Record<K, string>, urls: Partial<Record<K, string>> = {}): Link<K>[] {
   return (Object.keys(labels) as K[]).flatMap((key) => {
     const url = urls[key];
-    return url ? [{ label: labels[key], url }] : [];
+    return url ? [{ key, label: labels[key], url }] : [];
   });
 }
 
+/** For example `Fri 11 Dec`. */
 export function formatDay(date: string): string {
   return new Intl.DateTimeFormat('en-GB', {
-    weekday: 'long',
+    weekday: 'short',
     day: 'numeric',
-    month: 'long',
+    month: 'short',
     timeZone: 'UTC',
   }).format(new Date(`${date}T00:00:00Z`));
 }

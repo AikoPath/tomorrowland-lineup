@@ -60,12 +60,12 @@ test('artistLinks gives the social links and the music links in a fixed order, w
   });
   assert.deepEqual(links, {
     social: [
-      { label: 'Instagram', url: 'https://www.instagram.com/amelie_lens' },
-      { label: 'Website', url: 'https://amelielens.com' },
+      { key: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/amelie_lens' },
+      { key: 'website', label: 'Website', url: 'https://amelielens.com' },
     ],
     music: [
-      { label: 'Spotify', url: 'https://open.spotify.com/artist/abc' },
-      { label: 'YouTube', url: 'https://www.youtube.com/channel/UCabc' },
+      { key: 'spotify', label: 'Spotify', url: 'https://open.spotify.com/artist/abc' },
+      { key: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/channel/UCabc' },
     ],
   });
 });
@@ -74,8 +74,8 @@ test('artistLinks gives empty lists when the artist has no links', () => {
   assert.deepEqual(artistLinks({ id: 'kolsch', name: 'Kölsch' }), { social: [], music: [] });
 });
 
-test('formatDay gives the weekday and the date of a festival day', () => {
-  assert.equal(formatDay('2026-12-11'), 'Friday 11 December');
+test('formatDay gives the short weekday and the date of a festival day', () => {
+  assert.equal(formatDay('2026-12-11'), 'Fri 11 Dec');
 });
 
 test('formatTime gives the local festival time', () => {
