@@ -57,8 +57,6 @@ music:
 | `music.*`       | An https link to the platform of the key.                                       |
 | `music.youtube` | Use the `/channel/UC…` form. The YouTube player needs the channel ID.           |
 
-When a `music` key is missing, the site makes a search link from `name`.
-
 ## `sets/<YYYY-MM-DD>.yml`
 
 The file name is the date of the festival day. The file is a list of sets.
