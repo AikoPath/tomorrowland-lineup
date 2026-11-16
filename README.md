@@ -4,6 +4,8 @@ This site makes the Tomorrowland Thailand 2026 timetable easier to explore. It s
 
 The site is static. [Astro](https://astro.build) reads the YAML data files at build time and writes HTML files. The site has no backend and no database.
 
+To add or correct artist and timetable data, read [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Requirements
 
 - Node.js 22.23.4 or later
