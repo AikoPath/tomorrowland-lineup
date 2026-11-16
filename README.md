@@ -19,6 +19,7 @@ Run each command from the root of the repo.
 | `npm run dev`     | Starts the development server at `http://localhost:4321`. |
 | `npm run build`   | Writes the static site to `dist/`.                        |
 | `npm run preview` | Serves `dist/` on your computer before you deploy it.     |
+| `npm test`        | Runs the tests.                                           |
 
 ## Deploy
 
@@ -27,6 +28,8 @@ A static host can serve the `dist/` directory. The host does not need a server r
 ## Project structure
 
 ```text
+data/         The lineup data in YAML. See data/README.md.
 public/       Files that Astro copies to dist/ with no change
+src/data/     The schema and the loader of the lineup data
 src/pages/    One .astro file for each page of the site
 ```
