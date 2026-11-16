@@ -1,0 +1,308 @@
+---
+import type { MusicTab } from '../artist/music-player.ts';
+import PlatformIcon from './PlatformIcon.astro';
+
+interface Props {
+  tabs: MusicTab[];
+}
+
+const { tabs } = Astro.props;
+---
+
+<section class="player" data-music-player>
+  <h2>Listen</h2>
+  <div class="tabs" role="tablist" aria-label="Music service">
+    {
+      tabs.map((tab, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`music-tab-${tab.key}`}
+          aria-controls={`music-panel-${tab.key}`}
+          aria-label={tab.label}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          tabindex={index === 0 ? 0 : -1}
+        >
+          <PlatformIcon platform={tab.key} />
+          <span class="tab-label">{tab.label}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    tabs.map((tab, index) => (
+      <div
+        class="panel"
+        role="tabpanel"
+        id={`music-panel-${tab.key}`}
+        aria-labelledby={`music-tab-${tab.key}`}
+        hidden={index !== 0}
+        data-service={tab.key}
+        data-embed-src={tab.player?.kind === 'embed' ? tab.player.src : undefined}
+        data-apple-lookup={tab.player?.kind === 'apple-top-song' ? tab.player.lookupUrl : undefined}
+      >
+        {tab.player && (
+          <div class="stage">
+            <button type="button" class="play" data-play>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M8 5v14l11-7z" fill="currentColor" />
+              </svg>
+              Play
+            </button>
+            {tab.player.kind === 'apple-top-song' && <p class="note">Apple Music plays the top song of the artist.</p>}
+            <p class="status" data-status hidden />
+          </div>
+        )}
+        <a href={tab.url} class="open" rel="noopener" target="_blank">
+          Open in {tab.label}
+        </a>
+      </div>
+    ))
+  }
+</section>
+
+<script>
+  import { appleSongEmbedUrl } from '../artist/music-player.ts';
+
+  const titles: Record<string, string> = {
+    spotify: 'Spotify player',
+    apple_music: 'Apple Music player',
+    youtube: 'YouTube player',
+    soundcloud: 'SoundCloud player',
+  };
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-music-player]')) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    // After the first click on "Play", a change of tab loads the player of the new tab at once.
+    let started = false;
+
+    function select(tab: HTMLButtonElement) {
+      for (const other of tabs) {
+        const selected = other === tab;
+        other.setAttribute('aria-selected', String(selected));
+        other.tabIndex = selected ? 0 : -1;
+      }
+      for (const panel of panels) {
+        const selected = panel.id === tab.getAttribute('aria-controls');
+        panel.hidden = !selected;
+        if (selected && started) void load(panel);
+        // A hidden player continues to play, so remove it.
+        if (!selected) unload(panel);
+      }
+    }
+
+    async function load(panel: HTMLElement) {
+      const stage = panel.querySelector<HTMLElement>('.stage');
+      if (!stage || stage.querySelector('iframe')) return;
+      const play = stage.querySelector<HTMLButtonElement>('[data-play]')!;
+      const status = stage.querySelector<HTMLElement>('[data-status]')!;
+      play.hidden = true;
+
+      let src = panel.dataset.embedSrc;
+      const lookupUrl = panel.dataset.appleLookup;
+      if (lookupUrl) {
+        showStatus(status, 'Loading the top song…');
+        src = await fetch(lookupUrl)
+          .then((response) => (response.ok ? response.json() : {}))
+          .then(appleSongEmbedUrl)
+          .catch(() => undefined);
+        if (panel.hidden) return;
+        if (!src) {
+          showStatus(status, 'Apple Music did not give a song for this artist. Open the artist in Apple Music.');
+          return;
+        }
+        status.hidden = true;
+      }
+
+      // A second load can finish first when the user changes tabs during the lookup.
+      if (stage.querySelector('iframe')) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = src!;
+      iframe.title = titles[panel.dataset.service ?? ''] ?? 'Music player';
+      iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+      stage.append(iframe);
+      stage.classList.add('loaded');
+    }
+
+    function unload(panel: HTMLElement) {
+      const stage = panel.querySelector<HTMLElement>('.stage');
+      if (!stage) return;
+      stage.querySelector('iframe')?.remove();
+      stage.classList.remove('loaded');
+      stage.querySelector<HTMLElement>('[data-play]')!.hidden = false;
+      stage.querySelector<HTMLElement>('[data-status]')!.hidden = true;
+    }
+
+    function showStatus(status: HTMLElement, text: string) {
+      status.textContent = text;
+      status.hidden = false;
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (event) => {
+        const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+        if (!step) return;
+        const next = tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length]!;
+        next.focus();
+        select(next);
+      });
+    }
+
+    for (const panel of panels) {
+      panel.querySelector('[data-play]')?.addEventListener('click', () => {
+        started = true;
+        void load(panel);
+      });
+    }
+  }
+</script>
+
+<style>
+  .player {
+    margin-top: 2.25rem;
+  }
+
+  h2 {
+    margin: 0 0 0.875rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  [role='tab'] {
+    display: inline-flex;
+    flex: none;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  [role='tab']:hover {
+    color: var(--color-text);
+  }
+
+  [role='tab'][aria-selected='true'] {
+    border-bottom-color: var(--color-accent);
+    color: var(--color-text);
+  }
+
+  /* On a narrow screen, the tabs show only the icons, so that all tabs fit. */
+  @media (max-width: 30rem) {
+    [role='tab'] {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .tab-label {
+      display: none;
+    }
+  }
+
+  .panel {
+    padding-top: 1rem;
+  }
+
+  .stage {
+    display: grid;
+    gap: 0.75rem;
+    place-items: center;
+    padding: 2rem 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+  }
+
+  .stage.loaded {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .play {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1.5rem 0 1.125rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--gradient-accent);
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .play:hover {
+    filter: brightness(1.15);
+  }
+
+  .play[hidden],
+  .status[hidden] {
+    display: none;
+  }
+
+  .note,
+  .status {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+
+  .stage.loaded .note {
+    display: none;
+  }
+
+  .stage :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 352px;
+    border: 0;
+    border-radius: 0.75rem;
+  }
+
+  [data-service='youtube'] .stage :global(iframe) {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  [data-service='soundcloud'] .stage :global(iframe) {
+    height: 400px;
+  }
+
+  [data-service='apple_music'] .stage :global(iframe) {
+    height: 175px;
+  }
+
+  .open {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    text-underline-offset: 0.2em;
+  }
+</style>

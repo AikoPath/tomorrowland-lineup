@@ -66,7 +66,7 @@ music:
 | `image`         | An https link to a photo of the artist. See [Images](#images).                  |
 | `genres`        | A list of lowercase genre names.                                                |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
-| `music.*`       | An https link to the platform of the key.                                       |
+| `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
 | `music.youtube` | Use the `/channel/UC…` form. The YouTube player needs the channel ID.           |
 
 ### Images
