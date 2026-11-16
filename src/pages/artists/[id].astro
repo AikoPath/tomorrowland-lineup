@@ -132,26 +132,7 @@ const links = artistLinks(artist);
 
 <style>
   .page {
-    --bg: #0d0a0a;
-    --surface: #1a1414;
-    --line: #3a2a1f;
-    --text: #f3ece6;
-    --muted: #a8998c;
-    --amber: #e08a1e;
-    --amber-dark: #8a4100;
-    --gradient: linear-gradient(90deg, var(--amber-dark), #c46a0a);
-
     min-height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-  }
-
-  :global(body) {
-    background: #0d0a0a;
-  }
-
-  a {
-    color: inherit;
   }
 
   .top {
@@ -166,7 +147,7 @@ const links = artistLinks(artist);
     align-items: center;
     padding: 0.5rem 0.875rem 0.5rem 0.625rem;
     border-radius: 999px;
-    background: rgb(13 10 10 / 60%);
+    background: color-mix(in srgb, var(--color-background) 60%, transparent);
     backdrop-filter: blur(8px);
     font-size: 0.875rem;
     text-decoration: none;
@@ -182,7 +163,7 @@ const links = artistLinks(artist);
     max-height: 70vh;
     width: 100%;
     overflow: hidden;
-    background: radial-gradient(circle at 30% 20%, #5a2c00, var(--bg) 70%);
+    background: radial-gradient(circle at 30% 20%, var(--color-surface), var(--color-background) 70%);
   }
 
   .photo img {
@@ -195,7 +176,7 @@ const links = artistLinks(artist);
   .photo::after {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, transparent 45%, var(--bg));
+    background: linear-gradient(to bottom, transparent 45%, var(--color-background));
     content: '';
   }
 
@@ -203,7 +184,7 @@ const links = artistLinks(artist);
     display: grid;
     height: 100%;
     place-items: center;
-    color: var(--amber);
+    color: var(--color-accent);
     font-size: 8rem;
     font-weight: 700;
     opacity: 0.5;
@@ -227,7 +208,7 @@ const links = artistLinks(artist);
 
   .eyebrow {
     margin: 0;
-    color: var(--amber);
+    color: var(--color-accent);
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -254,9 +235,9 @@ const links = artistLinks(artist);
 
   .genres li {
     padding: 0.25rem 0.75rem;
-    border: 1px solid var(--amber-dark);
+    border: 1px solid var(--color-accent-dark);
     border-radius: 999px;
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: 0.8125rem;
   }
 
@@ -272,7 +253,7 @@ const links = artistLinks(artist);
 
   h2 {
     margin: 0 0 0.875rem;
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -284,10 +265,10 @@ const links = artistLinks(artist);
 
   .set {
     padding: 1rem 1.125rem;
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--amber);
+    border: 1px solid var(--color-line);
+    border-left: 3px solid var(--color-accent);
     border-radius: 0.75rem;
-    background: var(--surface);
+    background: var(--color-surface);
   }
 
   .set p {
@@ -295,7 +276,7 @@ const links = artistLinks(artist);
   }
 
   .set-day {
-    color: var(--amber);
+    color: var(--color-accent);
     font-size: 0.75rem;
     font-weight: 600;
   }
@@ -309,12 +290,12 @@ const links = artistLinks(artist);
 
   .dash {
     margin: 0 0.25rem;
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-weight: 400;
   }
 
   .set-stage {
-    color: var(--muted);
+    color: var(--color-text-muted);
     font-size: 0.8125rem;
   }
 
@@ -325,29 +306,29 @@ const links = artistLinks(artist);
     align-items: center;
     margin-top: 0.75rem !important;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--color-line);
   }
 
   .b2b-tag {
     padding: 0.125rem 0.5rem;
     border-radius: 999px;
-    background: var(--gradient);
+    background: var(--gradient-accent);
     font-size: 0.6875rem;
     font-weight: 700;
   }
 
   .b2b-join {
-    color: var(--muted);
+    color: var(--color-text-muted);
   }
 
   .set-b2b a {
     font-weight: 600;
-    text-decoration-color: var(--amber);
+    text-decoration-color: var(--color-accent);
     text-underline-offset: 0.2em;
   }
 
   .empty {
-    color: var(--muted);
+    color: var(--color-text-muted);
   }
 
   .links {
@@ -362,7 +343,7 @@ const links = artistLinks(artist);
     align-items: center;
     min-height: 2.75rem;
     padding: 0 1.125rem;
-    border: 1px solid var(--amber-dark);
+    border: 1px solid var(--color-accent-dark);
     border-radius: 999px;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -372,17 +353,17 @@ const links = artistLinks(artist);
 
   .pill:hover,
   .pill:focus-visible {
-    border-color: var(--amber);
+    border-color: var(--color-accent);
   }
 
   .pill-filled {
     border-color: transparent;
-    background: var(--gradient);
+    background: var(--gradient-accent);
   }
 
   .pill-filled:hover,
   .pill-filled:focus-visible {
-    border-color: var(--amber);
+    border-color: var(--color-accent);
     filter: brightness(1.15);
   }
 
