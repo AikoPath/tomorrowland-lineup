@@ -24,7 +24,10 @@ export interface TomorrowlandStage {
 export interface TomorrowlandPerformance {
   artists: TomorrowlandArtist[];
   stage: TomorrowlandStage;
-  /** The festival day, `YYYY-MM-DD`. A set after midnight keeps the date of the day before. */
+  /**
+   * Do not use this date for the festival day.
+   * Tomorrowland gives a set that starts at 00:00 the date of the next day.
+   */
   date: string;
   /** For example `2026-12-11 23:30:00+07:00`, in local festival time. */
   startTime: string;
@@ -121,7 +124,8 @@ export function convertLineup(
       start: toLocalTime(performance.startTime),
       end: toLocalTime(performance.endTime),
     };
-    days.set(performance.date, [...(days.get(performance.date) ?? []), set]);
+    const day = festivalDay(set.start);
+    days.set(day, [...(days.get(day) ?? []), set]);
   }
   for (const sets of days.values()) {
     sets.sort((a, b) => a.start.localeCompare(b.start) || a.stage.localeCompare(b.stage));
@@ -181,6 +185,18 @@ function fieldProblem(path: readonly string[], value: string): string | undefine
 }
 
 /** `2026-12-11 23:30:00+07:00` → `2026-12-11T23:30`. The JSON ends sets at `:01` seconds, so the seconds go. */
+/** The festival closes before this hour. A set that starts earlier belongs to the night before. */
+const FESTIVAL_DAY_START_HOUR = 6;
+
+/** The `YYYY-MM-DD` of the festival day of a set that starts at `start` (`YYYY-MM-DDTHH:MM`). */
+export function festivalDay(start: string): string {
+  const date = start.slice(0, 10);
+  if (Number(start.slice(11, 13)) >= FESTIVAL_DAY_START_HOUR) return date;
+  const dayBefore = new Date(`${date}T00:00:00Z`);
+  dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+  return dayBefore.toISOString().slice(0, 10);
+}
+
 function toLocalTime(time: string): string {
   const match = time.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
   if (!match) throw new Error(`Unexpected time "${time}"`);

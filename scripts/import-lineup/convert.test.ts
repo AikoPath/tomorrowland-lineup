@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   convertLineup,
   daySetsYaml,
+  festivalDay,
   mergeArtistYaml,
   mergeStagesYaml,
   toId,
@@ -46,6 +47,35 @@ test('converts sets with local times to the minute, sorted by start', () => {
     { artists: ['kevin-de-vries', 'morten'], stage: 'mainstage', start: '2026-12-11T22:00', end: '2026-12-11T23:30' },
     { artists: ['amelie-lens'], stage: 'mainstage', start: '2026-12-11T23:30', end: '2026-12-11T23:59' },
   ]);
+});
+
+test('puts a set that starts after midnight in the festival day before', () => {
+  const lineup = convertLineup(
+    [mainstage],
+    [
+      performance([{ id: 'a', name: 'Amelie Lens' }], '23:00', '23:59:01'),
+      {
+        artists: [{ id: 'b', name: 'Ferry Corsten' }],
+        stage: mainstage,
+        date: '2026-12-12',
+        startTime: '2026-12-12 00:00:00+07:00',
+        endTime: '2026-12-12 01:00:01+07:00',
+      },
+    ],
+  );
+  assert.deepEqual([...lineup.days.keys()], ['2026-12-11']);
+  assert.deepEqual(
+    lineup.days.get('2026-12-11')?.map((set) => set.start),
+    ['2026-12-11T23:00', '2026-12-12T00:00'],
+  );
+});
+
+test('finds the festival day of a start time', () => {
+  assert.equal(festivalDay('2026-12-11T13:00'), '2026-12-11');
+  assert.equal(festivalDay('2026-12-12T00:00'), '2026-12-11');
+  assert.equal(festivalDay('2026-12-12T05:59'), '2026-12-11');
+  assert.equal(festivalDay('2026-12-12T06:00'), '2026-12-12');
+  assert.equal(festivalDay('2027-01-01T01:00'), '2026-12-31');
 });
 
 test('skips "More to be announced" entries', () => {

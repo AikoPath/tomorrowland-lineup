@@ -29,11 +29,13 @@ A static host can serve the `dist/` directory. The host does not need a server r
 ## Project structure
 
 ```text
-data/         The lineup data in YAML. See data/README.md.
-public/       Files that Astro copies to dist/ with no change
-scripts/      The import of the Tomorrowland lineup
-src/data/     The schema and the loader of the lineup data
-src/layouts/  The page layout that all pages use
-src/pages/    One .astro file for each page of the site
-src/styles/   theme.css with the colors of the site as CSS variables
+data/            The lineup data in YAML. See data/README.md.
+public/          Files that Astro copies to dist/ with no change
+scripts/         The import of the Tomorrowland lineup
+src/components/  The parts of the pages
+src/data/        The schema and the loader of the lineup data
+src/layouts/     The page layout that all pages use
+src/pages/       One .astro file for each page of the site
+src/styles/      theme.css with the colors of the site as CSS variables
+src/timetable/   The calculation of the timetable grid
 ```

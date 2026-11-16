@@ -1,14 +1,6 @@
 # npm run import:lineup writes this file from the Tomorrowland timetable.
 # Changes here go away at the next import.
 
-- artists: [ferry-corsten]
-  stage: crystal-garden-by-anker
-  start: 2026-12-12T00:00
-  end: 2026-12-12T01:00
-- artists: [yellow-claw, flosstradamus]
-  stage: freedom-by-budweiser
-  start: 2026-12-12T00:00
-  end: 2026-12-12T01:00
 - artists: [petra]
   stage: codex
   start: 2026-12-12T13:00
@@ -217,3 +209,11 @@
   stage: mainstage
   start: 2026-12-12T23:50
   end: 2026-12-13T00:50
+- artists: [dvbbs]
+  stage: codex
+  start: 2026-12-13T00:00
+  end: 2026-12-13T01:00
+- artists: [infected-mushroom]
+  stage: crystal-garden-by-anker
+  start: 2026-12-13T00:00
+  end: 2026-12-13T01:00

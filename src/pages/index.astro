@@ -1,7 +1,19 @@
 ---
+import TimetablePage from '../components/TimetablePage.astro';
+import { loadLineup } from '../data/load';
 import Base from '../layouts/Base.astro';
+
+const lineup = await loadLineup();
+const firstDay = lineup.days[0];
 ---
 
-<Base title="Tomorrowland lineup">
-  <h1>Tomorrowland lineup</h1>
-</Base>
+{
+  firstDay ? (
+    <TimetablePage lineup={lineup} date={firstDay.date} />
+  ) : (
+    <Base title="Tomorrowland lineup">
+      <h1>Tomorrowland lineup</h1>
+      <p>The timetable is not available yet.</p>
+    </Base>
+  )
+}
