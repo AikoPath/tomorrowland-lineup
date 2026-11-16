@@ -1,2 +1,11 @@
 name: Novah
 image: https://artist-lineup-cdn.tomorrowland.com/171552159-image.png
+genres:
+  - techno
+social:
+  instagram: https://www.instagram.com/novah.music
+  facebook: https://www.facebook.com/musicbynovah
+music:
+  spotify: https://open.spotify.com/artist/7qvjUtp2ccRD9AiDnukyFF
+  apple_music: https://music.apple.com/us/artist/1484524716
+  soundcloud: https://soundcloud.com/novah_music

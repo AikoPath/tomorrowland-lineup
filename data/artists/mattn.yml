@@ -1,4 +1,13 @@
 name: MATTN
 image: https://artist-lineup-cdn.tomorrowland.com/32587454-MTTN-LS.jpg
+genres:
+  - house
 social:
   instagram: https://www.instagram.com/mattnworld/
+  x: https://x.com/MATTNworld
+  facebook: https://www.facebook.com/mattnworld
+music:
+  spotify: https://open.spotify.com/artist/1RQ3ZwCNI7KniEKIN5kkio
+  apple_music: https://music.apple.com/us/artist/1094236368
+  youtube: https://www.youtube.com/channel/UCVe7dkBSt4_kq9dJtRkEArQ
+  soundcloud: https://soundcloud.com/mattnworld

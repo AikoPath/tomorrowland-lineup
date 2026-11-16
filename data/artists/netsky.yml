@@ -1,4 +1,15 @@
 name: Netsky
 image: https://artist-lineup-cdn.tomorrowland.com/171551323-image.png
+genres:
+  - drum and bass
+  - liquid funk
 social:
   instagram: https://www.instagram.com/netskyofficial/
+  x: https://x.com/netskymusic
+  facebook: https://www.facebook.com/netskymusic
+  website: https://www.netskymusic.com/
+music:
+  spotify: https://open.spotify.com/artist/5TgQ66WuWkoQ2xYxaSTnVP
+  apple_music: https://music.apple.com/be/artist/193505057
+  youtube: https://www.youtube.com/channel/UCkZ9YZz8Tzhg_R33nEitE8w
+  soundcloud: https://soundcloud.com/netsky

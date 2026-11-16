@@ -1,5 +1,9 @@
 name: Afrojack
 image: https://artist-lineup-cdn.tomorrowland.com/33881383-Afrojack_LS.jpg
+genres:
+  - house
+  - dutch house
+  - electro house
 social:
   instagram: https://www.instagram.com/afrojack
   tiktok: https://www.tiktok.com/@afrojack
@@ -8,4 +12,6 @@ social:
   website: https://afrojack.com/
 music:
   spotify: https://open.spotify.com/artist/4D75GcNG95ebPtNvoNVXhz
+  apple_music: https://music.apple.com/nl/artist/211210469
+  youtube: https://www.youtube.com/channel/UChuZAo1RKL85gev3Eal9_zg
   soundcloud: https://soundcloud.com/afrojack

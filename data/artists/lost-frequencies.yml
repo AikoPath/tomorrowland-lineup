@@ -1,4 +1,15 @@
 name: Lost Frequencies
 image: https://artist-lineup-cdn.tomorrowland.com/209115527-lf%20bg%20v3.jpg
+genres:
+  - house
+  - deep house
 social:
   instagram: https://www.instagram.com/lostfrequencies/
+  x: https://x.com/lfrequencies
+  facebook: https://www.facebook.com/LostFrequenciesMusic
+  website: https://lostfrequencies.com/
+music:
+  spotify: https://open.spotify.com/artist/7f5Zgnp2spUuuzKplmRkt7
+  apple_music: https://music.apple.com/be/artist/877792512
+  youtube: https://www.youtube.com/channel/UCdKS_mDSLUkS6vDK6u1mjOg
+  soundcloud: https://soundcloud.com/lo-freq-1
