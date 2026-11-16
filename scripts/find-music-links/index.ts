@@ -6,13 +6,19 @@ import { parse } from 'yaml';
 import { loadLineup } from '../../src/data/load.ts';
 import { mergeArtistYaml } from '../import-lineup/convert.ts';
 import {
+  appleMusicId,
   itunesCandidates,
   pickMatch,
   sharedNames,
   spotifyCandidates,
   youtubeCandidates,
+  wikidataLinks,
+  wikidataQuery,
   type Candidate,
+  type MusicKey,
   type MusicService,
+  type WikidataArtist,
+  type WikidataBinding,
 } from './match.ts';
 
 const DATA_DIR = fileURLToPath(new URL('../../data', import.meta.url));
@@ -101,7 +107,7 @@ interface ArtistFile {
   file: string;
   text: string;
   name: string;
-  music: Partial<Record<MusicService, string>>;
+  music: Partial<Record<MusicKey, string>>;
 }
 
 const artists: ArtistFile[] = [];
@@ -112,13 +118,33 @@ for (const fileName of (await readdir(ARTISTS_DIR)).filter((name) => name.endsWi
   artists.push({ id: fileName.slice(0, -'.yml'.length), file, text, name: data.name, music: data.music ?? {} });
 }
 
+async function findInWikidata(artists: WikidataArtist[]): Promise<Map<string, Partial<Record<MusicKey, string>>>> {
+  const url = new URL('https://query.wikidata.org/sparql');
+  url.searchParams.set('query', wikidataQuery(artists));
+  const response = await getJson<{ results: { bindings: WikidataBinding[] } }>(url, {
+    headers: { Accept: 'application/sparql-results+json', 'User-Agent': 'tomorrowland-lineup-music-links/1.0' },
+  });
+  return wikidataLinks(artists, response.results.bindings);
+}
+
 const shared = sharedNames(artists.map((artist) => artist.name));
+const wikidata = await findInWikidata(
+  artists
+    .filter((artist) => !shared.has(artist.name))
+    .map((artist) => ({ name: artist.name, appleMusicId: appleMusicId(artist.music.apple_music) })),
+);
 const noMatch = new Map<MusicService, string[]>(searchers.map((searcher) => [searcher.service, []]));
 let added = 0;
 
 for (const artist of artists) {
   if (shared.has(artist.name)) continue;
   const fields: { path: string[]; value: string }[] = [];
+  for (const [key, url] of Object.entries(wikidata.get(artist.name) ?? {}) as [MusicKey, string][]) {
+    if (artist.music[key]) continue;
+    artist.music[key] = url;
+    fields.push({ path: ['music', key], value: url });
+    console.log(`${artist.id}: ${key} ${url} (Wikidata)`);
+  }
   for (const searcher of searchers) {
     if (artist.music[searcher.service]) continue;
     const match = pickMatch(artist.name, await searcher.search(artist.name));

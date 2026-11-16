@@ -84,3 +84,75 @@ export function youtubeCandidates(response: YoutubeSearch): Candidate[] {
     return channelId && name ? [{ name, url: `https://www.youtube.com/channel/${channelId}`, genres: [] }] : [];
   });
 }
+
+export type MusicKey = MusicService | 'soundcloud';
+
+/** The Wikidata properties that hold the id of an artist on each music service. */
+const WIKIDATA_PROPERTIES: Record<MusicKey, { property: string; url: (id: string) => string }> = {
+  spotify: { property: 'P1902', url: (id) => `https://open.spotify.com/artist/${id}` },
+  apple_music: { property: 'P2850', url: (id) => `https://music.apple.com/us/artist/${id}` },
+  youtube: { property: 'P2397', url: (id) => `https://www.youtube.com/channel/${id}` },
+  soundcloud: { property: 'P3040', url: (id) => `https://soundcloud.com/${id}` },
+};
+const MUSIC_KEYS = Object.keys(WIKIDATA_PROPERTIES) as MusicKey[];
+
+export interface WikidataArtist {
+  name: string;
+  /** The id at the end of the Apple Music link in the artist file. */
+  appleMusicId?: string;
+}
+
+export function appleMusicId(url: string | undefined): string | undefined {
+  return url?.match(/\/(\d+)\/?$/)?.[1];
+}
+
+function labelVariants(name: string): string[] {
+  const titleCase = name.toLowerCase().replace(/(^|\s)\S/g, (start) => start.toUpperCase());
+  return [...new Set([name, titleCase])];
+}
+
+/**
+ * Finds the Wikidata items of the artists by the Apple Music id, or by the name.
+ * A name match must be a DJ (Q130857) or have a genre in electronic music (Q9778).
+ */
+export function wikidataQuery(artists: WikidataArtist[]): string {
+  const appleIds = artists.flatMap((artist) => (artist.appleMusicId ? [JSON.stringify(artist.appleMusicId)] : []));
+  const labels = artists.flatMap((artist) => labelVariants(artist.name).map((label) => `${JSON.stringify(label)}@en`));
+  const optionals = MUSIC_KEYS.map((key) => `OPTIONAL { ?item wdt:${WIKIDATA_PROPERTIES[key].property} ?${key} }`);
+  return `SELECT DISTINCT ?item ?label ?${MUSIC_KEYS.join(' ?')} WHERE {
+  {
+    VALUES ?appleId { ${appleIds.join(' ')} }
+    ?item wdt:P2850 ?appleId .
+  } UNION {
+    VALUES ?label { ${labels.join(' ')} }
+    ?item rdfs:label ?label .
+    { ?item wdt:P106 wd:Q130857 } UNION { ?item wdt:P136/wdt:P279* wd:Q9778 }
+  }
+  ${optionals.join('\n  ')}
+}`;
+}
+
+export type WikidataBinding = Record<string, { value: string } | undefined>;
+
+/**
+ * Gives the music links of each artist from the query results.
+ * An artist with 2 or more items gets no links. A service with 2 or more ids gets no link.
+ */
+export function wikidataLinks(artists: WikidataArtist[], bindings: WikidataBinding[]): Map<string, Partial<Record<MusicKey, string>>> {
+  const links = new Map<string, Partial<Record<MusicKey, string>>>();
+  for (const artist of artists) {
+    const rows = bindings.filter((row) =>
+      row.label
+        ? sameName(row.label.value, artist.name)
+        : artist.appleMusicId !== undefined && row.apple_music?.value === artist.appleMusicId,
+    );
+    if (new Set(rows.map((row) => row.item?.value)).size !== 1) continue;
+    const artistLinks: Partial<Record<MusicKey, string>> = {};
+    for (const key of MUSIC_KEYS) {
+      const ids = new Set(rows.flatMap((row) => (row[key] ? [row[key].value] : [])));
+      if (ids.size === 1) artistLinks[key] = WIKIDATA_PROPERTIES[key].url([...ids][0]);
+    }
+    links.set(artist.name, artistLinks);
+  }
+  return links;
+}
