@@ -26,7 +26,13 @@ Run each command from the root of the repo.
 
 ## Deploy
 
-A static host can serve the `dist/` directory. The host does not need a server runtime.
+Vercel builds and serves the site at https://tomorrowland-lineup.vercel.app. The Vercel project is `tomorrowland-lineup` in the AikoPath team.
+
+- A push to `main` deploys to production.
+- Each PR gets a preview deployment.
+- The build stops on a data problem, so a PR with data that is not valid shows a failed Vercel check.
+
+A different static host can also serve the `dist/` directory. The host does not need a server runtime.
 
 ## Project structure
 
