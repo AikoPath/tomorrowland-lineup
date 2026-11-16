@@ -1,0 +1,160 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/artist-page.ts';
+import { loadLineup } from '../../data/load.ts';
+import Base from '../../layouts/Base.astro';
+import { artistUrl } from '../../urls.ts';
+
+export const getStaticPaths = (async () => {
+  const lineup = await loadLineup();
+  return lineup.artists.map((artist) => ({
+    params: { id: artist.id },
+    props: { artist, sets: artistSets(lineup, artist.id) },
+  }));
+}) satisfies GetStaticPaths;
+
+const { artist, sets } = Astro.props;
+const links = artistLinks(artist);
+---
+
+<Base title={`${artist.name} – Tomorrowland lineup`}>
+  <main>
+    <header>
+      {artist.image && <img src={artist.image} alt="" width="160" height="160" />}
+      <h1>{artist.name}</h1>
+      {
+        artist.genres && (
+          <ul class="genres">
+            {artist.genres.map((genre) => (
+              <li>{genre}</li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    <section>
+      <h2>Sets</h2>
+      {
+        sets.length > 0 ? (
+          <ul class="sets">
+            {sets.map((set) => (
+              <li>
+                <span class="day">{formatDay(set.date)}</span>
+                <span class="time">
+                  {formatTime(set.start)}–{formatTime(set.end)}
+                </span>
+                <span class="stage">{set.stage.name}</span>
+                {set.otherArtists.length > 0 && (
+                  <span class="b2b">
+                    B2B with{' '}
+                    {set.otherArtists.map((other, index) => (
+                      <>
+                        {index > 0 && ', '}
+                        <a href={artistUrl(other.id)}>{other.name}</a>
+                      </>
+                    ))}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No sets yet.</p>
+        )
+      }
+    </section>
+
+    {
+      links.music.length > 0 && (
+        <section>
+          <h2>Music</h2>
+          <ul class="links">
+            {links.music.map((link) => (
+              <li>
+                <a href={link.url} rel="noopener">{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      links.social.length > 0 && (
+        <section>
+          <h2>Social</h2>
+          <ul class="links">
+            {links.social.map((link) => (
+              <li>
+                <a href={link.url} rel="noopener">{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <p><a href="/">Back to the timetable</a></p>
+  </main>
+</Base>
+
+<style>
+  main {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  header img {
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  h1 {
+    margin: 0.5rem 0;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  .genres,
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .genres li {
+    padding: 0.125rem 0.5rem;
+    border: 1px solid currentColor;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .links a {
+    display: inline-block;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid currentColor;
+    border-radius: 0.25rem;
+  }
+
+  .sets li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .day {
+    font-weight: bold;
+  }
+
+  .stage,
+  .b2b {
+    grid-column: 1 / -1;
+  }
+</style>
