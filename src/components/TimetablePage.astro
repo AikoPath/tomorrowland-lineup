@@ -1,6 +1,7 @@
 ---
 import type { Lineup } from '../data/schema';
 import Base from '../layouts/Base.astro';
+import { SITE_NAME } from '../site';
 import { dayLabel, layoutDay } from '../timetable/layout';
 import { artistUrl, dayUrl } from '../urls';
 
@@ -18,10 +19,10 @@ const firstDate = lineup.days[0].date;
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
-<Base title={`Timetable ${dayLabel(date)} · Tomorrowland lineup`}>
+<Base title={`Timetable ${dayLabel(date)} · ${SITE_NAME}`}>
   <div class="page">
   <header class="page-header">
-    <h1>Tomorrowland lineup</h1>
+    <h1>{SITE_NAME}</h1>
     <nav class="days" aria-label="Festival days">
       {
         lineup.days.map(({ date: tabDate }) => (
