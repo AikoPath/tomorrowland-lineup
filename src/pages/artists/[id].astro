@@ -7,7 +7,7 @@ import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../site.ts';
-import { artistUrl } from '../../urls.ts';
+import { artistUrl, editArtistDataUrl } from '../../urls.ts';
 
 export const getStaticPaths = (async () => {
   const lineup = await loadLineup();
@@ -114,6 +114,11 @@ const musicTabs = toMusicTabs(artist);
           </section>
         )
       }
+
+      <footer class="edit">
+        <p>Is some data wrong or missing?</p>
+        <a href={editArtistDataUrl(artist.id)} rel="noopener" target="_blank">Edit this data on GitHub</a>
+      </footer>
     </main>
   </div>
 </Base>
@@ -342,6 +347,25 @@ const musicTabs = toMusicTabs(artist);
   .pill:hover,
   .pill:focus-visible {
     border-color: var(--color-accent);
+  }
+
+  .edit {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-line);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .edit p {
+    margin: 0 0 0.25rem;
+  }
+
+  .edit a {
+    color: var(--color-text);
+    font-weight: 600;
+    text-decoration-color: var(--color-accent);
+    text-underline-offset: 0.2em;
   }
 
   @media (min-width: 48rem) {
