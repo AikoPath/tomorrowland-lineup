@@ -4,6 +4,7 @@ import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/art
 import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
+import { SITE_NAME } from '../../site.ts';
 import { artistUrl } from '../../urls.ts';
 
 export const getStaticPaths = (async () => {
@@ -18,7 +19,7 @@ const { artist, sets } = Astro.props;
 const links = artistLinks(artist);
 ---
 
-<Base title={`${artist.name} – Tomorrowland lineup`}>
+<Base title={`${artist.name} – ${SITE_NAME}`}>
   <div class="page">
     <nav class="top">
       <a href="/" class="back">

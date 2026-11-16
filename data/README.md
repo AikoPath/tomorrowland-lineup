@@ -1,6 +1,6 @@
 # Lineup data
 
-The YAML files in this directory are the source of truth for the site. The Tomorrowland lineup is one source of the data. Other sources fill the gaps.
+The YAML files in this directory are the source of truth for the site. The Tomorrowland Thailand 2026 lineup is one source of the data. Other sources fill the gaps.
 
 `npm run build` validates all files. The build stops and lists each problem with the file and the key.
 
