@@ -75,10 +75,6 @@ Use an https link to a photo of the artist. Do not copy image files into the rep
 
 You can use each source that lets other sites show the photo, for example the Tomorrowland image, the Spotify artist photo or the press kit of the artist. Do not use links from Instagram or Facebook, because these links expire.
 
-To get the Spotify photo, open the artist page on `open.spotify.com` and copy the `og:image` link from the page source.
-
-Some artist files have a comment that tells why the file has no image. Remove the comment when you add an image.
-
 ## `sets/<YYYY-MM-DD>.yml`
 
 The file name is the date of the festival day. The file is a list of sets.
