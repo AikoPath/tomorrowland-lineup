@@ -63,11 +63,17 @@ music:
 
 | Key             | Rule                                                                            |
 | --------------- | ------------------------------------------------------------------------------- |
-| `image`         | An https link to the Tomorrowland image. Do not copy image files into the repo. |
+| `image`         | An https link to a photo of the artist. See [Images](#images).                  |
 | `genres`        | A list of lowercase genre names.                                                |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
 | `music.youtube` | Use the `/channel/UC…` form. The YouTube player needs the channel ID.           |
+
+### Images
+
+Use an https link to a photo of the artist. Do not copy image files into the repo.
+
+You can use each source that lets other sites show the photo, for example the Tomorrowland image, the Spotify artist photo or the press kit of the artist. Do not use links from Instagram or Facebook, because these links expire.
 
 ## `sets/<YYYY-MM-DD>.yml`
 
