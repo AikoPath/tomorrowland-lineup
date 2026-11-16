@@ -174,6 +174,17 @@ test('fills only the empty fields of an artist file and keeps comments', () => {
   );
 });
 
+test('keeps the image that a contributor added', () => {
+  const existing = [
+    'name: Amelie Lens',
+    'image: https://i.scdn.co/image/amelie',
+    'social:',
+    '  instagram: https://www.instagram.com/amelie_lens',
+    '',
+  ].join('\n');
+  assert.equal(mergeArtistYaml(existing, imported), undefined);
+});
+
 test('leaves a complete artist file unchanged', () => {
   const complete = mergeArtistYaml(undefined, imported)!;
   assert.equal(mergeArtistYaml(complete, imported), undefined);

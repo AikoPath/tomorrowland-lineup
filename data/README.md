@@ -63,11 +63,28 @@ music:
 
 | Key             | Rule                                                                            |
 | --------------- | ------------------------------------------------------------------------------- |
-| `image`         | An https link to the Tomorrowland image. Do not copy image files into the repo. |
+| `image`         | An https link to a photo of the artist. See [Images](#images).                  |
 | `genres`        | A list of lowercase genre names.                                                |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the platform of the key.                                       |
 | `music.youtube` | Use the `/channel/UC…` form. The YouTube player needs the channel ID.           |
+
+### Images
+
+Link to the image. Do not copy image files into the repo. Use one of these sources, in this order:
+
+1. The Tomorrowland image. The import adds it.
+2. The Spotify artist photo. Open the artist page on `open.spotify.com` and copy the `og:image` link from the page source. The link starts with `https://i.scdn.co/image/ab6761610000`. Also add the page to `music.spotify`.
+3. The press kit of the artist, if the press kit lets other sites use the photos.
+
+Do not use album art. Do not use links from Instagram or Facebook, because these links expire.
+
+If you find no photo, add a comment at the top of the file. Tell why the file has no image, for example:
+
+```yaml
+# No image on 2026-11-16: The Spotify page of this artist has no photo.
+name: Example Artist
+```
 
 ## `sets/<YYYY-MM-DD>.yml`
 
