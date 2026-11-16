@@ -52,8 +52,8 @@ const PLACEHOLDER_ARTIST = 'more to be announced';
  * across imports, also when the JSON order changes.
  */
 export const ARTIST_ID_OVERRIDES: Readonly<Record<string, string>> = {
-  // The artist "Halo" has the id "halo".
-  'HALŌ': 'halo-macron',
+  // A Thai DJ. "HALŌ", the supergroup of DubVision, Matisse & Sadko and Third Party, has the id "halo".
+  Halo: 'halo-thailand',
 };
 
 export interface ImportedArtist {
