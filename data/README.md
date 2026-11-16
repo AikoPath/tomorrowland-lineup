@@ -23,6 +23,28 @@ The import skips the "More to be announced" entries and each link that the schem
 
 The import makes the ids from the names. If two names give the same id, the import stops. Then add the name and an id to `ARTIST_ID_OVERRIDES` in `scripts/import-lineup/convert.ts`, for example `Halo: 'halo-thailand'`.
 
+## Find music links
+
+`npm run find:music-links` searches the music services for each artist by name. It writes the link of each match into the artist file.
+
+- The script fills only the empty `music.*` keys. It does not change a link that is in the file.
+- The match must have the same name as the artist. When 2 or more matches have the name, a match with an electronic genre wins.
+- The script skips artists that have the same name as another artist, for example `halo` and `halo-thailand`. Add their links by hand.
+- At the end, the script lists the artists with no match. Add their links by hand.
+
+Each service needs different access:
+
+| Service     | Access                                                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Apple Music | The iTunes Search API needs no key. It allows about 20 requests each minute, so one run takes about 8 minutes.                          |
+| Spotify     | Make a free app on the [Spotify developer dashboard](https://developer.spotify.com/dashboard). Set `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`. |
+| YouTube     | Make a free key for the YouTube Data API v3 in the Google Cloud console. Set `YOUTUBE_API_KEY`. A key allows 100 searches each day.     |
+| SoundCloud  | SoundCloud has no open API. Add these links by hand.                                                                                    |
+
+Put the keys in a `.env` file in the repo root. Git ignores this file. The script skips each service that has no key.
+
+A search by name can find the wrong artist. Check the new links before you open a PR.
+
 ## Ids
 
 An id contains lowercase letters, digits and single hyphens, for example `charlotte-de-witte`. The name of an artist file is the artist id.
