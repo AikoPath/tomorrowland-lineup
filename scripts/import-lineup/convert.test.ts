@@ -96,10 +96,10 @@ test('uses the id override, and stops when two artists get the same id', () => {
     { id: '2', name: 'HALŌ' },
   ];
   assert.throws(() => convertLineup([mainstage], [performance(artists)], {}), /Two artists have the id "halo"/);
-  const lineup = convertLineup([mainstage], [performance(artists)], { '2': 'halo-2' });
+  const lineup = convertLineup([mainstage], [performance(artists)], { Halo: 'halo-thailand' });
   assert.deepEqual(
     lineup.artists.map((artist) => artist.id),
-    ['halo', 'halo-2'],
+    ['halo-thailand', 'halo'],
   );
 });
 
