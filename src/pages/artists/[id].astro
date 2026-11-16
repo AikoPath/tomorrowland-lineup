@@ -5,7 +5,7 @@ import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../site.ts';
-import { artistUrl } from '../../urls.ts';
+import { ARTIST_LIST_URL, artistUrl } from '../../urls.ts';
 
 export const getStaticPaths = (async () => {
   const lineup = await loadLineup();
@@ -28,6 +28,7 @@ const links = artistLinks(artist);
         </svg>
         Timetable
       </a>
+      <a href={ARTIST_LIST_URL} class="back">All artists</a>
     </nav>
 
     <header class="hero">
@@ -139,6 +140,8 @@ const links = artistLinks(artist);
   .top {
     position: absolute;
     z-index: 1;
+    display: flex;
+    gap: 0.5rem;
     padding: 1rem;
   }
 

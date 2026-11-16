@@ -6,3 +6,5 @@ export function artistUrl(artistId: string): string {
 export function dayUrl(date: string, firstDate: string): string {
   return date === firstDate ? '/' : `/${date}/`;
 }
+
+export const ARTIST_LIST_URL = '/artists/';
