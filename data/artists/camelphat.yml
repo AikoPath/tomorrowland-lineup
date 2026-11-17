@@ -1,4 +1,15 @@
 name: Camelphat
 image: https://i.scdn.co/image/ab6761610000e5eb85bc993b6a738f94ef4df7cf
+genres:
+  - house
+  - deep house
+social:
+  instagram: https://www.instagram.com/camelphatmusic
+  tiktok: https://www.tiktok.com/@camelphat.music
+  x: https://x.com/CamelPhat
+  facebook: https://www.facebook.com/CamelPhat
+  website: https://www.camelphatmusic.com/
 music:
   spotify: https://open.spotify.com/artist/240wlM8vDrf6S4zCyzGj2W
+  apple_music: https://music.apple.com/gb/artist/385810888
+  soundcloud: https://soundcloud.com/camelphat

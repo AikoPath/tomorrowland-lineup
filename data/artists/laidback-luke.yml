@@ -1,6 +1,15 @@
 name: Laidback Luke
 image: https://artist-lineup-cdn.tomorrowland.com/22204046-1.jpg
+genres:
+  - house
+  - electro house
 social:
   instagram: https://www.instagram.com/laidbackluke/
+  x: https://x.com/LaidbackLuke
+  facebook: https://www.facebook.com/OfficialLaidbackluke
+  website: https://www.laidbackluke.com/
 music:
   spotify: https://open.spotify.com/artist/53cQZtWDwDJwVCNZlfJ6Qk?si=vxkE1j-2SyKWqbS2AoHtGg
+  apple_music: https://music.apple.com/nl/artist/255427591
+  youtube: https://www.youtube.com/channel/UC1vdi4J54ucetZoFAfQenMg
+  soundcloud: https://soundcloud.com/laidbackluke

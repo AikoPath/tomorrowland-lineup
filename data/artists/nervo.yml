@@ -1,4 +1,14 @@
 name: NERVO
 image: https://artist-lineup-assets.b-cdn.net/16607441-large-220731-182539-TML2022-761A4930-JD.jpg
+genres:
+  - progressive house
+  - electro house
 social:
   instagram: https://www.instagram.com/nervomusic/
+  x: https://x.com/NERVOMUSIC
+  facebook: https://www.facebook.com/NERVOmusic
+music:
+  spotify: https://open.spotify.com/artist/4j5KBTO4tk7up54ZirNGvK
+  apple_music: https://music.apple.com/au/artist/315216021
+  youtube: https://www.youtube.com/channel/UCNDASDcfVuxoD4zNJd-1sXw
+  soundcloud: https://soundcloud.com/nervomusic

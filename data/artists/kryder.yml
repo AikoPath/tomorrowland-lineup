@@ -1,2 +1,12 @@
 name: Kryder
 image: https://artist-lineup-cdn.tomorrowland.com/113031634-image.png
+genres:
+  - house
+  - progressive house
+social:
+  instagram: https://www.instagram.com/krydermusic
+  facebook: https://www.facebook.com/KryderMusic
+music:
+  spotify: https://open.spotify.com/artist/1xfLBmx0n8DQri9HxJsq9O
+  apple_music: https://music.apple.com/gb/artist/416725764
+  soundcloud: https://soundcloud.com/kryder

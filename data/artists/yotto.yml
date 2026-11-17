@@ -1,2 +1,16 @@
 name: Yotto
 image: https://artist-lineup-cdn.tomorrowland.com/157516049-yotto.png
+genres:
+  - deep house
+  - house
+  - progressive house
+social:
+  instagram: https://www.instagram.com/yottomusic
+  x: https://x.com/yottomusic
+  facebook: https://www.facebook.com/yottomusic
+  website: https://yottomusic.com/
+music:
+  spotify: https://open.spotify.com/artist/5Dyfxq0ZrFjjeFBdSNxDbo
+  apple_music: https://music.apple.com/us/artist/548731844
+  youtube: https://www.youtube.com/channel/UCMfVL94rwTHC23mwYdBuKdg
+  soundcloud: https://soundcloud.com/yotto
