@@ -10,6 +10,9 @@
   --color-line: hsl(25 97% 15%);
   --color-text: hsl(0 0% 96%);
   --color-text-muted: hsl(0 0% 96% / 65%);
+  --color-fill-subtle: hsl(0 0% 96% / 7%);
+  --color-border-subtle: hsl(0 0% 96% / 25%);
+  --color-border-strong: hsl(0 0% 96% / 40%);
   --color-accent: hsl(33 100% 46%);
   --color-accent-dark: hsl(25 100% 27%);
   --gradient-accent: linear-gradient(90deg, var(--color-accent-dark), var(--color-accent));

@@ -1,6 +1,5 @@
 ---
 import type { MusicTab } from '../artist/music-player.ts';
-import PlatformIcon from './PlatformIcon.astro';
 
 interface Props {
   tabs: MusicTab[];
@@ -19,12 +18,13 @@ const { tabs } = Astro.props;
           role="tab"
           id={`music-tab-${tab.key}`}
           aria-controls={`music-panel-${tab.key}`}
-          aria-label={tab.label}
           aria-selected={index === 0 ? 'true' : 'false'}
           tabindex={index === 0 ? 0 : -1}
         >
-          <PlatformIcon platform={tab.key} />
-          <span class="tab-label">{tab.label}</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor" />
+          </svg>
+          {tab.label}
         </button>
       ))
     }
@@ -141,7 +141,11 @@ const { tabs } = Astro.props;
     }
 
     for (const tab of tabs) {
-      tab.addEventListener('click', () => select(tab));
+      // The pill has a play icon, so a click also starts the player.
+      tab.addEventListener('click', () => {
+        started = true;
+        select(tab);
+      });
       tab.addEventListener('keydown', (event) => {
         const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
         if (!step) return;
@@ -162,66 +166,52 @@ const { tabs } = Astro.props;
 
 <style>
   .player {
-    margin-top: 2.25rem;
+    display: grid;
+    gap: 0.625rem;
   }
 
   h2 {
-    margin: 0 0 0.875rem;
-    color: var(--color-text-muted);
+    margin: 0;
+    color: var(--color-accent);
     font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
     text-transform: uppercase;
   }
 
   .tabs {
     display: flex;
-    gap: 0.25rem;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--color-line);
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   [role='tab'] {
     display: inline-flex;
-    flex: none;
-    gap: 0.5rem;
+    gap: 0.375rem;
     align-items: center;
     min-height: 2.75rem;
     padding: 0 1rem;
-    border: 0;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 999px;
     background: none;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font: inherit;
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: 0.875rem;
     cursor: pointer;
   }
 
   [role='tab']:hover {
-    color: var(--color-text);
+    border-color: var(--color-border-strong);
   }
 
   [role='tab'][aria-selected='true'] {
-    border-bottom-color: var(--color-accent);
-    color: var(--color-text);
-  }
-
-  /* On a narrow screen, the tabs show only the icons, so that all tabs fit. */
-  @media (max-width: 30rem) {
-    [role='tab'] {
-      flex: 1;
-      justify-content: center;
-    }
-
-    .tab-label {
-      display: none;
-    }
+    border-color: transparent;
+    background: var(--gradient-accent) border-box;
+    font-weight: 700;
   }
 
   .panel {
-    padding-top: 1rem;
+    padding-top: 0.375rem;
   }
 
   .stage {
@@ -229,9 +219,9 @@ const { tabs } = Astro.props;
     gap: 0.75rem;
     place-items: center;
     padding: 2rem 1rem;
-    border: 1px solid var(--color-line);
-    border-radius: 0.75rem;
-    background: var(--color-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 0.5rem;
+    background: var(--color-fill-subtle);
   }
 
   .stage.loaded {
