@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { appleSongEmbedUrl, musicTabs } from './music-player.ts';
 
-test('musicTabs gives one tab with an embed player for each music link, in the order of the links', () => {
+test('musicTabs gives one tab with an embed player for each music link, in the order of the links, with an autoplay address when the service has one', () => {
   const tabs = musicTabs({
     id: 'afrojack',
     name: 'AFROJACK',
@@ -26,7 +26,8 @@ test('musicTabs gives one tab with an embed player for each music link, in the o
       url: 'https://www.youtube.com/channel/UC5thKP1rA7SjbfBhQMOaWGg',
       player: {
         kind: 'embed',
-        src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULF5thKP1rA7SjbfBhQMOaWGg&autoplay=1',
+        src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULF5thKP1rA7SjbfBhQMOaWGg',
+        autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULF5thKP1rA7SjbfBhQMOaWGg&autoplay=1',
       },
     },
     {
@@ -35,7 +36,8 @@ test('musicTabs gives one tab with an embed player for each music link, in the o
       url: 'https://soundcloud.com/afrojack?utm_source=x',
       player: {
         kind: 'embed',
-        src: 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fafrojack&auto_play=true',
+        src: 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fafrojack',
+        autoplaySrc: 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fafrojack&auto_play=true',
       },
     },
   ]);

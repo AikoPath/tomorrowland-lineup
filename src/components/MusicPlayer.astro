@@ -40,18 +40,15 @@ const { tabs } = Astro.props;
         hidden={index !== 0}
         data-service={tab.key}
         data-embed-src={tab.player?.kind === 'embed' ? tab.player.src : undefined}
+        data-autoplay-src={tab.player?.kind === 'embed' ? tab.player.autoplaySrc : undefined}
         data-apple-lookup={tab.player?.kind === 'apple-top-song' ? tab.player.lookupUrl : undefined}
       >
         {tab.player && (
           <div class="stage">
-            <button type="button" class="play" data-play>
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M8 5v14l11-7z" fill="currentColor" />
-              </svg>
-              Play
-            </button>
             {tab.player.kind === 'apple-top-song' && <p class="note">Apple Music plays the top song of the artist.</p>}
-            <p class="status" data-status hidden />
+            <p class="status" data-status>
+              Loading the player…
+            </p>
           </div>
         )}
         <a href={tab.url} class="open" rel="noopener" target="_blank">
@@ -75,9 +72,6 @@ const { tabs } = Astro.props;
   for (const root of document.querySelectorAll<HTMLElement>('[data-music-player]')) {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    // After the first click on "Play", a change of tab loads the player of the new tab at once.
-    let started = false;
-
     function select(tab: HTMLButtonElement) {
       for (const other of tabs) {
         const selected = other === tab;
@@ -87,20 +81,19 @@ const { tabs } = Astro.props;
       for (const panel of panels) {
         const selected = panel.id === tab.getAttribute('aria-controls');
         panel.hidden = !selected;
-        if (selected && started) void load(panel);
+        // Browsers play sound only after a user action, so only a click on a tab starts the music.
+        if (selected) void load(panel, { autoplay: true });
         // A hidden player continues to play, so remove it.
         if (!selected) unload(panel);
       }
     }
 
-    async function load(panel: HTMLElement) {
+    async function load(panel: HTMLElement, { autoplay }: { autoplay: boolean }) {
       const stage = panel.querySelector<HTMLElement>('.stage');
       if (!stage || stage.querySelector('iframe')) return;
-      const play = stage.querySelector<HTMLButtonElement>('[data-play]')!;
       const status = stage.querySelector<HTMLElement>('[data-status]')!;
-      play.hidden = true;
 
-      let src = panel.dataset.embedSrc;
+      let src = (autoplay && panel.dataset.autoplaySrc) || panel.dataset.embedSrc;
       const lookupUrl = panel.dataset.appleLookup;
       if (lookupUrl) {
         showStatus(status, 'Loading the top song…');
@@ -131,8 +124,7 @@ const { tabs } = Astro.props;
       if (!stage) return;
       stage.querySelector('iframe')?.remove();
       stage.classList.remove('loaded');
-      stage.querySelector<HTMLElement>('[data-play]')!.hidden = false;
-      stage.querySelector<HTMLElement>('[data-status]')!.hidden = true;
+      showStatus(stage.querySelector<HTMLElement>('[data-status]')!, 'Loading the player…');
     }
 
     function showStatus(status: HTMLElement, text: string) {
@@ -151,12 +143,17 @@ const { tabs } = Astro.props;
       });
     }
 
-    for (const panel of panels) {
-      panel.querySelector('[data-play]')?.addEventListener('click', () => {
-        started = true;
-        void load(panel);
-      });
-    }
+    // The player loads a short time before it comes into view, so that it is ready when the user gets to it.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        const panel = panels.find((candidate) => !candidate.hidden);
+        if (panel) void load(panel, { autoplay: false });
+      },
+      { rootMargin: '300px 0px' },
+    );
+    observer.observe(root);
   }
 </script>
 
@@ -225,10 +222,12 @@ const { tabs } = Astro.props;
     padding-top: 1rem;
   }
 
+  /* Before the player loads, the box has the height of the player, so that the page does not move. */
   .stage {
     display: grid;
+    min-height: 352px;
     gap: 0.75rem;
-    place-items: center;
+    place-content: center;
     padding: 2rem 1rem;
     border: 1px solid var(--color-border-subtle);
     border-radius: 0.5rem;
@@ -242,26 +241,6 @@ const { tabs } = Astro.props;
     background: none;
   }
 
-  .play {
-    display: inline-flex;
-    gap: 0.5rem;
-    align-items: center;
-    min-height: 2.75rem;
-    padding: 0 1.5rem 0 1.125rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--gradient-accent);
-    color: var(--color-text);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .play:hover {
-    filter: brightness(1.15);
-  }
-
-  .play[hidden],
   .status[hidden] {
     display: none;
   }
@@ -274,7 +253,8 @@ const { tabs } = Astro.props;
     text-align: center;
   }
 
-  .stage.loaded .note {
+  .stage.loaded .note,
+  .stage.loaded .status {
     display: none;
   }
 
@@ -291,11 +271,20 @@ const { tabs } = Astro.props;
     aspect-ratio: 16 / 9;
   }
 
+  [data-service='youtube'] .stage {
+    min-height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  [data-service='soundcloud'] .stage,
   [data-service='soundcloud'] .stage :global(iframe) {
+    min-height: 400px;
     height: 400px;
   }
 
+  [data-service='apple_music'] .stage,
   [data-service='apple_music'] .stage :global(iframe) {
+    min-height: 175px;
     height: 175px;
   }
 
