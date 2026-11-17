@@ -47,6 +47,7 @@ src/artist-list/ The artist list and its filter
 src/components/  The parts of the pages
 src/data/        The schema and the loader of the lineup data
 src/layouts/     The page layout that all pages use
+src/now/         The current and next set on each stage for the Now & next page
 src/pages/       One .astro file for each page of the site
 src/site.ts      The name of the site
 src/styles/      theme.css with the colors of the site as CSS variables
