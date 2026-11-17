@@ -18,7 +18,8 @@ export const getStaticPaths = (async () => {
 
 const { artist, sets } = Astro.props;
 const socialLinks = artistLinks(artist).social;
-const musicTabs = toMusicTabs(artist);
+// The Listen section has only the player, so a link with no player does not show.
+const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 ---
 
 <Base title={`${artist.name} – ${SITE_NAME}`}>

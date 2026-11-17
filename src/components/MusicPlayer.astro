@@ -51,9 +51,6 @@ const { tabs } = Astro.props;
             </p>
           </div>
         )}
-        <a href={tab.url} class="open" rel="noopener" target="_blank">
-          Open in {tab.label}
-        </a>
       </div>
     ))
   }
@@ -103,7 +100,7 @@ const { tabs } = Astro.props;
           .catch(() => undefined);
         if (panel.hidden) return;
         if (!src) {
-          showStatus(status, 'Apple Music did not give a song for this artist. Open the artist in Apple Music.');
+          showStatus(status, 'Apple Music did not give a song for this artist.');
           return;
         }
         status.hidden = true;
@@ -290,11 +287,4 @@ const { tabs } = Astro.props;
     height: 175px;
   }
 
-  .open {
-    display: inline-block;
-    margin-top: 0.75rem;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-    text-underline-offset: 0.2em;
-  }
 </style>
