@@ -52,24 +52,26 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
 
           <template id="stage-card">
             <section class="card">
-              <h2 class="stage-name" />
-              <div class="current">
-                <span class="photo">
-                  <img alt="" decoding="async" />
-                  <span class="initials" aria-hidden="true" />
-                </span>
-                <div class="current-text">
-                  <div class="current-head">
-                    <span class="names" />
-                    <span class="set-time" />
+              <div class="top">
+                <h2 class="stage-name" />
+                <div class="current">
+                  <span class="photo">
+                    <img alt="" decoding="async" />
+                    <span class="initials" aria-hidden="true" />
+                  </span>
+                  <div class="current-text">
+                    <div class="current-head">
+                      <span class="names" />
+                      <span class="set-time" />
+                    </div>
+                    <div class="progress" aria-hidden="true">
+                      <div class="progress-bar" />
+                    </div>
+                    <span class="time-left" />
                   </div>
-                  <div class="progress" aria-hidden="true">
-                    <div class="progress-bar" />
-                  </div>
-                  <span class="time-left" />
                 </div>
+                <p class="idle">No set at this time</p>
               </div>
-              <p class="idle">No set at this time</p>
               <div class="next">
                 <span class="next-label">Next</span>
                 <span class="names" />
@@ -315,10 +317,22 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
   .card {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem 0.875rem;
+    overflow: hidden;
     border-radius: 0.5rem;
     background: var(--color-surface);
+  }
+
+  /* The top part opens the current artist and the next part opens the next artist. */
+  .top,
+  .next {
+    position: relative;
+  }
+
+  .top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0.875rem 0.5rem;
   }
 
   .card [hidden] {
@@ -388,7 +402,32 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     text-decoration: none;
   }
 
-  .names :global(a:hover),
+  /*
+   * The link of the first artist covers the whole part, so that a tap on the photo or the time also opens the artist page.
+   * The links of the other artists of a B2B set stay above it.
+   */
+  .names :global(a:first-of-type::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .names :global(a ~ a) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .names :global(a:focus-visible) {
+    outline: none;
+  }
+
+  :global(.card :is(.top, .next):has(a:first-of-type:focus-visible)) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  :global(.card :is(.top, .next):hover:not(:has(a ~ a:hover)) .names a:first-of-type),
+  .names :global(a ~ a:hover),
   .names :global(a:focus-visible) {
     color: var(--color-accent);
   }
@@ -433,7 +472,16 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     display: flex;
     gap: 0.625rem;
     align-items: center;
-    min-height: 2.75rem;
+    min-height: 3.25rem;
+    padding: 0 0.875rem 0.5rem;
+  }
+
+  .next::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0.875rem;
+    left: 0.875rem;
     border-top: 1px solid var(--color-line);
   }
 
