@@ -176,7 +176,8 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
   /* On a photo, the buttons stay at the top of the screen. After the name scrolls away, a bar with the name shows behind them. */
   .has-photo .top {
     position: fixed;
-    z-index: 1;
+    /* Above the name on the photo, so that the buttons always get the clicks. */
+    z-index: 2;
     top: 0;
     right: 0;
     left: 0;
@@ -270,6 +271,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     font-size: 2.5rem;
     line-height: 1.05;
     transform-origin: left bottom;
+    pointer-events: none;
   }
 
   .photo img {
@@ -388,7 +390,9 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     background: var(--color-background);
   }
 
+  /* The page can always scroll past the photo, so that the name and the top bar finish their change also on a short page. */
   .has-photo main {
+    min-height: 100vh;
     padding-top: 0.25rem;
   }
 
