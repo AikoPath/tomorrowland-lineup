@@ -224,8 +224,11 @@ const musicTabs = toMusicTabs(artist);
 
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: scroll()) {
+      /* With the "animation" shorthand, the build puts the timeline into the shorthand, and Chromium ignores that rule. */
       .photo img {
-        animation: photo-parallax linear both;
+        animation-name: photo-parallax;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
         animation-timeline: scroll(root);
         animation-range: 0 var(--photo-height);
       }
