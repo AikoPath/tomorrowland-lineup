@@ -143,14 +143,8 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
                       <span class="set">{setLabel(set)}</span>
                     ))}
                     {artist.genres && (
-                      <span class="genres">
-                        <span class="genre">{genreLabel(artist.genres[0]!)}</span>
-                        {artist.genres.length > 1 && (
-                          <span class="genre" title={artist.genres.slice(1).map(genreLabel).join(', ')}>
-                            <span aria-hidden="true">+{artist.genres.length - 1}</span>
-                            <span class="visually-hidden">, {artist.genres.slice(1).map(genreLabel).join(', ')}</span>
-                          </span>
-                        )}
+                      <span class="genres" title={artist.genres.map(genreLabel).join(' · ')}>
+                        {artist.genres.map(genreLabel).join(' · ')}
                       </span>
                     )}
                   </a>
@@ -582,28 +576,12 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     font-size: 0.8125rem;
   }
 
+  /* A quiet line: one line with "…" at the end when the genres do not fit. */
   .genres {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.125rem;
-  }
-
-  .genre {
-    padding: 0 0.5rem;
-    border: 1px solid var(--color-control-line);
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1.25rem;
-  }
-
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
     overflow: hidden;
-    clip-path: inset(50%);
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
