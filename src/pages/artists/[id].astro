@@ -189,8 +189,8 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     position: absolute;
     z-index: -1;
     inset: 0;
-    border-bottom: 1px solid var(--color-border-faint);
-    background: var(--color-bar);
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-bar-translucent);
     content: '';
   }
 
@@ -218,7 +218,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     align-items: center;
     justify-content: center;
     height: 2.75rem;
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--color-control-line-strong);
     border-radius: 999px;
     background: var(--color-background);
     text-decoration: none;
@@ -409,7 +409,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     width: 4.5rem;
     height: 4.5rem;
     place-items: center;
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--color-control-line-strong);
     border-radius: 50%;
     font-size: 1.75rem;
     font-weight: 700;
@@ -441,7 +441,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 
   .genres li {
     padding: 0.3125rem 0.75rem;
-    border: 1px solid var(--color-border-subtle);
+    border: 1px solid var(--color-control-line);
     border-radius: 999px;
     font-size: 0.8125rem;
   }
@@ -471,9 +471,9 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 
   .set {
     padding: 0.875rem 1rem;
-    border: 1px solid var(--color-border-subtle);
+    border: 1px solid var(--color-control-line);
     border-radius: 0.5rem;
-    background: var(--color-fill-subtle);
+    background: var(--color-control);
   }
 
   .set p {
@@ -519,7 +519,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     align-items: center;
     margin-top: 0.75rem !important;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--color-border-subtle);
+    border-top: 1px solid var(--color-control-line);
   }
 
   .b2b-tag {
@@ -544,7 +544,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     align-items: center;
     height: 2.75rem;
     padding: 0 1rem;
-    border: 1px solid var(--color-border-subtle);
+    border: 1px solid var(--color-control-line);
     border-radius: 999px;
     font-size: 0.875rem;
     text-decoration: none;
@@ -552,6 +552,6 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 
   .pill:hover,
   .pill:focus-visible {
-    border-color: var(--color-border-strong);
+    border-color: var(--color-control-line-strong);
   }
 </style>
