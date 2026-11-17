@@ -26,8 +26,10 @@ Run each command from the root of the repo.
 
 ## Deploy
 
-Vercel builds and serves the site at https://tomorrowland-lineup.vercel.app. The Vercel project is `tomorrowland-lineup` in the AikoPath team.
+Vercel builds and serves the site at https://tomorrowland.aiko.dev. The Vercel project is `tomorrowland-lineup` in the AikoPath team.
 
+- The domain `tomorrowland.aiko.dev` has a CNAME record in the Porkbun DNS of `aiko.dev`. The record points to the value that the Vercel domain settings give.
+- https://tomorrowland-lineup.vercel.app also serves the site.
 - A push to `main` deploys to production.
 - Each PR gets a preview deployment.
 - The build stops on a data problem, so a PR with data that is not valid shows a failed Vercel check.
