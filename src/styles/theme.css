@@ -13,6 +13,14 @@
   --color-accent: hsl(33 100% 46%);
   --color-accent-dark: hsl(25 100% 27%);
   --gradient-accent: linear-gradient(90deg, var(--color-accent-dark), var(--color-accent));
+
+  /* The Line-up screen of the design in design/project/Main.dc.html */
+  --color-card: hsl(334 9% 15%);
+  --color-bar: hsl(334 15% 10%);
+  --color-divider: hsl(0 0% 96% / 12%);
+  --color-control: hsl(0 0% 96% / 7%);
+  --color-control-line: hsl(0 0% 96% / 25%);
+  --gradient-photo: linear-gradient(90deg, hsl(334 26% 5% / 85%), hsl(334 26% 5% / 55%));
 }
 
 *,

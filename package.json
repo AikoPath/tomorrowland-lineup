@@ -11,8 +11,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --test 'src/**/*.test.ts' 'scripts/**/*.test.ts'",
-    "import:lineup": "node scripts/import-lineup/index.ts"
+    "test": "node --test 'src/**/*.test.ts'"
   },
   "dependencies": {
     "astro": "^7.4.12",

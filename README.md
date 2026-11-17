@@ -22,12 +22,13 @@ Run each command from the root of the repo.
 | `npm run build`         | Writes the static site to `dist/`.                                              |
 | `npm run preview`       | Serves `dist/` on your computer before you deploy it.                           |
 | `npm test`              | Runs the tests.                                                                 |
-| `npm run import:lineup` | Imports the Tomorrowland Thailand 2026 lineup into `data/`. See data/README.md. |
 
 ## Deploy
 
-Vercel builds and serves the site at https://tomorrowland-lineup.vercel.app. The Vercel project is `tomorrowland-lineup` in the AikoPath team.
+Vercel builds and serves the site at https://tomorrowland.aiko.dev. The Vercel project is `tomorrowland-lineup` in the AikoPath team.
 
+- The domain `tomorrowland.aiko.dev` has a CNAME record in the Porkbun DNS of `aiko.dev`. The record points to the value that the Vercel domain settings give.
+- https://tomorrowland-lineup.vercel.app also serves the site.
 - A push to `main` deploys to production.
 - Each PR gets a preview deployment.
 - The build stops on a data problem, so a PR with data that is not valid shows a failed Vercel check.
@@ -39,12 +40,12 @@ A different static host can also serve the `dist/` directory. The host does not 
 ```text
 data/            The lineup data in YAML. See data/README.md.
 public/          Files that Astro copies to dist/ with no change
-scripts/         The import of the Tomorrowland Thailand 2026 lineup
 src/artist/      The data of the artist page
 src/artist-list/ The artist list and its filter
 src/components/  The parts of the pages
 src/data/        The schema and the loader of the lineup data
 src/layouts/     The page layout that all pages use
+src/now/         The current and next set on each stage for the Now & next page
 src/pages/       One .astro file for each page of the site
 src/site.ts      The name of the site
 src/styles/      theme.css with the colors of the site as CSS variables

@@ -10,6 +10,10 @@ export interface PlacedSet {
   start: string;
   /** `HH:MM` */
   end: string;
+  /** The image of the first artist with an image. */
+  image?: string;
+  /** The first genre of the first artist with a genre. */
+  genre?: string;
 }
 
 export interface StageColumn {
@@ -49,17 +53,25 @@ export function layoutDay(day: Day, stages: Stage[], artists: Artist[]): DayTime
       stage,
       sets: day.sets
         .filter((set) => set.stage === stage.id)
-        .map((set) => ({
-          artists: set.artists.map((id) => {
+        .map((set) => {
+          const setArtists = set.artists.map((id) => {
             const artist = artistsById.get(id);
             if (!artist) throw new Error(`Unknown artist "${id}" in the sets of ${day.date}`);
             return artist;
-          }),
-          offset: toMinutes(set.start) - timetableStart,
-          length: toMinutes(set.end) - toMinutes(set.start),
-          start: clockTime(set.start),
-          end: clockTime(set.end),
-        })),
+          });
+          const placed: PlacedSet = {
+            artists: setArtists,
+            offset: toMinutes(set.start) - timetableStart,
+            length: toMinutes(set.end) - toMinutes(set.start),
+            start: clockTime(set.start),
+            end: clockTime(set.end),
+          };
+          const image = setArtists.find((artist) => artist.image)?.image;
+          const genre = setArtists.find((artist) => artist.genres?.length)?.genres?.[0];
+          if (image) placed.image = image;
+          if (genre) placed.genre = genre;
+          return placed;
+        }),
     }))
     .filter((column) => column.sets.length > 0);
 
@@ -86,10 +98,26 @@ function clockTime(localTime: string): string {
 
 /** For example, `Fri 11 Dec` for `2026-12-11`. */
 export function dayLabel(date: string): string {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  });
+  const { weekday, dayAndMonth } = dayLabelParts(date);
+  return `${weekday} ${dayAndMonth}`;
+}
+
+/** For example, `Fri` and `11 Dec` for `2026-12-11`. */
+export function dayLabelParts(date: string): { weekday: string; dayAndMonth: string } {
+  const utcDate = new Date(`${date}T00:00:00Z`);
+  return {
+    weekday: utcDate.toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' }),
+    dayAndMonth: utcDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
+  };
+}
+
+/** For example, `11–13 Dec 2026` for `2026-12-11` to `2026-12-13`. */
+export function dateRangeLabel(firstDate: string, lastDate: string): string {
+  const format = (date: string, options: Intl.DateTimeFormatOptions) =>
+    new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', { ...options, timeZone: 'UTC' });
+  const fullDate = { day: 'numeric', month: 'short', year: 'numeric' } as const;
+  const last = format(lastDate, fullDate);
+  if (firstDate === lastDate) return last;
+  if (firstDate.slice(0, 7) === lastDate.slice(0, 7)) return `${format(firstDate, { day: 'numeric' })}–${last}`;
+  return `${format(firstDate, fullDate)} – ${last}`;
 }
