@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explore artists by name, day, stage and genre</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EB8100}a:hover{color:#FF9A1F}
+input::placeholder{color:rgba(245,245,245,0.6)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #10090C; color: #F5F5F5; font-family: Mulish, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<header style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #EB8100; font-weight: 700">Tomorrowland Thailand · 11–13 Dec 2026</div>
+<h1 style="margin: 0; font-family: Mulish, sans-serif; font-weight: 700; font-size: 32px; letter-spacing: 0">Explore</h1>
+</header>
+<div style="padding: 16px 20px 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px; height: 48px; box-sizing: border-box; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 8px; background: rgba(245, 245, 245, 0.07); padding: 0 14px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)">Search artists</label>
+<input id="q" type="search" placeholder="Search artists" style="flex-grow: 1; min-width: 0; height: 44px; border: 0; outline: 0; background: transparent; color: #F5F5F5; font-family: Mulish, sans-serif; font-size: 16px">
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 8px; background: rgba(245, 245, 245, 0.07); color: #F5F5F5; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; display: flex; align-items: center; justify-content: space-between; cursor: pointer">
+<span>Any day</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<button type="button" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 8px; background: rgba(245, 245, 245, 0.07); color: #F5F5F5; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; display: flex; align-items: center; justify-content: space-between; cursor: pointer">
+<span>Any stage</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+</div>
+<div role="group" aria-label="Genre" style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">All</button>
+<button type="button" aria-pressed="true" style="height: 44px; padding: 0 14px; border: 1px solid #F5F5F5; border-radius: 22px; background: #F5F5F5; color: #10090C; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer">Trance</button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">Techno</button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">House</button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">Big room</button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">Hardstyle</button>
+<button type="button" aria-pressed="false" style="height: 44px; padding: 0 14px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">More genres</button>
+</div>
+</div>
+<h2 style="margin: 0; padding: 20px 20px 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245, 245, 245, 0.7)">3 artists · Trance</h2>
+<div style="display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 68px; box-sizing: border-box; padding: 8px 20px; border-top: 1px solid rgba(245, 245, 245, 0.12)">
+<a href="Artist.dc.html" style="flex-grow: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: #F5F5F5">
+<div role="img" aria-label="Artist photo" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 8px; background: #2A2326; display: flex; align-items: center; justify-content: center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<span style="font-size: 16px; font-weight: 700">Cosmic Gate</span>
+<span style="font-size: 13px; color: rgba(245, 245, 245, 0.7)">Fri · Crystal Garden · 21:00</span>
+</div>
+</a>
+<button type="button" aria-label="Play a preview of Cosmic Gate" style="width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #F5F5F5; border-radius: 50%; background: transparent; color: #F5F5F5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 68px; box-sizing: border-box; padding: 8px 20px; border-top: 1px solid rgba(245, 245, 245, 0.12)">
+<a href="Artist.dc.html" style="flex-grow: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: #F5F5F5">
+<div role="img" aria-label="Artist photo" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 8px; background: #2A2326; display: flex; align-items: center; justify-content: center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<span style="font-size: 16px; font-weight: 700">Ferry Corsten</span>
+<span style="font-size: 13px; color: rgba(245, 245, 245, 0.7)">Fri · Crystal Garden · 00:00</span>
+</div>
+</a>
+<button type="button" aria-label="Play a preview of Ferry Corsten" style="width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #F5F5F5; border-radius: 50%; background: transparent; color: #F5F5F5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 68px; box-sizing: border-box; padding: 8px 20px; border-top: 1px solid rgba(245, 245, 245, 0.12); border-bottom: 1px solid rgba(245, 245, 245, 0.12)">
+<a href="Artist.dc.html" style="flex-grow: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: #F5F5F5">
+<div style="width: 48px; height: 48px; flex-shrink: 0; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(245, 245, 245, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; color: #F5F5F5">AF</div>
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<span style="font-size: 16px; font-weight: 700">Aly &amp; Fila</span>
+<span style="font-size: 13px; color: rgba(245, 245, 245, 0.7)">Fri · Crystal Garden · 22:00</span>
+</div>
+</a>
+</div>
+</div>
+<nav aria-label="Main" style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid rgba(245, 245, 245, 0.12); background: #10090C; padding: 8px 12px 16px">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+<span>Line-up</span>
+</a>
+<a href="Now.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+<span>Now</span>
+</a>
+<a href="Explore.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: #EB8100; font-size: 12px; font-weight: 700">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span>Explore</span>
+</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
