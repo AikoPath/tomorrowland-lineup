@@ -1,5 +1,6 @@
 ---
 import { Font } from 'astro:assets';
+import FavouriteHint from '../components/FavouriteHint.astro';
 import MainNav, { type MainPage } from '../components/MainNav.astro';
 import '../styles/theme.css';
 
@@ -24,6 +25,7 @@ const { title, mainPage } = Astro.props;
   </head>
   <body>
     <slot />
+    <FavouriteHint />
     <MainNav current={mainPage} />
   </body>
 </html>

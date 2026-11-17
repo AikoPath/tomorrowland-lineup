@@ -1,6 +1,9 @@
 import type { Artist, Day, Stage } from '../data/schema.ts';
+import { favouriteKey } from '../favourites/favourites.ts';
 
 export interface PlacedSet {
+  /** From `favouriteKey`. */
+  key: string;
   artists: Artist[];
   /** Minutes from the start of the timetable to the start of the set. */
   offset: number;
@@ -60,6 +63,7 @@ export function layoutDay(day: Day, stages: Stage[], artists: Artist[]): DayTime
             return artist;
           });
           const placed: PlacedSet = {
+            key: favouriteKey(day.date, set.artists),
             artists: setArtists,
             offset: toMinutes(set.start) - timetableStart,
             length: toMinutes(set.end) - toMinutes(set.start),

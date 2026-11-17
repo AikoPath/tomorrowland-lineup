@@ -13,6 +13,9 @@ export const LINEUP_URL = '/';
 
 export const NOW_URL = '/now/';
 
+/** The favourite sets of the user. */
+export const TIMELINE_URL = '/timeline/';
+
 /** The Explore page lists all artists. */
 export const EXPLORE_URL = '/artists/';
 
