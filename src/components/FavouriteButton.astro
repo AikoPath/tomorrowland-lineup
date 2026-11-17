@@ -1,0 +1,56 @@
+---
+interface Props {
+  /** From `favouriteKey`. */
+  setKey: string;
+  /** The words in the label, for example `Martin Garrix` gives "Add Martin Garrix to favourites". */
+  subject: string;
+  class?: string;
+}
+
+const { setKey, subject, class: className } = Astro.props;
+---
+
+<!-- The script in FavouriteHint.astro sets the state from the storage of the browser and does the clicks. -->
+<button
+  type="button"
+  class:list={['favourite', className]}
+  data-favourite-key={setKey}
+  data-favourite-subject={subject}
+  aria-pressed="false"
+  aria-label={`Add ${subject} to favourites`}
+>
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"></path>
+  </svg>
+</button>
+
+<style>
+  .favourite {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .favourite[aria-pressed='true'] {
+    color: var(--color-accent);
+  }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+
+  [aria-pressed='true'] svg {
+    fill: currentColor;
+  }
+</style>

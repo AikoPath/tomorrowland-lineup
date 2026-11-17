@@ -1,0 +1,32 @@
+---
+import PageHeader from '../components/PageHeader.astro';
+import { loadLineup } from '../data/load.ts';
+import Base from '../layouts/Base.astro';
+import { SITE_NAME } from '../site.ts';
+import { LINEUP_URL } from '../urls.ts';
+
+// The task "Build the My timeline page" replaces this page with the list of the favourite sets.
+const lineup = await loadLineup();
+---
+
+<Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline">
+  <div class="page">
+    <PageHeader lineup={lineup} title="My timeline" />
+    <p>
+      Your favourite sets will show here soon. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .page {
+    display: grid;
+    gap: 1rem;
+    padding: 1.75rem 1.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+</style>

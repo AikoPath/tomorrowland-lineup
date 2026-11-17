@@ -1,6 +1,9 @@
 import type { Artist, Lineup, Stage } from '../data/schema.ts';
+import { favouriteKey } from '../favourites/favourites.ts';
 
 export interface ArtistSet {
+  /** From `favouriteKey`. */
+  key: string;
   /** The festival day, `YYYY-MM-DD`. A set after midnight stays on the day before. */
   date: string;
   stage: Stage;
@@ -17,6 +20,7 @@ export function artistSets(lineup: Lineup, artistId: string): ArtistSet[] {
     sets
       .filter((set) => set.artists.includes(artistId))
       .map((set) => ({
+        key: favouriteKey(date, set.artists),
         date,
         stage: stages.get(set.stage)!,
         start: set.start,
