@@ -11,7 +11,7 @@ import { previewPlayer } from '../../artist/music-player.ts';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../site.ts';
-import { dayLabel } from '../../timetable/layout.ts';
+import { dateRangeLabel, dayLabel } from '../../timetable/layout.ts';
 import { artistUrl } from '../../urls.ts';
 
 /** The number of genre chips that the page shows before the user clicks "More genres". */
@@ -22,12 +22,7 @@ const entries = artistListEntries(lineup);
 const options = filterOptions(lineup);
 const commonGenres = options.genres.slice(0, COMMON_GENRE_COUNT);
 const otherGenres = options.genres.slice(COMMON_GENRE_COUNT);
-const festivalDates = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-}).formatRange(new Date(`${lineup.days[0].date}T00:00:00Z`), new Date(`${lineup.days.at(-1)!.date}T00:00:00Z`));
+const festivalDates = dateRangeLabel(lineup.days[0].date, lineup.days.at(-1)!.date);
 // Escape "<", so that a genre in the data cannot close the script element.
 const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceAll('<', '\\u003c');
 ---
@@ -334,9 +329,6 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
 
 <style>
   .page {
-    --color-field: color-mix(in srgb, var(--color-text) 7%, transparent);
-    --color-field-line: color-mix(in srgb, var(--color-text) 25%, transparent);
-    --color-row-line: color-mix(in srgb, var(--color-text) 12%, transparent);
     --color-icon: color-mix(in srgb, var(--color-text) 70%, var(--color-background));
 
     max-width: 52rem;
@@ -415,9 +407,9 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   select {
     width: 100%;
     min-width: 0;
-    border: 1px solid var(--color-field-line);
+    border: 1px solid var(--color-control-line);
     border-radius: 0.5rem;
-    background: var(--color-field);
+    background: var(--color-control);
     color: inherit;
     font: inherit;
   }
@@ -474,7 +466,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   .chip {
     height: 2.75rem;
     padding: 0 0.875rem;
-    border: 1px solid var(--color-field-line);
+    border: 1px solid var(--color-control-line);
     border-radius: 999px;
     background: transparent;
     color: var(--color-text-muted);
@@ -517,11 +509,11 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   .artists {
-    border-top: 1px solid var(--color-row-line);
+    border-top: 1px solid var(--color-divider);
   }
 
   .artists li {
-    border-bottom: 1px solid var(--color-row-line);
+    border-bottom: 1px solid var(--color-divider);
   }
 
   .artists li[hidden] {
@@ -559,7 +551,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   img.photo {
-    background: var(--color-field);
+    background: var(--color-control);
     object-fit: cover;
     object-position: top;
   }
