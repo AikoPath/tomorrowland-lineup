@@ -11,43 +11,13 @@ data/
 └── sets/<YYYY-MM-DD>.yml   The sets of one festival day
 ```
 
-## Import from Tomorrowland
+## Updates from Tomorrowland
 
-`npm run import:lineup` reads the Tomorrowland line-up JSON and writes the files in this directory. Run it again when Tomorrowland changes the lineup.
+The maintainers update the files in this directory when Tomorrowland changes the lineup.
 
-- Artist files: the import adds only the keys that are empty. It does not change a value that a contributor wrote.
-- `stages.yml`: the import adds the stages that are missing. It does not change the names in the file.
-- Set files: the import writes the file of each day again. Changes in a set file go away at the next import.
-
-The import skips the "More to be announced" entries and each link that the schema does not accept. It writes a warning for each skipped link. At the end, it validates all files.
-
-The import makes the ids from the names. If two names give the same id, the import stops. Then add the name and an id to `ARTIST_ID_OVERRIDES` in `scripts/import-lineup/convert.ts`, for example `Halo: 'halo-thailand'`.
-
-## Find music links
-
-`npm run find:music-links` finds the music links of each artist in 2 steps. It writes each link into the artist file.
-
-1. The script reads the Spotify, Apple Music, YouTube and SoundCloud ids from Wikidata. It finds the artist by the Apple Music id in the file, or by the name of a DJ or an electronic music artist.
-2. The script searches the music services by name for each link that is still empty.
-
-- The script fills only the empty `music.*` keys. It does not change a link that is in the file.
-- When Wikidata has 2 or more ids for one service, the script uses no id from Wikidata for that service.
-- A search match must have the same name as the artist. When 2 or more matches have the name, a match with an electronic genre wins.
-- The script skips artists that have the same name as another artist, for example `halo` and `halo-thailand`. Add their links by hand.
-- At the end, the script lists the artists with no match. Add their links by hand.
-
-Wikidata needs no key. Each search service needs different access:
-
-| Service     | Access                                                                                                                                  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Apple Music | The iTunes Search API needs no key. It allows about 20 requests each minute, so one run takes about 8 minutes.                          |
-| Spotify     | Make a free app on the [Spotify developer dashboard](https://developer.spotify.com/dashboard). Set `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET`. |
-| YouTube     | Make a free key for the YouTube Data API v3 in the Google Cloud console. Set `YOUTUBE_API_KEY`. A key allows 100 searches each day.     |
-| SoundCloud  | SoundCloud has no open search API. The script gets SoundCloud links only from Wikidata. Add the other links by hand.                   |
-
-Put the keys in a `.env` file in the repo root. Git ignores this file. The script skips each service that has no key.
-
-A search by name can find the wrong artist, and a Wikidata id can be old. Check the new links before you open a PR.
+- Artist files: an update adds only the keys that are empty. It does not change a value that a contributor wrote.
+- `stages.yml`: an update adds the stages that are missing. It does not change the names in the file.
+- Set files: an update writes the file of each day again. Changes in a set file go away at the next update.
 
 ## Ids
 
