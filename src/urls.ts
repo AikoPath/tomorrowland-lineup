@@ -11,6 +11,8 @@ export function dayUrl(date: string, firstDate: string): string {
 
 export const ARTIST_LIST_URL = '/artists/';
 
+export const NOW_URL = '/now/';
+
 /** GitHub opens the file in its editor and makes a fork for a user with no write access. */
 export function editArtistDataUrl(artistId: string): string {
   return `${REPO_URL}/edit/main/data/artists/${artistId}.yml`;
