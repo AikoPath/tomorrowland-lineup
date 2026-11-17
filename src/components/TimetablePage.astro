@@ -2,7 +2,7 @@
 import type { Lineup } from '../data/schema';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
-import { dayLabel, layoutDay } from '../timetable/layout';
+import { dateRangeLabel, dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
 import { ARTIST_LIST_URL, artistUrl, dayUrl } from '../urls';
 
 interface Props {
@@ -16,72 +16,140 @@ const day = lineup.days.find((candidate) => candidate.date === date);
 if (!day) throw new Error(`The lineup has no day ${date}`);
 
 const firstDate = lineup.days[0].date;
+const lastDate = lineup.days.at(-1)!.date;
 const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
-<Base title={`Timetable ${dayLabel(date)} · ${SITE_NAME}`}>
+<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`}>
   {
     date === firstDate && (
       <script is:inline define:vars={{ otherDates }}>
-        // The en-CA locale gives the local date as YYYY-MM-DD.
+        // The en-CA locale gives the local date as YYYY-MM-DD. The stage selection in the URL stays.
         const today = new Date().toLocaleDateString('en-CA');
-        if (otherDates.includes(today)) location.replace(`/${today}/`);
+        if (otherDates.includes(today)) location.replace(`/${today}/${location.search}`);
       </script>
     )
   }
   <div class="page">
-  <header class="page-header">
-    <div class="title-row">
-      <h1>{SITE_NAME}</h1>
-      <a href={ARTIST_LIST_URL} class="artists-link">All artists</a>
-    </div>
+    <header class="page-header">
+      <p class="festival">Tomorrowland Thailand · {dateRangeLabel(firstDate, lastDate)}</p>
+      <div class="title-row">
+        <h1>Line-up</h1>
+        <a href={ARTIST_LIST_URL} class="artists-link">All artists</a>
+      </div>
+    </header>
+
     <nav class="days" aria-label="Festival days">
       {
-        lineup.days.map(({ date: tabDate }) => (
-          <a href={dayUrl(tabDate, firstDate)} aria-current={tabDate === date ? 'page' : undefined}>
-            {dayLabel(tabDate)}
-          </a>
-        ))
+        lineup.days.map(({ date: tabDate }) => {
+          const { weekday, dayAndMonth } = dayLabelParts(tabDate);
+          return (
+            <a href={dayUrl(tabDate, firstDate)} aria-current={tabDate === date ? 'page' : undefined}>
+              <span class="weekday">{weekday}</span>
+              <span class="date">{dayAndMonth}</span>
+            </a>
+          );
+        })
       }
     </nav>
-  </header>
 
-  <main
-    class="timetable"
-    style={`--stages: ${timetable.columns.length}; --length: ${timetable.length};`}
-    aria-label={`Timetable ${dayLabel(date)}`}
-  >
-    <div class="corner"></div>
-    {timetable.columns.map(({ stage }) => <h2 class="stage-name">{stage.name}</h2>)}
+    <div class="stage-chips" role="group" aria-label="Stages">
+      <button type="button" data-stage="" aria-pressed="true">All stages</button>
+      {
+        timetable.columns.map(({ stage }) => (
+          <button type="button" data-stage={stage.id} aria-pressed="false">
+            {stage.name}
+          </button>
+        ))
+      }
+    </div>
 
-    <ol class="hours" aria-hidden="true">
-      {timetable.hours.map((hour) => <li style={`--offset: ${hour.offset}`}>{hour.label}</li>)}
-    </ol>
-    {
-      timetable.columns.map(({ stage, sets }) => (
-        <ol class="stage" aria-label={stage.name}>
-          {sets.map((set) => (
-            <li class="set" style={`--offset: ${set.offset}; --length: ${set.length}`}>
-              <span class="artists">
-                {set.artists.map((artist, index) => (
-                  <>
-                    {index > 0 && <span class="b2b"> b2b </span>}
-                    <a href={artistUrl(artist.id)}>{artist.name}</a>
-                  </>
-                ))}
-              </span>
-              <span class="time">
-                <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
-              </span>
-            </li>
-          ))}
-        </ol>
-      ))
-    }
-  </main>
+    <main
+      class="timetable"
+      style={`--stages: ${timetable.columns.length}; --length: ${timetable.length};`}
+      aria-label={`Line-up ${dayLabel(date)}`}
+    >
+      <div class="corner"></div>
+      {timetable.columns.map(({ stage }) => <h2 class="stage-name" data-stage={stage.id}>{stage.name}</h2>)}
+
+      <ol class="hours" aria-hidden="true">
+        {timetable.hours.map((hour) => <li style={`--offset: ${hour.offset}`}>{hour.label}</li>)}
+      </ol>
+      {
+        timetable.columns.map(({ stage, sets }) => (
+          <ol class="stage" data-stage={stage.id} aria-label={stage.name}>
+            {sets.map((set) => (
+              <li
+                class:list={['set', { photo: set.image, single: set.artists.length === 1 }]}
+                style={`--offset: ${set.offset}; --length: ${set.length}`}
+              >
+                {set.image && <img src={set.image} alt="" loading="lazy" decoding="async" />}
+                <span class="artists">
+                  {set.artists.map((artist, index) => (
+                    <>
+                      {index > 0 && <span class="b2b"> b2b </span>}
+                      <a href={artistUrl(artist.id)}>{artist.name}</a>
+                    </>
+                  ))}
+                </span>
+                <span class="time">
+                  <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
+                </span>
+                {set.genre && <span class="genre">{set.genre}</span>}
+              </li>
+            ))}
+          </ol>
+        ))
+      }
+    </main>
   </div>
 </Base>
+
+<script>
+  import { isStageShown, readStageSelection, toggleStage, withStageSelection } from '../timetable/stage-filter.ts';
+
+  const timetable = document.querySelector<HTMLElement>('.timetable')!;
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('.stage-chips button')];
+  const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
+  const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
+  const stageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
+
+  let selection = readStageSelection(location.search, stageIds);
+
+  function render() {
+    for (const chip of chips) {
+      const stage = chip.dataset.stage!;
+      const pressed = stage ? selection.includes(stage) : selection.length === 0;
+      chip.setAttribute('aria-pressed', String(pressed));
+    }
+    for (const column of columns) column.hidden = !isStageShown(selection, column.dataset.stage!);
+    const shownCount = selection.length === 0 ? stageIds.length : selection.length;
+    timetable.style.setProperty('--stages', String(shownCount));
+
+    history.replaceState(null, '', withStageSelection(new URL(location.href), selection));
+    for (const link of dayLinks) link.href = withStageSelection(new URL(link.href), selection).href;
+  }
+
+  // A browser cannot show some image files, for example a PSD file. Then the card has no photo.
+  function removePhoto(image: HTMLImageElement) {
+    image.closest('.set')?.classList.remove('photo');
+    image.remove();
+  }
+  for (const image of timetable.querySelectorAll<HTMLImageElement>('.set img')) {
+    if (image.complete && image.naturalWidth === 0) removePhoto(image);
+    else image.addEventListener('error', () => removePhoto(image));
+  }
+
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      const stage = chip.dataset.stage!;
+      selection = stage ? toggleStage(selection, stage, stageIds) : [];
+      render();
+    });
+  }
+  render();
+</script>
 
 <style>
   .page {
@@ -91,7 +159,10 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   }
 
   .page-header {
-    padding: 0.75rem 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1.75rem 1.25rem 0;
   }
 
   .title-row {
@@ -99,40 +170,99 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     gap: 1rem;
     align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
   }
 
-  h1 {
+  .festival {
     margin: 0;
-    font-size: 1.25rem;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
+    text-transform: uppercase;
   }
 
   .artists-link {
     flex: none;
     color: var(--color-accent);
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 700;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.2;
   }
 
   .days {
-    display: flex;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: 0.5rem;
-    overflow-x: auto;
+    padding: 1rem 1.25rem 0;
   }
 
   .days a {
-    flex: none;
-    padding: 0.5rem 0.875rem;
-    border: 1px solid var(--color-line);
-    border-radius: 999px;
-    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    border: 1px solid var(--color-control-line);
+    border-radius: 0.5rem;
+    background: var(--color-control);
+    color: var(--color-text);
     text-decoration: none;
-    white-space: nowrap;
+  }
+
+  .weekday {
+    font-weight: 700;
+  }
+
+  .date {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
   }
 
   .days a[aria-current='page'] {
-    border-color: transparent;
-    background: var(--gradient-accent);
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-background);
+  }
+
+  .days a[aria-current='page'] .date {
+    color: inherit;
+    font-weight: 700;
+  }
+
+  .stage-chips {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.75rem 1.25rem 1rem;
+    scrollbar-width: none;
+  }
+
+  .stage-chips button {
+    flex: none;
+    height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--color-control-line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .stage-chips button[aria-pressed='true'] {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-background);
+    font-weight: 700;
   }
 
   /*
@@ -140,10 +270,10 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
    * Then the stage names stay at the top and the hours stay at the left on a phone.
    */
   .timetable {
-    --minute: 1.25px;
+    --minute: 1.6px;
     --hour-column: 3.25rem;
-    --stage-column: minmax(8.5rem, 1fr);
-    --header-row: 2.75rem;
+    --stage-column: minmax(10rem, 1fr);
+    --header-row: 2.5rem;
 
     display: grid;
     grid-template-columns: var(--hour-column) repeat(var(--stages), var(--stage-column));
@@ -152,6 +282,11 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     min-height: 0;
     overflow: auto;
     overscroll-behavior: contain;
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .timetable [hidden] {
+    display: none;
   }
 
   .corner,
@@ -159,8 +294,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     position: sticky;
     top: 0;
     z-index: 2;
-    background: var(--color-background);
-    border-bottom: 1px solid var(--color-line);
+    background: var(--color-bar);
   }
 
   .corner {
@@ -171,14 +305,12 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   .stage-name {
     display: flex;
     align-items: center;
-    justify-content: center;
+    overflow: hidden;
     margin: 0;
-    padding: 0 0.25rem;
+    padding: 0 0.5rem;
     color: var(--color-accent);
-    font-size: 0.6875rem;
-    letter-spacing: 0.12em;
-    text-align: center;
-    text-transform: uppercase;
+    font-size: 0.75rem;
+    white-space: nowrap;
   }
 
   ol {
@@ -192,28 +324,26 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     position: sticky;
     left: 0;
     z-index: 1;
+    border-right: 1px solid var(--color-divider);
     background: var(--color-background);
     color: var(--color-text-muted);
     font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
   }
 
   .hours li {
     position: absolute;
     top: calc(var(--offset) * var(--minute));
-    right: 0.375rem;
-    transform: translateY(-50%);
-  }
-
-  .hours li:first-child {
-    transform: none;
+    left: 0.5rem;
+    padding-top: 0.25rem;
   }
 
   .stage {
-    border-left: 1px solid var(--color-line);
     background: repeating-linear-gradient(
       to bottom,
-      var(--color-line) 0,
-      var(--color-line) 1px,
+      var(--color-divider) 0,
+      var(--color-divider) 1px,
       transparent 1px,
       transparent calc(60 * var(--minute))
     );
@@ -221,29 +351,79 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
   .set {
     position: absolute;
-    top: calc(var(--offset) * var(--minute));
-    height: calc(var(--length) * var(--minute));
-    left: 0.125rem;
-    right: 0.125rem;
+    top: calc(var(--offset) * var(--minute) + 1px);
+    height: calc(var(--length) * var(--minute) - 2px);
+    left: 3px;
+    right: 3px;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
     overflow: hidden;
-    padding: 0.25rem 0.375rem;
-    border: 1px solid var(--color-line);
-    border-left: 3px solid var(--color-accent);
-    border-radius: 0.25rem;
-    background: var(--color-surface);
-    font-size: 0.8125rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.5rem;
+    background: var(--color-card);
+    font-size: 0.75rem;
+  }
+
+  /* The photo and the gradient are below the text in the stacking context of the set. */
+  .set img,
+  .set.photo::before {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .set img {
+    z-index: -2;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .set.photo::before {
+    content: '';
+    z-index: -1;
+    background: var(--gradient-photo);
+  }
+
+  .artists {
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   .artists a {
-    font-weight: 600;
+    text-decoration: none;
   }
 
-  .b2b,
+  .artists a:hover,
+  .artists a:focus-visible {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* A set with one artist is a link in full. A B2B set has one link for each artist. */
+  .single .artists a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .b2b {
+    font-weight: 400;
+  }
+
   .time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .genre {
     color: var(--color-text-muted);
-    font-size: 0.75rem;
+  }
+
+  .genre::first-letter {
+    text-transform: uppercase;
   }
 </style>
