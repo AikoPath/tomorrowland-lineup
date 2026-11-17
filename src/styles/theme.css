@@ -24,6 +24,9 @@
   /* The top bar of the artist page, on top of the photo and the text. */
   --color-bar-translucent: hsl(334 26% 5% / 94%);
   --gradient-photo: linear-gradient(90deg, hsl(334 26% 5% / 85%), hsl(334 26% 5% / 55%));
+
+  /* The fixed bottom bar covers this height at the bottom of each page. */
+  --main-nav-height: calc(4.75rem + env(safe-area-inset-bottom));
 }
 
 *,
@@ -39,6 +42,7 @@ body {
   /* Astro sets --font-body from the fonts config in astro.config.mjs. */
   font-family: var(--font-body);
   line-height: 1.4;
+  padding-bottom: var(--main-nav-height);
 }
 
 a {

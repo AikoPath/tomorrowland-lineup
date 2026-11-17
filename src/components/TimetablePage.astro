@@ -2,8 +2,9 @@
 import type { Lineup } from '../data/schema';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
-import { dateRangeLabel, dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
-import { ARTIST_LIST_URL, artistUrl, dayUrl } from '../urls';
+import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
+import { artistUrl, dayUrl } from '../urls';
+import PageHeader from './PageHeader.astro';
 
 interface Props {
   lineup: Lineup;
@@ -16,12 +17,11 @@ const day = lineup.days.find((candidate) => candidate.date === date);
 if (!day) throw new Error(`The lineup has no day ${date}`);
 
 const firstDate = lineup.days[0].date;
-const lastDate = lineup.days.at(-1)!.date;
 const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
-<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`}>
+<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup">
   {
     date === firstDate && (
       <script is:inline define:vars={{ otherDates }}>
@@ -32,13 +32,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     )
   }
   <div class="page">
-    <header class="page-header">
-      <p class="festival">Tomorrowland Thailand · {dateRangeLabel(firstDate, lastDate)}</p>
-      <div class="title-row">
-        <h1>Line-up</h1>
-        <a href={ARTIST_LIST_URL} class="artists-link">All artists</a>
-      </div>
-    </header>
+    <PageHeader lineup={lineup} title="Line-up" />
 
     <nav class="days" aria-label="Festival days">
       {
@@ -155,43 +149,11 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   .page {
     display: flex;
     flex-direction: column;
-    height: 100dvh;
+    height: calc(100dvh - var(--main-nav-height));
   }
 
-  .page-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
+  .page > :global(.page-header) {
     padding: 1.75rem 1.25rem 0;
-  }
-
-  .title-row {
-    display: flex;
-    gap: 1rem;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-
-  .festival {
-    margin: 0;
-    color: var(--color-accent);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.125rem;
-    text-transform: uppercase;
-  }
-
-  .artists-link {
-    flex: none;
-    color: var(--color-accent);
-    font-size: 0.875rem;
-    font-weight: 700;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 2rem;
-    line-height: 1.2;
   }
 
   .days {

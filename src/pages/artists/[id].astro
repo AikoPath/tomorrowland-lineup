@@ -161,7 +161,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 
     position: relative;
     max-width: 40rem;
-    min-height: 100vh;
+    min-height: calc(100vh - var(--main-nav-height));
     margin: 0 auto;
   }
 
