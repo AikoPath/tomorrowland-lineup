@@ -24,6 +24,13 @@ export function previewPlayer(artist: Artist): { service: MusicKey; player: Play
   return tab?.player && { service: tab.key, player: tab.player };
 }
 
+/** For example `spotify:artist:4D75GcNG95ebPtNvoNVXhz` for the embed of a Spotify artist. */
+export function spotifyUri(player: Player): string | undefined {
+  if (player.kind !== 'embed') return undefined;
+  const id = player.src.match(/^https:\/\/open\.spotify\.com\/embed\/artist\/([A-Za-z0-9]+)$/)?.[1];
+  return id && `spotify:artist:${id}`;
+}
+
 /** Gives no URL when Apple Music has no song for the artist or the lookup fails. */
 export async function embedUrl(player: Player): Promise<string | undefined> {
   if (player.kind === 'embed') return player.src;

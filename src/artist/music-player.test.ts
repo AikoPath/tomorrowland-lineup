@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { appleSongEmbedUrl, musicTabs, previewPlayer } from './music-player.ts';
+import { appleSongEmbedUrl, musicTabs, previewPlayer, spotifyUri } from './music-player.ts';
 
 test('musicTabs gives one tab with an embed player for each music link, in the order of the links', () => {
   const tabs = musicTabs({
@@ -122,4 +122,13 @@ test('previewPlayer gives the player of the first music link that has one', () =
     },
   );
   assert.equal(previewPlayer({ id: 'example', name: 'Example' }), undefined);
+});
+
+test('spotifyUri gives the URI of the artist of a Spotify embed', () => {
+  assert.equal(
+    spotifyUri({ kind: 'embed', src: 'https://open.spotify.com/embed/artist/4D75GcNG95ebPtNvoNVXhz' }),
+    'spotify:artist:4D75GcNG95ebPtNvoNVXhz',
+  );
+  assert.equal(spotifyUri({ kind: 'embed', src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc' }), undefined);
+  assert.equal(spotifyUri({ kind: 'apple-top-song', lookupUrl: 'https://itunes.apple.com/lookup?id=1' }), undefined);
 });
