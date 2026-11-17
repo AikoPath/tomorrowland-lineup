@@ -4,10 +4,10 @@ You can add or correct the data of an artist or a set with a pull request (PR). 
 
 ## Change an artist on GitHub
 
-Each artist page has the link "Edit this data on GitHub". You can do all steps in your browser.
+Each artist page has the button "Fix or add info" at the top right. You can do all steps in your browser.
 
 1. Open the artist page on the site.
-2. Click "Edit this data on GitHub".
+2. Click "Fix or add info".
 3. Change the YAML file in the GitHub editor.
 4. Click "Commit changes" and then "Propose changes".
 5. Click "Create pull request".

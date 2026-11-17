@@ -20,6 +20,9 @@
   --color-divider: hsl(0 0% 96% / 12%);
   --color-control: hsl(0 0% 96% / 7%);
   --color-control-line: hsl(0 0% 96% / 25%);
+  --color-control-line-strong: hsl(0 0% 96% / 40%);
+  /* The top bar of the artist page, on top of the photo and the text. */
+  --color-bar-translucent: hsl(334 26% 5% / 94%);
   --gradient-photo: linear-gradient(90deg, hsl(334 26% 5% / 85%), hsl(334 26% 5% / 55%));
 }
 

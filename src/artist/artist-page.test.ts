@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Lineup } from '../data/schema.ts';
-import { artistLinks, artistSets, formatDay, formatTime } from './artist-page.ts';
+import { artistLinks, artistSets, formatDay, formatTime, startsInText } from './artist-page.ts';
 
 const lineup: Lineup = {
   stages: [
@@ -80,4 +80,21 @@ test('formatDay gives the short weekday and the date of a festival day', () => {
 
 test('formatTime gives the local festival time', () => {
   assert.equal(formatTime('2026-12-12T00:30'), '00:30');
+});
+
+test('startsInText gives the hours and the minutes before a set on the same day', () => {
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-11T21:20'), 'Starts in 2 h 30 min');
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-11T21:50'), 'Starts in 2 h');
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-11T23:05'), 'Starts in 45 min');
+  assert.equal(startsInText('2026-12-12T00:10', '2026-12-11T23:50'), 'Starts in 20 min');
+});
+
+test('startsInText gives the days and the hours before a set on a later day', () => {
+  assert.equal(startsInText('2026-12-11T23:50', '2026-11-17T20:50'), 'Starts in 24 d 3 h');
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-10T23:50'), 'Starts in 1 d');
+});
+
+test('startsInText gives no text when the set has started', () => {
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-11T23:50'), undefined);
+  assert.equal(startsInText('2026-12-11T23:50', '2026-12-12T00:30'), undefined);
 });
