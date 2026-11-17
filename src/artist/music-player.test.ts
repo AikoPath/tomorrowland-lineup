@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { appleSongEmbedUrl, musicTabs } from './music-player.ts';
+import { appleSongEmbedUrl, musicTabs, previewPlayer } from './music-player.ts';
 
 test('musicTabs gives one tab with an embed player for each music link, in the order of the links', () => {
   const tabs = musicTabs({
@@ -104,4 +104,22 @@ test('appleSongEmbedUrl gives the embed URL of the first song in the iTunes look
 test('appleSongEmbedUrl gives no URL when the lookup has no song', () => {
   assert.equal(appleSongEmbedUrl({ results: [{ wrapperType: 'artist' }] }), undefined);
   assert.equal(appleSongEmbedUrl({}), undefined);
+});
+
+test('previewPlayer gives the player of the first music link that has one', () => {
+  assert.deepEqual(
+    previewPlayer({
+      id: 'example',
+      name: 'Example',
+      music: {
+        spotify: 'https://open.spotify.com/user/example',
+        youtube: 'https://www.youtube.com/channel/UCabc',
+      },
+    }),
+    {
+      service: 'youtube',
+      player: { kind: 'embed', src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc&autoplay=1' },
+    },
+  );
+  assert.equal(previewPlayer({ id: 'example', name: 'Example' }), undefined);
 });

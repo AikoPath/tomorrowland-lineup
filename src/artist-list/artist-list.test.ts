@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Lineup } from '../data/schema.ts';
-import { artistListEntries, filterOptions, matchesFilter, searchWords, type ArtistFilter } from './artist-list.ts';
+import {
+  artistListEntries,
+  filterOptions,
+  genreLabel,
+  initials,
+  listHeading,
+  matchesFilter,
+  searchWords,
+  setLabel,
+  type ArtistFilter,
+} from './artist-list.ts';
 
 const lineup: Lineup = {
   stages: [
@@ -13,7 +23,7 @@ const lineup: Lineup = {
     { id: 'amelie-lens', name: 'Amelie Lens', genres: ['techno'] },
     { id: 'charlotte-de-witte', name: 'Charlotte de Witte', genres: ['techno', 'acid techno'] },
     { id: 'dimitri-vegas-like-mike', name: 'Dimitri Vegas & Like Mike', genres: ['big room'] },
-    { id: 'halo', name: 'HALŌ' },
+    { id: 'halo', name: 'HALŌ', genres: ['techno'] },
   ],
   days: [
     {
@@ -40,8 +50,8 @@ function matchingIds(filter: Partial<ArtistFilter>): string[] {
 test('artistListEntries gives all artists with their sets, also the artists with no sets', () => {
   const charlotte = entries.find((entry) => entry.artist.id === 'charlotte-de-witte')!;
   assert.deepEqual(charlotte.sets, [
-    { date: '2026-12-11', stage: { id: 'mainstage', name: 'Mainstage' } },
-    { date: '2026-12-11', stage: { id: 'freedom', name: 'Freedom' } },
+    { date: '2026-12-11', stage: { id: 'mainstage', name: 'Mainstage' }, start: '2026-12-11T22:00' },
+    { date: '2026-12-11', stage: { id: 'freedom', name: 'Freedom' }, start: '2026-12-12T00:30' },
   ]);
   assert.deepEqual(charlotte.filter, {
     words: ['charlotte', 'de', 'witte'],
@@ -55,14 +65,14 @@ test('artistListEntries gives all artists with their sets, also the artists with
   assert.equal(entries.length, 4);
 });
 
-test('filterOptions gives the days, the stages with sets and the genres in alphabetical order', () => {
+test('filterOptions gives the days, the stages with sets and the genres with the most artists first', () => {
   assert.deepEqual(filterOptions(lineup), {
     dates: ['2026-12-11', '2026-12-12'],
     stages: [
       { id: 'mainstage', name: 'Mainstage' },
       { id: 'freedom', name: 'Freedom' },
     ],
-    genres: ['acid techno', 'big room', 'techno'],
+    genres: ['techno', 'acid techno', 'big room'],
   });
 });
 
@@ -86,10 +96,32 @@ test('matchesFilter finds an artist by a part of each word of the name', () => {
 test('matchesFilter finds the artists of a day, a stage and a genre', () => {
   assert.deepEqual(matchingIds({ date: '2026-12-12' }), ['dimitri-vegas-like-mike']);
   assert.deepEqual(matchingIds({ stage: 'freedom' }), ['charlotte-de-witte']);
-  assert.deepEqual(matchingIds({ genre: 'techno' }), ['amelie-lens', 'charlotte-de-witte']);
+  assert.deepEqual(matchingIds({ genre: 'big room' }), ['dimitri-vegas-like-mike']);
 });
 
 test('matchesFilter needs one set that matches the day and the stage', () => {
   assert.deepEqual(matchingIds({ date: '2026-12-11', stage: 'mainstage' }), ['amelie-lens', 'charlotte-de-witte']);
   assert.deepEqual(matchingIds({ date: '2026-12-12', stage: 'freedom' }), []);
+});
+
+test('setLabel gives the weekday, the stage and the start time', () => {
+  const charlotte = entries.find((entry) => entry.artist.id === 'charlotte-de-witte')!;
+  assert.deepEqual(charlotte.sets.map(setLabel), ['Fri · Mainstage · 22:00', 'Fri · Freedom · 00:30']);
+});
+
+test('initials gives the first letters of the first 2 words', () => {
+  assert.equal(initials('Aly & Fila'), 'AF');
+  assert.equal(initials('Dimitri Vegas & Like Mike'), 'DV');
+  assert.equal(initials('HALŌ'), 'H');
+  assert.equal(initials('22Bullets'), '2');
+});
+
+test('genreLabel gives the genre with a capital first letter', () => {
+  assert.equal(genreLabel('big room'), 'Big room');
+});
+
+test('listHeading gives the count and the active filters', () => {
+  assert.equal(listHeading(3, ['Trance']), '3 artists · Trance');
+  assert.equal(listHeading(1, ['Fri 11 Dec', 'Mainstage']), '1 artist · Fri 11 Dec · Mainstage');
+  assert.equal(listHeading(0, []), '0 artists');
 });

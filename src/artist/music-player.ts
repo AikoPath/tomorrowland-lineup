@@ -18,6 +18,21 @@ export function musicTabs(artist: Artist): MusicTab[] {
   });
 }
 
+/** The player for the play button of the artist list: the player of the first music tab that has one. */
+export function previewPlayer(artist: Artist): { service: MusicKey; player: Player } | undefined {
+  const tab = musicTabs(artist).find((candidate) => candidate.player);
+  return tab?.player && { service: tab.key, player: tab.player };
+}
+
+/** Gives no URL when Apple Music has no song for the artist or the lookup fails. */
+export async function embedUrl(player: Player): Promise<string | undefined> {
+  if (player.kind === 'embed') return player.src;
+  return fetch(player.lookupUrl)
+    .then((response) => (response.ok ? response.json() : {}))
+    .then(appleSongEmbedUrl)
+    .catch(() => undefined);
+}
+
 function playerFor(key: MusicKey, url: URL): Player | undefined {
   switch (key) {
     case 'spotify': {
