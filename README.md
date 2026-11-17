@@ -22,7 +22,6 @@ Run each command from the root of the repo.
 | `npm run build`         | Writes the static site to `dist/`.                                              |
 | `npm run preview`       | Serves `dist/` on your computer before you deploy it.                           |
 | `npm test`              | Runs the tests.                                                                 |
-| `npm run import:lineup` | Imports the Tomorrowland Thailand 2026 lineup into `data/`. See data/README.md. |
 
 ## Deploy
 
@@ -41,7 +40,6 @@ A different static host can also serve the `dist/` directory. The host does not 
 ```text
 data/            The lineup data in YAML. See data/README.md.
 public/          Files that Astro copies to dist/ with no change
-scripts/         The import of the Tomorrowland Thailand 2026 lineup
 src/artist/      The data of the artist page
 src/artist-list/ The artist list and its filter
 src/components/  The parts of the pages
