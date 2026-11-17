@@ -1,9 +1,12 @@
 name: Amber Broos
 image: https://artist-lineup-assets.b-cdn.net/16607249-large-Amber%20Broos2%20(1).jpg
+genres:
+  - techno
 social:
   instagram: https://www.instagram.com/amberbroos/
+  website: https://www.amberbroos.be/
 music:
-  apple_music: https://music.apple.com/us/artist/amber-broos/1449969484
   spotify: https://open.spotify.com/artist/6WYC0ES42uaiJPtdBKDkIz
+  apple_music: https://music.apple.com/be/artist/1449969484
   youtube: https://www.youtube.com/channel/UCEmWecJDsyfoXHwaCacQwRg
   soundcloud: https://soundcloud.com/amber-broos

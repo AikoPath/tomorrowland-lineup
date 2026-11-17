@@ -1,9 +1,14 @@
 name: Lucas & Steve
 image: https://artist-lineup-cdn.tomorrowland.com/188480652-LUCAS%20STEVE%20PRESSKIT-%201.jpg
+genres:
+  - house
 social:
   instagram: https://www.instagram.com/lucasandsteve/
+  x: https://x.com/lucasandsteve
+  facebook: https://www.facebook.com/LucasAndSteve
+  website: https://www.lucasandsteve.com/
 music:
   spotify: https://open.spotify.com/artist/5wwneIFdawNgQ7GvKK29Z3?si=NfdgbvBWQwSysrb0IQEDbA
-  apple_music: https://music.apple.com/us/artist/lucas-steve/435853728
+  apple_music: https://music.apple.com/mx/artist/435853728
   youtube: https://www.youtube.com/channel/UCIAzXmeDqLu-HY9yJ5Rd4pg
   soundcloud: https://soundcloud.com/lucasandsteve

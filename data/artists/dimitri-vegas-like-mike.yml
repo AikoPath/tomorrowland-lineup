@@ -1,9 +1,16 @@
 name: Dimitri Vegas & Like Mike
 image: https://artist-lineup-cdn.tomorrowland.com/122922562-Dimitri%20Vegas%20_%20Like%20Mike%2001.jpg
+genres:
+  - big room house
+  - electro house
+  - deep house
 social:
   instagram: https://www.instagram.com/dimitrivegasandlikemike/
+  tiktok: https://www.tiktok.com/@dimitrivegasandlikemike
+  facebook: https://www.facebook.com/dimitrivegasandlikemike
+  website: https://www.dimitrivegasandlikemike.com/
 music:
-  apple_music: https://music.apple.com/us/artist/dimitri-vegas-like-mike/1485761558
   spotify: https://open.spotify.com/artist/73jBynjsVtofjRpdpRAJGk
+  apple_music: https://music.apple.com/be/artist/1485761558
   youtube: https://www.youtube.com/channel/UCxmNWF8fQ4miqfGs84dFVrg
   soundcloud: https://soundcloud.com/dimitrivegasandlikemike

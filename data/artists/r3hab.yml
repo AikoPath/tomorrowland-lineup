@@ -1,7 +1,15 @@
 name: R3HAB
 image: https://artist-lineup-cdn.tomorrowland.com/53521174-R3hab-2024.jpg
+genres:
+  - dutch house
+  - electro house
+social:
+  instagram: https://www.instagram.com/r3hab
+  x: https://x.com/r3hab
+  facebook: https://www.facebook.com/r3hab
+  website: https://www.r3hab.com/
 music:
-  apple_music: https://music.apple.com/us/artist/r3hab/331900515
   spotify: https://open.spotify.com/artist/6cEuCEZu7PAE9ZSzLLc2oQ
+  apple_music: https://music.apple.com/nl/artist/331900515
   youtube: https://www.youtube.com/channel/UCO6Rq8SSY5ui4ptyMkLirIQ
   soundcloud: https://soundcloud.com/r3hab

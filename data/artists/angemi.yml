@@ -1,9 +1,13 @@
 name: Angemi
 image: https://artist-lineup-cdn.tomorrowland.com/111897888-DAQ03950.jpg
+genres:
+  - house
 social:
   tiktok: https://www.tiktok.com/@angemimusic
+  x: https://x.com/ninniangemi
+  facebook: https://www.facebook.com/angemiofficial
 music:
-  apple_music: https://music.apple.com/us/artist/angemi/898703833
   spotify: https://open.spotify.com/artist/3q5DAsSH8efMqNxjxbdpGx
-  youtube: https://www.youtube.com/channel/UCYVoCTR1HQuVC93K_fqf_9w
   soundcloud: https://soundcloud.com/therealangemi
+  apple_music: https://music.apple.com/us/artist/angemi/898703833
+  youtube: https://www.youtube.com/channel/UCYVoCTR1HQuVC93K_fqf_9w

@@ -1,10 +1,13 @@
 name: Dubvision
 image: https://artist-lineup-cdn.tomorrowland.com/129551086-3.JPG
+genres:
+  - electro house
 social:
   instagram: https://www.instagram.com/dubvisionmusic/
+  x: https://x.com/dubvisionmusic
   facebook: https://www.facebook.com/DubVisionmusic/
 music:
+  spotify: https://open.spotify.com/artist/3XINWZaloea97SIRiyTJxX
+  apple_music: https://music.apple.com/nl/artist/453713844
   youtube: https://www.youtube.com/channel/UCdbFjONDWTsdy8pgCsgvlxg
   soundcloud: https://soundcloud.com/dubvisionmusic
-  apple_music: https://music.apple.com/us/artist/dubvision/453713844
-  spotify: https://open.spotify.com/artist/3XINWZaloea97SIRiyTJxX

@@ -1,9 +1,15 @@
 name: Steve Aoki
 image: https://artist-lineup-assets.b-cdn.net/16607368-large-220723-002559-TML2022-DN102555-DN(3).jpg
+genres:
+  - house
+  - electro house
 social:
   instagram: https://www.instagram.com/steveaoki/
+  x: https://x.com/steveaoki
+  facebook: https://www.facebook.com/Steve.Aoki
+  website: https://www.steveaoki.com/
 music:
-  apple_music: https://music.apple.com/us/artist/steve-aoki/271066694
   spotify: https://open.spotify.com/artist/77AiFEVeAVj2ORpC85QVJs
+  apple_music: https://music.apple.com/us/artist/271066694
   youtube: https://www.youtube.com/channel/UCALvGYb5h_MZCzW_vG8d8eQ
   soundcloud: https://soundcloud.com/steveaoki

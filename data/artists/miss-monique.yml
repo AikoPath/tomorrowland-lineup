@@ -1,9 +1,15 @@
 name: Miss Monique
 image: https://artist-lineup-cdn.tomorrowland.com/177356045-5000x5000.jpg
+genres:
+  - melodic techno
+  - progressive house
+  - trance
 social:
   instagram: https://www.instagram.com/djmissmonique/
+  x: https://x.com/djmissmonique
+  facebook: https://www.facebook.com/alesia.arkusha
 music:
-  apple_music: https://music.apple.com/us/artist/miss-monique/401265174
   spotify: https://open.spotify.com/artist/29TpNOsTNYbLb6Xa10H0PR
+  apple_music: https://music.apple.com/gb/artist/401265174
   youtube: https://www.youtube.com/channel/UClIIy-aQBXRi1OHupBcrjJw
   soundcloud: https://soundcloud.com/alesia-arkusha

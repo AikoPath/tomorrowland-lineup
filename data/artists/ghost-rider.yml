@@ -1,4 +1,13 @@
 name: Ghost Rider
 image: https://artist-lineup-cdn.tomorrowland.com/240497702-Vlad_1.jpg
+genres:
+  - psytrance
+  - psychedelic
+social:
+  instagram: https://www.instagram.com/ghostrider.music
+  facebook: https://www.facebook.com/Ghost.Rider.Official
 music:
-  apple_music: https://music.apple.com/us/artist/ghost-rider/214869062
+  spotify: https://open.spotify.com/artist/6ZJDt01Lh0XOPMMJbUMcUi
+  apple_music: https://music.apple.com/gb/artist/214869062
+  youtube: https://www.youtube.com/channel/UCKyt3Ap9d3itJFDT5aMZKzA
+  soundcloud: https://soundcloud.com/ghostrider_mag

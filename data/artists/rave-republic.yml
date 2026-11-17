@@ -1,6 +1,12 @@
 name: Rave Republic
 image: https://i.scdn.co/image/ab6761610000e5eb5daa0ddc509889de952a192d
+genres:
+  - edm
+social:
+  instagram: https://www.instagram.com/raverepublic
+  x: https://x.com/raverepublic
+  facebook: https://www.facebook.com/raverepublicofficial
 music:
   spotify: https://open.spotify.com/artist/751qvO4d3fNm3WkLvOS5Wa
-  apple_music: https://music.apple.com/us/artist/rave-republic/961071153
   youtube: https://www.youtube.com/channel/UCiFCYuyC5PBgFnV6s4XYDfA
+  apple_music: https://music.apple.com/us/artist/rave-republic/961071153

@@ -1,7 +1,14 @@
 name: Alan Walker
 image: https://i.scdn.co/image/ab6761610000e5eb572a8eae56feae217f618078
+genres:
+  - electro house
+social:
+  instagram: https://www.instagram.com/alanwalkermusic
+  x: https://x.com/IAmAlanWalker
+  facebook: https://www.facebook.com/alanwalkermusic
+  website: https://alanwalker.com/
 music:
   spotify: https://open.spotify.com/artist/7vk5e3vY1uw9plTHJAMwjN
-  apple_music: https://music.apple.com/us/artist/alan-walker/1062085272
+  apple_music: https://music.apple.com/no/artist/1062085272
   youtube: https://www.youtube.com/channel/UCJrOtniJ0-NWz37R30urifQ
   soundcloud: https://soundcloud.com/alanwalker

@@ -1,8 +1,17 @@
 name: John Newman
 image: https://artist-lineup-cdn.tomorrowland.com/18850118-John%20Newman%20-%202023%20press%20pic%20colour%202.jpg
+genres:
+  - pop
+  - pop soul
+  - soul
 social:
   instagram: https://www.instagram.com/johnnewmanmusic/
+  tiktok: https://www.tiktok.com/@johnnewman
+  x: https://x.com/JohnNewmanMusic
+  facebook: https://www.facebook.com/johnnewmanmusic
+  website: https://johnnewmanofficial.com/
 music:
-  apple_music: https://music.apple.com/us/artist/john-newman/649230577
   spotify: https://open.spotify.com/artist/34v5MVKeQnIo0CWYMbbrPf
+  apple_music: https://music.apple.com/gb/artist/649230577
+  youtube: https://www.youtube.com/channel/UCXtn650vh9Dj7uz8cFac0AQ
   soundcloud: https://soundcloud.com/johnnewmanmusic

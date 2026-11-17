@@ -1,8 +1,13 @@
 name: Henri PFR
 image: https://artist-lineup-cdn.tomorrowland.com/171548802-53FABFCB-FFC0-452D-BC9B-4D042D7E872A_1_201_a.jpeg
+genres:
+  - dance
 social:
   instagram: https://www.instagram.com/henripfr/
+  x: https://x.com/HenriPfr
+  facebook: https://www.facebook.com/HenriPfr
+  website: https://www.henripfr.com/
 music:
-  apple_music: https://music.apple.com/us/artist/henri-pfr/729594623
   spotify: https://open.spotify.com/artist/6n9XmMc3mX18mrTHYOCPIq
+  apple_music: https://music.apple.com/be/artist/729594623
   soundcloud: https://soundcloud.com/henri-pfr

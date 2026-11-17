@@ -1,7 +1,15 @@
 name: Ferry Corsten
 image: https://artist-lineup-cdn.tomorrowland.com/240490916-_PBF3858.jpg
+genres:
+  - trance
+  - progressive trance
+social:
+  instagram: https://www.instagram.com/ferrycorsten
+  x: https://x.com/FerryCorsten
+  facebook: https://www.facebook.com/FerryCorsten
+  website: https://www.ferrycorsten.com/
 music:
-  apple_music: https://music.apple.com/us/artist/ferry-corsten/3688902
   spotify: https://open.spotify.com/artist/2ohlvFf9PBsDELdRstPtlP
-  youtube: https://www.youtube.com/channel/UCjNKLcXS79kibFItBzaOf8A
+  apple_music: https://music.apple.com/nl/artist/3688902
   soundcloud: https://soundcloud.com/ferry-corsten
+  youtube: https://www.youtube.com/channel/UCjNKLcXS79kibFItBzaOf8A

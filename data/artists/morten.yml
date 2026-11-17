@@ -1,10 +1,14 @@
 name: MORTEN
 image: https://artist-lineup-cdn.tomorrowland.com/209760884-250506_Morten_AURA56901%20copy.jpg
+genres:
+  - future rave
 social:
   instagram: https://www.instagram.com/mortenofficial/?hl=en
   x: https://twitter.com/MORTENofficial
   facebook: https://www.facebook.com/MORTENofficial/
+  website: https://mortenofficial.com/
 music:
   spotify: https://open.spotify.com/artist/19HFRWmRCl27kTk6LeqAO8?si=yPwxE3qcTEGILfnYhC5BDA
+  apple_music: https://music.apple.com/dk/artist/155798079
+  youtube: https://www.youtube.com/channel/UC4Shd6EUJXO_eYVPTLaH6vQ
   soundcloud: https://soundcloud.com/mortenofficial
-  apple_music: https://music.apple.com/us/artist/morten/155798079

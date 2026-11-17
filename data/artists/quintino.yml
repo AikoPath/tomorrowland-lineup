@@ -1,5 +1,13 @@
 name: Quintino
 image: https://artist-lineup-cdn.tomorrowland.com/53784201-230723-174756-TML23-_Z9A2637-HK.jpg
+genres:
+  - big room house
+  - electro house
+social:
+  instagram: https://www.instagram.com/quintino
+  x: https://x.com/QUINTINOO
+  facebook: https://www.facebook.com/djquintino
 music:
-  apple_music: https://music.apple.com/us/artist/quintino/270540669
   spotify: https://open.spotify.com/artist/1V3VTM7VspiQjcmRhC010n
+  apple_music: https://music.apple.com/nl/artist/270540669
+  soundcloud: https://soundcloud.com/quintino

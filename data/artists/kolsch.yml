@@ -1,8 +1,12 @@
 name: Kölsch
 image: https://artist-lineup-cdn.tomorrowland.com/32580036-Kolsch-LS.jpg
+genres:
+  - house
 social:
   instagram: https://www.instagram.com/kolschofficial/
+  x: https://x.com/kolschofficial
+  facebook: https://www.facebook.com/kolschofficial
 music:
-  apple_music: https://music.apple.com/us/artist/k%C3%B6lsch/319272560
   spotify: https://open.spotify.com/artist/2D9Oe8R9UhbMvFAsMJpXj0
+  apple_music: https://music.apple.com/gb/artist/319272560
   soundcloud: https://soundcloud.com/kolsch

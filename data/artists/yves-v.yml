@@ -1,8 +1,13 @@
 name: Yves V
 image: https://artist-lineup-cdn.tomorrowland.com/171553900-image.png
+genres:
+  - house
 social:
   instagram: https://www.instagram.com/yves_v/
+  x: https://x.com/yvesv
+  facebook: https://www.facebook.com/officialyvesv
+  website: https://yves-v.com/
 music:
-  apple_music: https://music.apple.com/us/artist/yves-v/278853513
   spotify: https://open.spotify.com/artist/47BEc2RoW53owMyxacXWdV
+  apple_music: https://music.apple.com/be/artist/278853513
   soundcloud: https://soundcloud.com/yves-v

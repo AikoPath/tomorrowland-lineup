@@ -1,4 +1,12 @@
 name: SABAI
 image: https://artist-lineup-cdn.tomorrowland.com/234841288-SABAI_NEW_PressPhoto_ALT.jpg
+genres:
+  - future bass
+social:
+  instagram: https://www.instagram.com/sabaimusic
+  x: https://x.com/sabai_music
+  facebook: https://www.facebook.com/sabaiofficial
 music:
-  apple_music: https://music.apple.com/us/artist/sabai/1462475034
+  spotify: https://open.spotify.com/artist/4OaSyxqlkp7aVpAZwF02QZ
+  apple_music: https://music.apple.com/gb/artist/1462475034
+  soundcloud: https://soundcloud.com/sabaimusic

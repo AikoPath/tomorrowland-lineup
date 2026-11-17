@@ -1,6 +1,12 @@
 name: Wukong
 image: https://artist-lineup-cdn.tomorrowland.com/240485303-best%202.JPG
+genres:
+  - dance
+  - edm
+  - electronica
+social:
+  instagram: https://www.instagram.com/wukong
 music:
-  apple_music: https://music.apple.com/us/artist/wukong/1247316867
   spotify: https://open.spotify.com/artist/6AtgLd3rwVPep5RSPWRQ1T
+  apple_music: https://music.apple.com/us/artist/wukong/1247316867
   youtube: https://www.youtube.com/channel/UC-k77aIBIjrhCUvL5jqyUWA

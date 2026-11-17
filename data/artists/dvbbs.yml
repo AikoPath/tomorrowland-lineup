@@ -1,5 +1,11 @@
 name: DVBBS
 image: https://artist-lineup-cdn.tomorrowland.com/53776026-BREATHE9490.jpg
+genres:
+  - electro house
+social:
+  x: https://x.com/DVBBS
+  facebook: https://www.facebook.com/dvbbs
 music:
-  apple_music: https://music.apple.com/us/artist/dvbbs/510436077
   spotify: https://open.spotify.com/artist/5X4LWwbUFNzPkEas04uU82
+  apple_music: https://music.apple.com/ca/artist/510436077
+  soundcloud: https://soundcloud.com/dvbbs

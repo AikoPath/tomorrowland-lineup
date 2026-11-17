@@ -1,4 +1,13 @@
 name: Amy Wiles
 image: https://artist-lineup-cdn.tomorrowland.com/240494642-Photo%2019-06-2026,%2016%2055%2048%20(3).jpg
+genres:
+  - breakbeat
+  - breaks
+social:
+  instagram: https://www.instagram.com/amywilesmusic
+  x: https://x.com/amywilesmusic
+  facebook: https://www.facebook.com/amywilesmusic
 music:
-  apple_music: https://music.apple.com/us/artist/amy-wiles/1498607119
+  spotify: https://open.spotify.com/artist/4ztolv1NbTfNxSjS1EgtOX
+  apple_music: https://music.apple.com/us/artist/1498607119
+  youtube: https://www.youtube.com/channel/UChGhyX6A2xxqtcsgJ5YUQ_Q

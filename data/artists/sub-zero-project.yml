@@ -1,7 +1,14 @@
 name: Sub Zero Project
 image: https://artist-lineup-cdn.tomorrowland.com/128857980-SZP_2024_highres--1.jpg
+genres:
+  - hardstyle
+social:
+  instagram: https://www.instagram.com/subzeroproject
+  tiktok: https://www.tiktok.com/@subzeroprojectofficial
+  x: https://x.com/sub_zeroproject
+  facebook: https://www.facebook.com/ProjectSubZero
 music:
-  apple_music: https://music.apple.com/us/artist/sub-zero-project/820597984
   spotify: https://open.spotify.com/artist/4f0OXMMSxr0r8Ztx6CdpAl
+  apple_music: https://music.apple.com/us/artist/820597984
   youtube: https://www.youtube.com/channel/UC8WgWIxhmwziOgvWm_yGVeg
   soundcloud: https://soundcloud.com/subzeroproject

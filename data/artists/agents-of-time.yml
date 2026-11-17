@@ -1,7 +1,15 @@
 name: Agents of Time
 image: https://artist-lineup-cdn.tomorrowland.com/171544499-Agents%20Of%20Time.jpg
+genres:
+  - melodic techno
+  - house
+  - melodic house
 social:
   instagram: https://www.instagram.com/agentsoftime/
+  x: https://x.com/AgentsOfTime
+  facebook: https://www.facebook.com/AgentsOfTime
+  website: https://www.agentsoftime.com/
 music:
   spotify: https://open.spotify.com/artist/6Jbyd4qzEtbFtswZP1o6Ht?si=5MhM5AwqRka8yiyCpSxlCQ
-  apple_music: https://music.apple.com/us/artist/agents-of-time/794971951
+  apple_music: https://music.apple.com/us/artist/794971951
+  soundcloud: https://soundcloud.com/agents-of-time
