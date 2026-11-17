@@ -104,9 +104,9 @@ test('matchesFilter needs one set that matches the day and the stage', () => {
   assert.deepEqual(matchingIds({ date: '2026-12-12', stage: 'freedom' }), []);
 });
 
-test('setLabel gives the weekday, the stage and the start time', () => {
+test('setLabel gives the weekday, the start time and the stage', () => {
   const charlotte = entries.find((entry) => entry.artist.id === 'charlotte-de-witte')!;
-  assert.deepEqual(charlotte.sets.map(setLabel), ['Fri · Mainstage · 22:00', 'Fri · Freedom · 00:30']);
+  assert.deepEqual(charlotte.sets.map(setLabel), ['Fri 22:00 · Mainstage', 'Fri 00:30 · Freedom']);
 });
 
 test('initials gives the first letters of the first 2 words', () => {

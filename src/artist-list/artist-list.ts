@@ -79,12 +79,12 @@ function genresByArtistCount(artists: Artist[]): string[] {
   return [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)! || a.localeCompare(b));
 }
 
-/** For example `Fri · Crystal Garden · 21:00`. */
+/** For example `Fri 21:00 · Crystal Garden`. */
 export function setLabel(set: ListSet): string {
   const weekday = new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' }).format(
     new Date(`${set.date}T00:00:00Z`),
   );
-  return `${weekday} · ${set.stage.name} · ${formatTime(set.start)}`;
+  return `${weekday} ${formatTime(set.start)} · ${set.stage.name}`;
 }
 
 /** The first letters of the first 2 words, for example `AF` for "Aly & Fila". */

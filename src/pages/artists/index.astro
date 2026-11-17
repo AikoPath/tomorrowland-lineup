@@ -107,49 +107,60 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
             return (
               <li data-index={index}>
                 <div class="row">
-                  <a href={artistUrl(artist.id)}>
-                    {artist.image ? (
-                      <img
-                        class="photo"
-                        src={artist.image}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        data-initials={initials(artist.name)}
-                      />
-                    ) : (
-                      <span class="photo initials" aria-hidden="true">
-                        {initials(artist.name)}
+                  <div class="media">
+                    {/* The text link is the link for keyboards and screen readers. The photo is a second target for a click. */}
+                    <a href={artistUrl(artist.id)} tabindex="-1" aria-hidden="true">
+                      {artist.image ? (
+                        <img
+                          class="photo"
+                          src={artist.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          data-initials={initials(artist.name)}
+                        />
+                      ) : (
+                        <span class="photo initials">{initials(artist.name)}</span>
+                      )}
+                    </a>
+                    {preview && (
+                      <button
+                        type="button"
+                        class="play"
+                        aria-pressed="false"
+                        aria-label={`Play a preview of ${artist.name}`}
+                        data-artist={artist.name}
+                        data-service={preview.service}
+                        data-embed-src={preview.player.kind === 'embed' ? preview.player.src : undefined}
+                        data-apple-lookup={preview.player.kind === 'apple-top-song' ? preview.player.lookupUrl : undefined}
+                        data-spotify-uri={spotifyUri(preview.player)}
+                      >
+                        <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                          <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                        <svg class="icon-stop" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                          <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <a href={artistUrl(artist.id)} class="text">
+                    <span class="name">{artist.name}</span>
+                    {sets.map((set) => (
+                      <span class="set">{setLabel(set)}</span>
+                    ))}
+                    {artist.genres && (
+                      <span class="genres">
+                        <span class="genre">{genreLabel(artist.genres[0]!)}</span>
+                        {artist.genres.length > 1 && (
+                          <span class="genre" title={artist.genres.slice(1).map(genreLabel).join(', ')}>
+                            <span aria-hidden="true">+{artist.genres.length - 1}</span>
+                            <span class="visually-hidden">, {artist.genres.slice(1).map(genreLabel).join(', ')}</span>
+                          </span>
+                        )}
                       </span>
                     )}
-                    <span class="text">
-                      <span class="name">{artist.name}</span>
-                      {sets.map((set) => (
-                        <span class="set">{setLabel(set)}</span>
-                      ))}
-                      {artist.genres && <span class="genres">{artist.genres.join(' · ')}</span>}
-                    </span>
                   </a>
-                  {preview && (
-                    <button
-                      type="button"
-                      class="play"
-                      aria-pressed="false"
-                      aria-label={`Play a preview of ${artist.name}`}
-                      data-artist={artist.name}
-                      data-service={preview.service}
-                      data-embed-src={preview.player.kind === 'embed' ? preview.player.src : undefined}
-                      data-apple-lookup={preview.player.kind === 'apple-top-song' ? preview.player.lookupUrl : undefined}
-                      data-spotify-uri={spotifyUri(preview.player)}
-                    >
-                      <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                        <path d="M8 5v14l11-7z"></path>
-                      </svg>
-                      <svg class="icon-stop" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                        <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
-                      </svg>
-                    </button>
-                  )}
                 </div>
               </li>
             );
@@ -544,23 +555,18 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     padding: 0.5rem 1.25rem;
   }
 
-  .row a {
-    display: flex;
-    flex-grow: 1;
-    gap: 0.75rem;
-    align-items: center;
-    min-width: 0;
-    min-height: 3rem;
+  .media {
+    position: relative;
+    flex: none;
+  }
+
+  .media a {
+    display: block;
     text-decoration: none;
   }
 
-  .row a:hover .name,
-  .row a:focus-visible .name {
-    color: var(--color-accent);
-  }
-
   .photo {
-    flex: none;
+    display: block;
     width: 3rem;
     height: 3rem;
     border-radius: 0.5rem;
@@ -575,16 +581,30 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   .initials {
     display: grid;
     place-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-text) 40%, transparent);
-    font-size: 0.9375rem;
+    border: 1px solid var(--color-control-line);
+    background: var(--color-control);
+    font-size: 0.8125rem;
     font-weight: 700;
+  }
+
+  /* The play button covers the lower part of the tile, so the initials move up. */
+  .media:has(.play) .initials {
+    place-items: start center;
+    padding-top: 0.25rem;
   }
 
   .text {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
     gap: 0.1875rem;
     min-width: 0;
+    text-decoration: none;
+  }
+
+  .text:hover .name,
+  .text:focus-visible .name {
+    color: var(--color-accent);
   }
 
   .name {
@@ -592,27 +612,58 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     overflow-wrap: anywhere;
   }
 
-  .set,
-  .genres {
+  .set {
     color: var(--color-text-muted);
     font-size: 0.8125rem;
   }
 
   .genres {
-    color: var(--color-accent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.125rem;
   }
 
+  .genre {
+    padding: 0 0.5rem;
+    border: 1px solid var(--color-control-line);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* A round button on the lower right part of the photo, as in the design. */
   .play {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
     display: grid;
-    flex: none;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
     place-items: center;
-    border: 1px solid var(--color-text);
+    padding: 0;
+    border: 0;
     border-radius: 50%;
-    background: transparent;
-    color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-background);
     cursor: pointer;
+  }
+
+  /* The visible circle is small, so a larger invisible area receives the touch. */
+  .play::before {
+    position: absolute;
+    inset: -0.625rem;
+    content: '';
   }
 
   .play svg {
@@ -621,9 +672,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   .play[aria-pressed='true'] {
-    border-color: var(--color-accent);
     background: var(--color-accent);
-    color: var(--color-background);
   }
 
   .play[aria-pressed='false'] .icon-stop,
