@@ -2,7 +2,8 @@ import type { Artist } from '../data/schema.ts';
 import { artistLinks, type Link, type MusicKey } from './artist-page.ts';
 
 export type Player =
-  | { kind: 'embed'; src: string }
+  /** The page loads `src` when the player comes into view, and `autoplaySrc` after a click on a tab. */
+  | { kind: 'embed'; src: string; autoplaySrc?: string }
   /** Apple Music has no embed for an artist, so the player looks up the top song of the artist when the user clicks "Play". */
   | { kind: 'apple-top-song'; lookupUrl: string };
 
@@ -49,16 +50,17 @@ function playerFor(key: MusicKey, url: URL): Player | undefined {
     case 'soundcloud': {
       const src = new URL('https://w.soundcloud.com/player/');
       src.searchParams.set('url', `${url.origin}${url.pathname}`);
-      src.searchParams.set('auto_play', 'true');
-      return { kind: 'embed', src: src.href };
+      const autoplaySrc = new URL(src);
+      autoplaySrc.searchParams.set('auto_play', 'true');
+      return { kind: 'embed', src: src.href, autoplaySrc: autoplaySrc.href };
     }
     case 'youtube': {
       // The playlist "UULF" + the channel ID without "UC" has the uploads of the channel with no Shorts.
       // The player cannot play most Shorts, so the full uploads playlist ("UU") often starts with an error.
       const channelId = url.pathname.match(/\/channel\/UC([\w-]+)/)?.[1];
-      return channelId
-        ? { kind: 'embed', src: `https://www.youtube-nocookie.com/embed/videoseries?list=UULF${channelId}&autoplay=1` }
-        : undefined;
+      if (!channelId) return undefined;
+      const src = `https://www.youtube-nocookie.com/embed/videoseries?list=UULF${channelId}`;
+      return { kind: 'embed', src, autoplaySrc: `${src}&autoplay=1` };
     }
     case 'apple_music':
       return appleTopSongPlayer(url);

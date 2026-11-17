@@ -1,0 +1,73 @@
+---
+import { EXPLORE_URL, LINEUP_URL, NOW_URL } from '../urls';
+
+export type MainPage = 'lineup' | 'now' | 'explore';
+
+interface Props {
+  /** The main page that shows now. An artist page is not a main page. */
+  current?: MainPage;
+}
+
+const { current } = Astro.props;
+
+const links: { page: MainPage; href: string; label: string; icon: string }[] = [
+  { page: 'lineup', href: LINEUP_URL, label: 'Line-up', icon: 'M4 6h16M4 12h16M4 18h10' },
+  { page: 'now', href: NOW_URL, label: 'Now', icon: 'M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18M12 7v5l3 2' },
+  { page: 'explore', href: EXPLORE_URL, label: 'Explore', icon: 'M11 4a7 7 0 1 1 0 14a7 7 0 1 1 0-14M20 20l-3.5-3.5' },
+];
+---
+
+<nav class="main-nav" aria-label="Main">
+  {
+    links.map(({ page, href, label, icon }) => (
+      <a href={href} aria-current={page === current ? 'page' : undefined}>
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d={icon} />
+        </svg>
+        <span>{label}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .main-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    height: var(--main-nav-height);
+    padding: 0.5rem 0.75rem calc(1rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--color-divider);
+    background: var(--color-background);
+  }
+
+  a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    text-decoration: none;
+  }
+
+  a[aria-current='page'] {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+</style>

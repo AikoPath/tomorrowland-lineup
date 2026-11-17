@@ -1,4 +1,5 @@
 ---
+import PageHeader from '../components/PageHeader.astro';
 import TimetablePage from '../components/TimetablePage.astro';
 import { loadLineup } from '../data/load';
 import Base from '../layouts/Base.astro';
@@ -12,8 +13,8 @@ const firstDay = lineup.days[0];
   firstDay ? (
     <TimetablePage lineup={lineup} date={firstDay.date} />
   ) : (
-    <Base title={SITE_NAME}>
-      <h1>{SITE_NAME}</h1>
+    <Base title={SITE_NAME} mainPage="lineup">
+      <PageHeader lineup={lineup} title="Line-up" />
       <p>The timetable is not available yet.</p>
     </Base>
   )

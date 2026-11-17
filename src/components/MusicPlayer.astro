@@ -40,23 +40,17 @@ const { tabs } = Astro.props;
         hidden={index !== 0}
         data-service={tab.key}
         data-embed-src={tab.player?.kind === 'embed' ? tab.player.src : undefined}
+        data-autoplay-src={tab.player?.kind === 'embed' ? tab.player.autoplaySrc : undefined}
         data-apple-lookup={tab.player?.kind === 'apple-top-song' ? tab.player.lookupUrl : undefined}
       >
         {tab.player && (
           <div class="stage">
-            <button type="button" class="play" data-play>
-              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M8 5v14l11-7z" fill="currentColor" />
-              </svg>
-              Play
-            </button>
             {tab.player.kind === 'apple-top-song' && <p class="note">Apple Music plays the top song of the artist.</p>}
-            <p class="status" data-status hidden />
+            <p class="status" data-status>
+              Loading the player…
+            </p>
           </div>
         )}
-        <a href={tab.url} class="open" rel="noopener" target="_blank">
-          Open in {tab.label}
-        </a>
       </div>
     ))
   }
@@ -75,9 +69,6 @@ const { tabs } = Astro.props;
   for (const root of document.querySelectorAll<HTMLElement>('[data-music-player]')) {
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
     const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    // After the first click on "Play", a change of tab loads the player of the new tab at once.
-    let started = false;
-
     function select(tab: HTMLButtonElement) {
       for (const other of tabs) {
         const selected = other === tab;
@@ -87,27 +78,26 @@ const { tabs } = Astro.props;
       for (const panel of panels) {
         const selected = panel.id === tab.getAttribute('aria-controls');
         panel.hidden = !selected;
-        if (selected && started) void load(panel);
+        // Browsers play sound only after a user action, so only a click on a tab starts the music.
+        if (selected) void load(panel, { autoplay: true });
         // A hidden player continues to play, so remove it.
         if (!selected) unload(panel);
       }
     }
 
-    async function load(panel: HTMLElement) {
+    async function load(panel: HTMLElement, { autoplay }: { autoplay: boolean }) {
       const stage = panel.querySelector<HTMLElement>('.stage');
       if (!stage || stage.querySelector('iframe')) return;
-      const play = stage.querySelector<HTMLButtonElement>('[data-play]')!;
       const status = stage.querySelector<HTMLElement>('[data-status]')!;
-      play.hidden = true;
 
-      let src = panel.dataset.embedSrc;
+      let src = (autoplay && panel.dataset.autoplaySrc) || panel.dataset.embedSrc;
       const lookupUrl = panel.dataset.appleLookup;
       if (lookupUrl) {
         showStatus(status, 'Loading the top song…');
         src = await embedUrl({ kind: 'apple-top-song', lookupUrl });
         if (panel.hidden) return;
         if (!src) {
-          showStatus(status, 'Apple Music did not give a song for this artist. Open the artist in Apple Music.');
+          showStatus(status, 'Apple Music did not give a song for this artist.');
           return;
         }
         status.hidden = true;
@@ -128,8 +118,7 @@ const { tabs } = Astro.props;
       if (!stage) return;
       stage.querySelector('iframe')?.remove();
       stage.classList.remove('loaded');
-      stage.querySelector<HTMLElement>('[data-play]')!.hidden = false;
-      stage.querySelector<HTMLElement>('[data-status]')!.hidden = true;
+      showStatus(stage.querySelector<HTMLElement>('[data-status]')!, 'Loading the player…');
     }
 
     function showStatus(status: HTMLElement, text: string) {
@@ -148,26 +137,32 @@ const { tabs } = Astro.props;
       });
     }
 
-    for (const panel of panels) {
-      panel.querySelector('[data-play]')?.addEventListener('click', () => {
-        started = true;
-        void load(panel);
-      });
-    }
+    // The player loads a short time before it comes into view, so that it is ready when the user gets to it.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        const panel = panels.find((candidate) => !candidate.hidden);
+        if (panel) void load(panel, { autoplay: false });
+      },
+      { rootMargin: '300px 0px' },
+    );
+    observer.observe(root);
   }
 </script>
 
 <style>
   .player {
-    margin-top: 2.25rem;
+    display: grid;
+    gap: 0.625rem;
   }
 
   h2 {
-    margin: 0 0 0.875rem;
-    color: var(--color-text-muted);
+    margin: 0;
+    color: var(--color-accent);
     font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
     text-transform: uppercase;
   }
 
@@ -175,7 +170,10 @@ const { tabs } = Astro.props;
     display: flex;
     gap: 0.25rem;
     overflow-x: auto;
-    border-bottom: 1px solid var(--color-line);
+    /* A scroll container with overflow-x also scrolls up and down, and then it catches the scroll of the page. */
+    overflow-y: hidden;
+    /* The line is a shadow inside the bar, so that the line of the selected tab can cover it. */
+    box-shadow: inset 0 -1px var(--color-line);
   }
 
   [role='tab'] {
@@ -187,7 +185,6 @@ const { tabs } = Astro.props;
     padding: 0 1rem;
     border: 0;
     border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
     background: none;
     color: var(--color-text-muted);
     font: inherit;
@@ -221,14 +218,16 @@ const { tabs } = Astro.props;
     padding-top: 1rem;
   }
 
+  /* Before the player loads, the box has the height of the player, so that the page does not move. */
   .stage {
     display: grid;
+    min-height: 352px;
     gap: 0.75rem;
-    place-items: center;
+    place-content: center;
     padding: 2rem 1rem;
-    border: 1px solid var(--color-line);
-    border-radius: 0.75rem;
-    background: var(--color-surface);
+    border: 1px solid var(--color-control-line);
+    border-radius: 0.5rem;
+    background: var(--color-control);
   }
 
   .stage.loaded {
@@ -238,26 +237,6 @@ const { tabs } = Astro.props;
     background: none;
   }
 
-  .play {
-    display: inline-flex;
-    gap: 0.5rem;
-    align-items: center;
-    min-height: 2.75rem;
-    padding: 0 1.5rem 0 1.125rem;
-    border: 0;
-    border-radius: 999px;
-    background: var(--gradient-accent);
-    color: var(--color-text);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .play:hover {
-    filter: brightness(1.15);
-  }
-
-  .play[hidden],
   .status[hidden] {
     display: none;
   }
@@ -270,7 +249,8 @@ const { tabs } = Astro.props;
     text-align: center;
   }
 
-  .stage.loaded .note {
+  .stage.loaded .note,
+  .stage.loaded .status {
     display: none;
   }
 
@@ -287,19 +267,21 @@ const { tabs } = Astro.props;
     aspect-ratio: 16 / 9;
   }
 
+  [data-service='youtube'] .stage {
+    min-height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  [data-service='soundcloud'] .stage,
   [data-service='soundcloud'] .stage :global(iframe) {
+    min-height: 400px;
     height: 400px;
   }
 
+  [data-service='apple_music'] .stage,
   [data-service='apple_music'] .stage :global(iframe) {
+    min-height: 175px;
     height: 175px;
   }
 
-  .open {
-    display: inline-block;
-    margin-top: 0.75rem;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-    text-underline-offset: 0.2em;
-  }
 </style>

@@ -78,3 +78,27 @@ export function formatDay(date: string): string {
 export function formatTime(localTime: string): string {
   return localTime.slice(11, 16);
 }
+
+const MINUTES_IN_DAY = 24 * 60;
+
+/** Minutes between 2 local festival times. UTC is the time zone for the calculation only. */
+function minutesBetween(from: string, to: string): number {
+  return (Date.parse(`${to}:00Z`) - Date.parse(`${from}:00Z`)) / 60_000;
+}
+
+/** For example `Starts in 2 h 30 min`. No text when the set has started. Both times are local festival times. */
+export function startsInText(start: string, now: string): string | undefined {
+  const minutes = minutesBetween(now, start);
+  if (minutes <= 0) return undefined;
+  const days = Math.floor(minutes / MINUTES_IN_DAY);
+  const hours = Math.floor((minutes % MINUTES_IN_DAY) / 60);
+  const parts =
+    days > 0
+      ? [[days, 'd'], [hours, 'h']]
+      : [[hours, 'h'], [minutes % 60, 'min']];
+  const text = parts
+    .filter(([value]) => value > 0)
+    .map(([value, unit]) => `${value} ${unit}`)
+    .join(' ');
+  return `Starts in ${text}`;
+}
