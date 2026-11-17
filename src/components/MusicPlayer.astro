@@ -57,7 +57,7 @@ const { tabs } = Astro.props;
 </section>
 
 <script>
-  import { appleSongEmbedUrl } from '../artist/music-player.ts';
+  import { embedUrl } from '../artist/music-player.ts';
 
   const titles: Record<string, string> = {
     spotify: 'Spotify player',
@@ -94,10 +94,7 @@ const { tabs } = Astro.props;
       const lookupUrl = panel.dataset.appleLookup;
       if (lookupUrl) {
         showStatus(status, 'Loading the top song…');
-        src = await fetch(lookupUrl)
-          .then((response) => (response.ok ? response.json() : {}))
-          .then(appleSongEmbedUrl)
-          .catch(() => undefined);
+        src = await embedUrl({ kind: 'apple-top-song', lookupUrl });
         if (panel.hidden) return;
         if (!src) {
           showStatus(status, 'Apple Music did not give a song for this artist.');
