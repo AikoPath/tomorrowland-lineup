@@ -9,9 +9,12 @@ export function dayUrl(date: string, firstDate: string): string {
   return date === firstDate ? '/' : `/${date}/`;
 }
 
-export const ARTIST_LIST_URL = '/artists/';
+export const LINEUP_URL = '/';
 
 export const NOW_URL = '/now/';
+
+/** The Explore page lists all artists. */
+export const EXPLORE_URL = '/artists/';
 
 /** GitHub opens the file in its editor and makes a fork for a user with no write access. */
 export function editArtistDataUrl(artistId: string): string {
