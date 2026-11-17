@@ -1,0 +1,505 @@
+---
+import { loadLineup } from '../data/load.ts';
+import Base from '../layouts/Base.astro';
+import { nowDays } from '../now/now-next.ts';
+import { SITE_NAME } from '../site.ts';
+
+const lineup = await loadLineup();
+const days = nowDays(lineup);
+// Escape "<", so that a name in the data cannot close the script element.
+const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
+---
+
+<Base title={`Now & next · ${SITE_NAME}`}>
+  <div class="page">
+    <header>
+      <p class="eyebrow">All stages at one time</p>
+      <h1>Now &amp; next</h1>
+    </header>
+
+    {
+      days.length === 0 ? (
+        <p class="message">The timetable is not available yet.</p>
+      ) : (
+        <>
+          <div class="days" role="group" aria-label="Day">
+            {days.map((day, index) => (
+              <button type="button" data-day={index} aria-pressed="false">
+                {day.label}
+              </button>
+            ))}
+          </div>
+
+          <div class="time" role="group" aria-label="Time">
+            <button type="button" class="step" data-step="-1" aria-label="30 minutes earlier">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <output class="clock" aria-live="polite" />
+            <button type="button" class="step" data-step="1" aria-label="30 minutes later">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+            <button type="button" class="now">Now</button>
+          </div>
+
+          <main class="stages" />
+          <noscript>
+            <p class="message">Turn on JavaScript to see the sets at a time.</p>
+          </noscript>
+
+          <template id="stage-card">
+            <section class="card">
+              <div class="top">
+                <h2 class="stage-name" />
+                <div class="current">
+                  <span class="photo">
+                    <img alt="" decoding="async" />
+                    <span class="initials" aria-hidden="true" />
+                  </span>
+                  <div class="current-text">
+                    <div class="current-head">
+                      <span class="names" />
+                      <span class="set-time" />
+                    </div>
+                    <div class="progress" aria-hidden="true">
+                      <div class="progress-bar" />
+                    </div>
+                    <span class="time-left" />
+                  </div>
+                </div>
+                <p class="idle">No set at this time</p>
+              </div>
+              <div class="next">
+                <span class="next-label">Next</span>
+                <span class="names" />
+                <span class="next-time" />
+              </div>
+              <div class="next no-next">
+                <span class="next-label">Next</span>
+                <span class="none">No more sets on this stage today</span>
+              </div>
+            </section>
+          </template>
+          <script is:inline type="application/json" id="now-data" set:html={daysData} />
+        </>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  import {
+    TIME_STEP,
+    clampTime,
+    clockLabel,
+    festivalNow,
+    festivalPosition,
+    stageState,
+    timeLeftLabel,
+    type NowArtist,
+    type NowDay,
+    type NowSet,
+  } from '../now/now-next.ts';
+  import { FESTIVAL_TIME_ZONE } from '../site.ts';
+
+  const dataElement = document.getElementById('now-data');
+  if (dataElement) {
+    const days: NowDay[] = JSON.parse(dataElement.textContent!);
+    const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-day]')];
+    const [earlier, later] = [...document.querySelectorAll<HTMLButtonElement>('[data-step]')];
+    const clock = document.querySelector<HTMLOutputElement>('.clock')!;
+    const stages = document.querySelector<HTMLElement>('.stages')!;
+    const cardTemplate = document.querySelector<HTMLTemplateElement>('#stage-card')!;
+
+    let dayIndex = 0;
+    let minute = 0;
+    // While the page shows the current time, the time moves forward with the clock.
+    let followsClock = true;
+
+    function goToNow() {
+      ({ dayIndex, minute } = festivalPosition(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE)));
+      followsClock = true;
+      render();
+    }
+
+    function showNames(container: Element, artists: NowArtist[]) {
+      container.replaceChildren(
+        ...artists.flatMap((artist, index) => {
+          const link = document.createElement('a');
+          link.href = artist.url;
+          link.textContent = artist.name;
+          return index === 0 ? [link] : [' b2b ', link];
+        }),
+      );
+    }
+
+    function setTime(set: NowSet) {
+      return `${clockLabel(set.start)}–${clockLabel(set.end)}`;
+    }
+
+    function stageCard(day: NowDay, stageIndex: number): DocumentFragment {
+      const stage = day.stages[stageIndex];
+      const card = cardTemplate.content.cloneNode(true) as DocumentFragment;
+      const part = <T extends HTMLElement>(selector: string) => card.querySelector<T>(selector)!;
+      const { current, next } = stageState(stage, minute);
+
+      part('.stage-name').textContent = stage.name;
+
+      part('.current').hidden = !current;
+      part('.idle').hidden = Boolean(current);
+      if (current) {
+        const [firstArtist] = current.set.artists;
+        const image = part<HTMLImageElement>('.photo img');
+        if (firstArtist.image) image.src = firstArtist.image;
+        else image.remove();
+        part('.initials').textContent = firstArtist.image ? '' : firstArtist.initials;
+        showNames(part('.current .names'), current.set.artists);
+        part('.set-time').textContent = setTime(current.set);
+        part('.progress-bar').style.width = `${current.progress * 100}%`;
+        part('.time-left').textContent = timeLeftLabel(current.minutesLeft);
+      }
+
+      part('.next:not(.no-next)').hidden = !next;
+      part('.no-next').hidden = Boolean(next);
+      if (next) {
+        showNames(part('.next .names'), next.artists);
+        part('.next-time').textContent = setTime(next);
+      }
+      return card;
+    }
+
+    function render() {
+      const day = days[dayIndex];
+      dayButtons.forEach((button, index) => button.setAttribute('aria-pressed', String(index === dayIndex)));
+      clock.textContent = clockLabel(minute);
+      earlier.disabled = minute <= day.start;
+      later.disabled = minute >= day.end;
+      stages.replaceChildren(...day.stages.map((_, index) => stageCard(day, index)));
+    }
+
+    dayButtons.forEach((button, index) =>
+      button.addEventListener('click', () => {
+        dayIndex = index;
+        minute = clampTime(days[dayIndex], minute);
+        followsClock = false;
+        render();
+      }),
+    );
+    for (const button of [earlier, later]) {
+      button.addEventListener('click', () => {
+        minute = clampTime(days[dayIndex], minute + Number(button.dataset.step) * TIME_STEP);
+        followsClock = false;
+        render();
+      });
+    }
+    document.querySelector('.now')!.addEventListener('click', goToNow);
+    setInterval(() => {
+      if (followsClock) goToNow();
+    }, 30_000);
+
+    goToNow();
+  }
+</script>
+
+<style>
+  .page {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 1.75rem 1.25rem 3rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.375rem;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+
+  .message {
+    color: var(--color-text-muted);
+  }
+
+  button {
+    min-height: 2.75rem;
+    border: 1px solid var(--color-line);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .days {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .days button {
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+    font-size: 0.875rem;
+  }
+
+  .days button[aria-pressed='true'] {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-background);
+    font-weight: 700;
+  }
+
+  .time {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+  }
+
+  .step {
+    display: grid;
+    flex: none;
+    width: 2.75rem;
+    place-items: center;
+    border-color: var(--color-text-muted);
+    border-radius: 50%;
+  }
+
+  .step path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2;
+  }
+
+  .clock {
+    flex: 1;
+    font-size: 1.75rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .now {
+    padding: 0 1.25rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--gradient-accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
+    text-transform: uppercase;
+  }
+
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+  }
+
+  /* The top part opens the current artist and the next part opens the next artist. */
+  .top,
+  .next {
+    position: relative;
+  }
+
+  .top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 0.875rem 0.5rem;
+  }
+
+  .card [hidden] {
+    display: none;
+  }
+
+  .stage-name {
+    margin: 0;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    letter-spacing: 0.125rem;
+    text-transform: uppercase;
+  }
+
+  .current {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 3rem;
+  }
+
+  .photo {
+    display: grid;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    overflow: hidden;
+    place-items: center;
+    border: 1px solid var(--color-line);
+    border-radius: 0.5rem;
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .initials {
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .current-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.3125rem;
+    min-width: 0;
+  }
+
+  .current-head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .current .names {
+    font-size: 1.125rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .names :global(a) {
+    text-decoration: none;
+  }
+
+  /*
+   * The link of the first artist covers the whole part, so that a tap on the photo or the time also opens the artist page.
+   * The links of the other artists of a B2B set stay above it.
+   */
+  .names :global(a:first-of-type::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .names :global(a ~ a) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .names :global(a:focus-visible) {
+    outline: none;
+  }
+
+  :global(.card :is(.top, .next):has(a:first-of-type:focus-visible)) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  :global(.card :is(.top, .next):hover:not(:has(a ~ a:hover)) .names a:first-of-type),
+  .names :global(a ~ a:hover),
+  .names :global(a:focus-visible) {
+    color: var(--color-accent);
+  }
+
+  .set-time,
+  .next-time {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  .progress {
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: var(--color-line);
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--gradient-accent);
+  }
+
+  .time-left,
+  .idle,
+  .none {
+    color: var(--color-text-muted);
+  }
+
+  .time-left {
+    font-size: 0.8125rem;
+  }
+
+  .idle {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+    margin: 0;
+  }
+
+  .next {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    min-height: 3.25rem;
+    padding: 0 0.875rem 0.5rem;
+  }
+
+  .next::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0.875rem;
+    left: 0.875rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .next-label {
+    color: var(--color-text-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
+    text-transform: uppercase;
+  }
+
+  .next .names {
+    flex: 1;
+    font-weight: 700;
+  }
+
+  .next-time {
+    color: var(--color-accent);
+    font-size: 0.8125rem;
+  }
+</style>

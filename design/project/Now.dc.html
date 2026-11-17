@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Now and next on each stage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EB8100}a:hover{color:#FF9A1F}
+</style>
+</helmet>
+<div style="width: 390px; height: 1480px; box-sizing: border-box; background: #10090C; color: #F5F5F5; font-family: Mulish, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<header style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #EB8100; font-weight: 700">All stages at one time</div>
+<h1 style="margin: 0; font-weight: 700; font-size: 32px">Now &amp; next</h1>
+</header>
+<div role="group" aria-label="Day" style="padding: 16px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="3">
+<div style="display: flex">
+<sc-if value="{{ d.on }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-pressed="true" onClick="{{ d.pick }}" style="flex-grow: 1; height: 44px; border: 1px solid #F5F5F5; border-radius: 8px; background: #F5F5F5; color: #10090C; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer">{{ d.label }}</button>
+</sc-if>
+<sc-if value="{{ d.off }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="false" onClick="{{ d.pick }}" style="flex-grow: 1; height: 44px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 8px; background: rgba(245, 245, 245, 0.07); color: #F5F5F5; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; cursor: pointer">{{ d.label }}</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div role="group" aria-label="Time" style="padding: 12px 20px 0; display: flex; align-items: center; gap: 8px">
+<button type="button" aria-label="30 minutes earlier" onClick="{{ earlier }}" style="width: 44px; height: 44px; flex-shrink: 0; box-sizing: border-box; border: 1px solid rgba(245, 245, 245, 0.4); border-radius: 50%; background: transparent; color: #F5F5F5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+</button>
+<div aria-live="polite" style="flex-grow: 1; text-align: center; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums">{{ timeLabel }}</div>
+<button type="button" aria-label="30 minutes later" onClick="{{ later }}" style="width: 44px; height: 44px; flex-shrink: 0; box-sizing: border-box; border: 1px solid rgba(245, 245, 245, 0.4); border-radius: 50%; background: transparent; color: #F5F5F5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+</button>
+<button type="button" onClick="{{ goNow }}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 100px; background: linear-gradient(90deg, #8A3900, #EB8100); color: #F5F5F5; font-family: Mulish, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; cursor: pointer">Now</button>
+</div>
+<div style="padding: 16px 20px 0; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{ stages }}" as="g" hint-placeholder-count="7">
+<section style="border-radius: 8px; background: rgba(245, 245, 245, 0.07); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-weight: 700; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #EB8100">{{ g.stage }}</h2>
+<sc-if value="{{ g.playing }}" hint-placeholder-val="{{ true }}">
+<a href="Artist.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 48px; text-decoration: none; color: #F5F5F5">
+<sc-if value="{{ g.photo }}" hint-placeholder-val="{{ true }}">
+<div role="img" aria-label="Artist photo" style="width: 48px; height: 48px; flex-shrink: 0; border-radius: 8px; background: #2A2326; display: flex; align-items: center; justify-content: center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B0ADAE" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="9" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+</div>
+</sc-if>
+<sc-if value="{{ g.noPhoto }}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="width: 48px; height: 48px; flex-shrink: 0; box-sizing: border-box; border-radius: 8px; border: 1px solid rgba(245, 245, 245, 0.4); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">{{ g.initials }}</div>
+</sc-if>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<span style="font-size: 18px; font-weight: 700">{{ g.now }}</span>
+<span style="flex-shrink: 0; font-size: 16px; font-weight: 700; color: #F5F5F5; font-variant-numeric: tabular-nums">{{ g.time }}</span>
+</div>
+<div style="height: 4px; border-radius: 2px; background: rgba(245, 245, 245, 0.25); display: flex" aria-hidden="true">
+<div style="width: {{ g.pct }}; border-radius: 2px; background: linear-gradient(90deg, #8A3900, #EB8100)"></div>
+</div>
+<span style="font-size: 13px; color: rgba(245, 245, 245, 0.7)">{{ g.ends }}</span>
+</div>
+</a>
+</sc-if>
+<sc-if value="{{ g.idle }}" hint-placeholder-val="{{ false }}">
+<div style="min-height: 48px; display: flex; align-items: center; font-size: 15px; color: rgba(245, 245, 245, 0.7)">No set at this time</div>
+</sc-if>
+<sc-if value="{{ g.hasNext }}" hint-placeholder-val="{{ true }}">
+<a href="Artist.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid rgba(245, 245, 245, 0.12); text-decoration: none; color: #F5F5F5">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(245, 245, 245, 0.7)">NEXT</span>
+<span style="flex-grow: 1; font-size: 15px; font-weight: 700">{{ g.next }}</span>
+<span style="font-size: 13px; font-weight: 700; color: #EB8100; font-variant-numeric: tabular-nums">{{ g.nextAt }}</span>
+</a>
+</sc-if>
+<sc-if value="{{ g.noNext }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid rgba(245, 245, 245, 0.12)">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 2px; color: rgba(245, 245, 245, 0.7)">NEXT</span>
+<span style="flex-grow: 1; font-size: 15px; color: rgba(245, 245, 245, 0.7)">No more sets on this stage today</span>
+</div>
+</sc-if>
+</section>
+</sc-for>
+</div>
+<nav aria-label="Main" style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid rgba(245, 245, 245, 0.12); background: #10090C; padding: 8px 12px 16px">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+<span>Line-up</span>
+</a>
+<a href="Now.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: #EB8100; font-size: 12px; font-weight: 700">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+<span>Now</span>
+</a>
+<a href="Explore.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span>Explore</span>
+</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1480}}'>
+class Component extends DCLogic {
+renderVals() {
+var self = this;
+var st = this.state || {};
+var day = st.day || 'fri';
+var t = st.t || 1280;
+var STAGES = ['Mainstage', 'Freedom by Budweiser', 'Crystal Garden by Anker', 'Codex', 'CORE', 'Papillon', 'Moose Bar'];
+var DATA = {
+fri: [
+['13:00-14:25 Goldfish','14:25-15:25 Rave Republic','15:25-16:25 Youna','16:30-17:30 Henri PFR','17:35-18:35 Lilly Palmer','18:35-19:35 John Newman','19:40-20:40 Kevin de Vries','20:40-21:40 HALŌ','21:45-22:45 Vini Vici','22:50-23:50 Alan Walker','23:50-00:50 Martin Garrix'],
+['13:00-14:30 Mike Bond','14:30-16:00 Sm1le','16:00-17:30 Kryder','17:30-19:00 Raiden','19:00-20:00 Honey Gee','20:00-21:00 Wukong','21:00-22:00 Bassjackers','22:00-23:00 MANDY','23:00-00:00 Da Tweekaz','00:00-01:00 Flosstradamus b2b Yellow Claw'],
+['13:00-15:00 Jonnie B','15:00-16:30 Lonskii','16:30-18:00 Amy Wiles','18:00-19:30 Marsh','19:30-21:00 Eli & Fur b2b Yotto','21:00-22:00 Cosmic Gate','22:00-23:30 Aly & Fila','23:30-00:00 Ferry Corsten b2b Marsh','00:00-01:00 Ferry Corsten'],
+['13:00-15:00 DaDoo','15:00-16:30 DJ Licious','16:30-18:00 Camila Jun','18:00-19:30 Elfigo','19:30-21:00 Linska','21:00-22:30 Solardo','22:30-00:00 Camelphat'],
+['13:00-14:30 CLAUDINE','14:30-16:00 Hyalyte','16:00-17:30 Saint Ludo','17:30-19:00 Oppidan','19:00-21:00 Pegassi','21:00-23:00 X CLUB.','23:00-01:00 Funk Tribu'],
+['13:00-15:00 Jijie','15:00-17:00 Vicky Kroon','17:00-19:00 Makasi','19:00-20:30 Palmera','20:30-22:00 Lennert Wolfs','22:00-00:00 TA:REK'],
+['13:00-17:00 Jelle DK','17:00-21:00 Jan V','21:00-01:00 Jerrooo']
+],
+sat: [
+['13:00-14:25 Riviere','14:25-15:25 KARTY','15:25-16:25 Meaghan','16:30-17:30 Ian Asher','17:35-18:35 Miss Monique','18:35-19:35 Nervo','19:40-20:40 Sub Zero Project','20:40-21:40 Artbat','21:45-22:45 Afrojack','22:50-23:50 Dimitri Vegas & Like Mike','23:50-00:50 Steve Aoki'],
+['13:00-14:30 Row1','14:30-16:00 XY','16:00-18:00 Meguru','18:00-19:30 Nakadia','19:30-21:00 Amber Broos b2b Space 92','21:00-22:30 Hannah Laing','22:30-00:00 Nico Moreno'],
+['13:00-14:30 Puffer P','14:30-16:00 Tripical Note','16:00-17:30 Firaga','17:30-19:00 Ghost Rider','19:00-20:00 Somnia','20:00-21:00 Blazy','21:00-22:00 Blastoyz b2b WHITENO1SE','22:00-23:00 Vegas','23:00-00:00 Mad Maxx b2b Stryker','00:00-01:00 Infected Mushroom'],
+['13:00-14:30 PETRA','14:30-16:00 Romeo Blanco','16:00-17:30 Manuals','17:30-19:00 NOME.','19:00-20:00 DJ Sally','20:00-21:00 22 Bullets','21:00-22:00 Dubvision','22:00-23:00 Yves V','23:00-00:00 Third Party','00:00-01:00 DVBBS'],
+['13:00-15:00 An!ka','15:00-17:00 Meltmode','17:00-19:00 Bibi Seck','19:00-20:30 Luuk van Dijk','20:30-21:30 DJ Boring b2b Luuk van Dijk','21:30-23:00 DJ Boring','23:00-01:00 Mind Against'],
+['13:00-15:00 Arten','15:00-17:00 Semsei','17:00-19:00 Rebeca Ark','19:00-21:00 DJ Licious','21:00-22:30 Carly Wilford','22:30-00:00 Coco Bevan'],
+['13:00-17:00 Jan V','17:00-21:00 Jerrooo','21:00-01:00 Jelle DK']
+],
+sun: [
+['13:00-14:25 Nuttrix','14:25-15:25 Halo','15:25-16:25 Botcash','16:30-17:30 MATTN','17:35-18:35 Kölsch','18:35-19:35 Novah','19:40-20:40 R3hab','20:40-21:40 Alok','21:45-22:45 Lost Frequencies','22:50-23:50 Swedish House Mafia'],
+['13:00-15:00 Yukio','15:00-16:30 Xenia Dia','16:30-18:00 Luna & Lenthe','18:00-19:30 Henri Bergmann','19:30-21:00 Agents Of Time','21:00-22:30 Kevin de Vries b2b MORTEN','22:30-00:00 Artbat b2b R3hab'],
+['13:00-14:30 Lora Matia','14:30-16:00 Angemi','16:00-17:30 Tiger Drama','17:30-18:30 Whisnu Santika','18:30-19:30 Matisse & Sadko','19:30-20:30 Lucas & Steve','20:30-22:00 Laidback Luke','22:00-23:00 Quintino','23:00-00:00 Brennan Heart'],
+['13:00-14:30 J-Nana','14:30-16:00 Maysaa','16:00-17:00 Pixzy','17:00-18:00 Merow','18:00-19:00 Rayray','19:00-20:00 Sabai','20:00-21:00 Andromedik','21:00-22:00 APASHE','22:00-23:00 Netsky','23:00-00:00 Yellow Claw'],
+['13:00-15:00 Dennis Gold','15:00-16:30 Capoon','16:30-18:00 Dino Lenny','18:00-19:30 Maxi Meraki','19:30-21:00 AMÉMÉ b2b Honeyluv','21:00-22:30 DJ Tennis','22:30-00:00 Joris Voorn b2b Krystal Klear'],
+['13:00-15:00 JOULIE','15:00-17:00 Neon','17:00-18:30 More to be announced','18:30-20:00 Onfaya','20:00-21:30 AdamK','21:30-23:00 JoWaves'],
+['13:00-17:00 Jerrooo','17:00-21:00 Jelle DK','21:00-00:00 Jan V']
+]
+};
+var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+var mins = function (s) { var h = parseInt(s.slice(0, 2), 10); return (h < 6 ? h + 24 : h) * 60 + parseInt(s.slice(3, 5), 10); };
+var left = function (n) { var h = Math.floor(n / 60); var m = n % 60; return (h ? h + ' h ' : '') + (m ? m + ' min ' : '') + 'left'; };
+var days = [['fri','Fri 11 Dec'],['sat','Sat 12 Dec'],['sun','Sun 13 Dec']].map(function (d) {
+return { label: d[1], on: d[0] === day, off: d[0] !== day, pick: function () { self.setState({ day: d[0] }); } };
+});
+var stages = STAGES.map(function (label, i) {
+var cur = null; var next = null;
+DATA[day][i].forEach(function (r) {
+var s = mins(r.slice(0, 5)); var e = mins(r.slice(6, 11)); if (e <= s) { e += 1440; }
+var name = r.slice(12);
+if (s <= t && t < e) { cur = { name: name, s: s, e: e, time: r.slice(0, 5) + '–' + r.slice(6, 11) }; }
+else if (s > t && !next) { next = { name: name, at: r.slice(0, 5) + '–' + r.slice(6, 11) }; }
+});
+var name = cur ? cur.name : '';
+var photo = !!cur && name.length % 4 !== 0;
+return { stage: label, playing: !!cur, idle: !cur, now: name, time: cur ? cur.time : '', pct: cur ? Math.round((t - cur.s) / (cur.e - cur.s) * 100) + '%' : '0%', ends: cur ? left(cur.e - t) : '', next: next ? next.name : '', nextAt: next ? next.at : '', hasNext: !!next, noNext: !next, photo: photo, noPhoto: !photo, initials: name.split(' ').slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('') };
+});
+return { days: days, stages: stages, timeLabel: pad(Math.floor(t / 60) % 24) + ':' + pad(t % 60),
+earlier: function () { self.setState({ t: Math.max(780, t - 30) }); },
+later: function () { self.setState({ t: Math.min(1500, t + 30) }); },
+goNow: function () { self.setState({ day: 'fri', t: 1280 }); } };
+}
+}
+</script>
+</body>
+</html>

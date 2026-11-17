@@ -16,10 +16,20 @@ const day = lineup.days.find((candidate) => candidate.date === date);
 if (!day) throw new Error(`The lineup has no day ${date}`);
 
 const firstDate = lineup.days[0].date;
+const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
 <Base title={`Timetable ${dayLabel(date)} · ${SITE_NAME}`}>
+  {
+    date === firstDate && (
+      <script is:inline define:vars={{ otherDates }}>
+        // The en-CA locale gives the local date as YYYY-MM-DD.
+        const today = new Date().toLocaleDateString('en-CA');
+        if (otherDates.includes(today)) location.replace(`/${today}/`);
+      </script>
+    )
+  }
   <div class="page">
   <header class="page-header">
     <div class="title-row">

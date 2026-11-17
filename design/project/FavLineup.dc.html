@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Line-up with favourites</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EB8100}a:hover{color:#FF9A1F}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #10090C; color: #F5F5F5; font-family: Mulish, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<header style="padding: 28px 20px 0; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #EB8100; font-weight: 700">Tomorrowland Thailand · 11–13 Dec 2026</div>
+<h1 style="margin: 0; font-family: Mulish, sans-serif; font-weight: 700; font-size: 32px">Line-up</h1>
+</header>
+<div role="group" aria-label="Day" style="padding: 16px 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="3">
+<div style="display: flex">
+<sc-if value="{{ d.on }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-pressed="true" onClick="{{ d.pick }}" style="flex-grow: 1; height: 56px; border: 1px solid #F5F5F5; border-radius: 8px; background: #F5F5F5; color: #10090C; font-family: Mulish, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
+<span style="font-weight: 700; font-size: 16px">{{ d.label }}</span>
+<span style="font-size: 12px; font-weight: 700">{{ d.date }}</span>
+</button>
+</sc-if>
+<sc-if value="{{ d.off }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="false" onClick="{{ d.pick }}" style="flex-grow: 1; height: 56px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 8px; background: rgba(245, 245, 245, 0.07); color: #F5F5F5; font-family: Mulish, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
+<span style="font-weight: 700; font-size: 16px">{{ d.label }}</span>
+<span style="font-size: 12px; font-weight: 400; color: rgba(245, 245, 245, 0.7)">{{ d.date }}</span>
+</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div role="group" aria-label="Stage" style="padding: 12px 20px 16px; display: flex; gap: 8px; overflow-x: auto">
+<sc-for list="{{ stages }}" as="g" hint-placeholder-count="4">
+<div style="display: flex; flex-shrink: 0">
+<sc-if value="{{ g.on }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-pressed="true" onClick="{{ g.pick }}" style="height: 44px; padding: 0 16px; border: 1px solid #F5F5F5; border-radius: 22px; background: #F5F5F5; color: #10090C; font-family: Mulish, sans-serif; font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer">{{ g.label }}</button>
+</sc-if>
+<sc-if value="{{ g.off }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="false" onClick="{{ g.pick }}" style="height: 44px; padding: 0 16px; border: 1px solid rgba(245, 245, 245, 0.25); border-radius: 22px; background: transparent; color: rgba(245, 245, 245, 0.7); font-family: Mulish, sans-serif; font-size: 14px; font-weight: 400; white-space: nowrap; cursor: pointer">{{ g.label }}</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="flex: 1 1 0; min-height: 0; overflow: auto; border-top: 1px solid rgba(245, 245, 245, 0.12)">
+<div style="width: {{ gridW }}; display: flex; flex-direction: column">
+<div style="position: sticky; top: 0; z-index: 2; display: flex; background: #1C1518">
+<div style="width: 52px; height: 40px; flex-shrink: 0; position: sticky; left: 0; background: #1C1518"></div>
+<sc-for list="{{ cols }}" as="col" hint-placeholder-count="3">
+<h2 style="margin: 0; width: {{ col.w }}; height: 40px; flex-shrink: 0; box-sizing: border-box; padding: 0 8px; display: flex; align-items: center; font-size: 12px; font-weight: 700; color: #EB8100; white-space: nowrap; overflow: hidden">{{ col.label }}</h2>
+</sc-for>
+</div>
+<div style="display: flex; height: 1168px; background-image: repeating-linear-gradient(to bottom, rgba(245, 245, 245, 0.12) 0, rgba(245, 245, 245, 0.12) 1px, rgba(245, 245, 245, 0) 1px, rgba(245, 245, 245, 0) 96px)">
+<div aria-hidden="true" style="width: 52px; flex-shrink: 0; position: sticky; left: 0; z-index: 1; background: #10090C; border-right: 1px solid rgba(245, 245, 245, 0.12)">
+<sc-for list="{{ hours }}" as="hr" hint-placeholder-count="6">
+<div style="position: absolute; top: {{ hr.top }}; left: 0; width: 52px; padding: 4px 0 0 8px; box-sizing: border-box; font-size: 12px; font-weight: 700; color: rgba(245, 245, 245, 0.7); font-variant-numeric: tabular-nums">{{ hr.label }}</div>
+</sc-for>
+</div>
+<sc-for list="{{ cols }}" as="col" hint-placeholder-count="3">
+<div style="width: {{ col.w }}; flex-shrink: 0; position: relative">
+<sc-for list="{{ col.sets }}" as="s" hint-placeholder-count="5">
+<div style="position: absolute; top: {{ s.top }}; height: {{ s.h }}; left: 3px; right: 3px">
+<a href="{{ s.href }}" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box; border-radius: 8px; background: #2A2326; padding: 8px 10px; overflow: hidden; text-decoration: none; color: #F5F5F5">
+<sc-if value="{{ s.i1 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/7ebfc8b42b2a8a38878114265b811906" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.i2 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/cb7c761053626c5b5503cd0801ffbd6f" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.i3 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/0c0e6078439ab1641f9f9de3a8b05016" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.i4 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/0b3035b2dc0abac606bafa52abbfabf9" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.i5 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/4f45f9cdcb404cdbb082adf278d7e315" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.i6 }}" hint-placeholder-val="{{ false }}">
+<img src="/_blob/9ec8d73232b272a4e8b903b8aac48c07" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover">
+</sc-if>
+<sc-if value="{{ s.photo }}" hint-placeholder-val="{{ true }}">
+<div aria-hidden="true" style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(90deg, rgba(16, 9, 12, 0.85), rgba(16, 9, 12, 0.55))"></div>
+</sc-if>
+<div style="position: relative; min-width: 0; padding-right: 30px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 700; line-height: 1.2">{{ s.name }}</span>
+<span style="font-size: 12px; font-weight: 700; color: #F5F5F5; font-variant-numeric: tabular-nums">{{ s.time }}</span>
+<sc-if value="{{ s.hasGenre }}" hint-placeholder-val="{{ true }}">
+<span style="font-size: 12px; color: rgba(245, 245, 245, 0.85)">{{ s.genre }}</span>
+</sc-if>
+</div>
+</a>
+<sc-if value="{{ s.favOn }}" hint-placeholder-val="{{ false }}">
+<button type="button" aria-pressed="true" aria-label="{{ s.favLabel }}" onClick="{{ s.toggle }}" style="position: absolute; top: 0; right: 0; width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #EB8100">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"></path></svg>
+</button>
+</sc-if>
+<sc-if value="{{ s.favOff }}" hint-placeholder-val="{{ true }}">
+<button type="button" aria-pressed="false" aria-label="{{ s.favLabel }}" onClick="{{ s.toggle }}" style="position: absolute; top: 0; right: 0; width: 44px; height: 44px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #F5F5F5">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"></path></svg>
+</button>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+<sc-if value="{{ hint }}" hint-placeholder-val="{{ true }}">
+<div role="status" style="padding: 4px 4px 4px 16px; background: #2A2326; border-top: 1px solid rgba(245, 245, 245, 0.25); display: flex; align-items: center; gap: 8px">
+<p style="margin: 0; flex-grow: 1; padding: 8px 0; font-size: 13px; line-height: 1.4; color: #F5F5F5">Favourite saved on this device only. <a href="FavSignIn.dc.html" style="font-weight: 700">Sign in</a> to keep your favourites on all your devices.</p>
+<button type="button" aria-label="Dismiss" onClick="{{ dismiss }}" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; background: transparent; color: #F5F5F5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</button>
+</div>
+</sc-if>
+<nav aria-label="Main" style="margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid rgba(245, 245, 245, 0.12); background: #10090C; padding: 8px 12px 16px">
+<a href="Main.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: #EB8100; font-size: 12px; font-weight: 700">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+<span>Line-up</span>
+</a>
+<a href="Now.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+<span>Now</span>
+</a>
+<a href="FavTimeline.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.500c0 5.600-7.500 10-7.500 10z"></path></svg>
+<span>My timeline</span>
+</a>
+<a href="Explore.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px; text-decoration: none; color: rgba(245, 245, 245, 0.7); font-size: 12px; font-weight: 400">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span>Explore</span>
+</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+var self = this;
+var st = this.state || {};
+var day = st.day || 'fri';
+var STAGES = ['Mainstage', 'Freedom by Budweiser', 'Crystal Garden by Anker', 'Codex', 'CORE', 'Papillon', 'Moose Bar'];
+var DATA = {
+fri: [
+['13:00-14:25 Goldfish','14:25-15:25 Rave Republic','15:25-16:25 Youna','16:30-17:30 Henri PFR','17:35-18:35 Lilly Palmer','18:35-19:35 John Newman','19:40-20:40 Kevin de Vries','20:40-21:40 HALŌ','21:45-22:45 Vini Vici','22:50-23:50 Alan Walker','23:50-00:50 Martin Garrix'],
+['13:00-14:30 Mike Bond','14:30-16:00 Sm1le','16:00-17:30 Kryder','17:30-19:00 Raiden','19:00-20:00 Honey Gee','20:00-21:00 Wukong','21:00-22:00 Bassjackers','22:00-23:00 MANDY','23:00-00:00 Da Tweekaz','00:00-01:00 Flosstradamus b2b Yellow Claw'],
+['13:00-15:00 Jonnie B','15:00-16:30 Lonskii','16:30-18:00 Amy Wiles','18:00-19:30 Marsh','19:30-21:00 Eli & Fur b2b Yotto','21:00-22:00 Cosmic Gate','22:00-23:30 Aly & Fila','23:30-00:00 Ferry Corsten b2b Marsh','00:00-01:00 Ferry Corsten'],
+['13:00-15:00 DaDoo','15:00-16:30 DJ Licious','16:30-18:00 Camila Jun','18:00-19:30 Elfigo','19:30-21:00 Linska','21:00-22:30 Solardo','22:30-00:00 Camelphat'],
+['13:00-14:30 CLAUDINE','14:30-16:00 Hyalyte','16:00-17:30 Saint Ludo','17:30-19:00 Oppidan','19:00-21:00 Pegassi','21:00-23:00 X CLUB.','23:00-01:00 Funk Tribu'],
+['13:00-15:00 Jijie','15:00-17:00 Vicky Kroon','17:00-19:00 Makasi','19:00-20:30 Palmera','20:30-22:00 Lennert Wolfs','22:00-00:00 TA:REK'],
+['13:00-17:00 Jelle DK','17:00-21:00 Jan V','21:00-01:00 Jerrooo']
+],
+sat: [
+['13:00-14:25 Riviere','14:25-15:25 KARTY','15:25-16:25 Meaghan','16:30-17:30 Ian Asher','17:35-18:35 Miss Monique','18:35-19:35 Nervo','19:40-20:40 Sub Zero Project','20:40-21:40 Artbat','21:45-22:45 Afrojack','22:50-23:50 Dimitri Vegas & Like Mike','23:50-00:50 Steve Aoki'],
+['13:00-14:30 Row1','14:30-16:00 XY','16:00-18:00 Meguru','18:00-19:30 Nakadia','19:30-21:00 Amber Broos b2b Space 92','21:00-22:30 Hannah Laing','22:30-00:00 Nico Moreno'],
+['13:00-14:30 Puffer P','14:30-16:00 Tripical Note','16:00-17:30 Firaga','17:30-19:00 Ghost Rider','19:00-20:00 Somnia','20:00-21:00 Blazy','21:00-22:00 Blastoyz b2b WHITENO1SE','22:00-23:00 Vegas','23:00-00:00 Mad Maxx b2b Stryker','00:00-01:00 Infected Mushroom'],
+['13:00-14:30 PETRA','14:30-16:00 Romeo Blanco','16:00-17:30 Manuals','17:30-19:00 NOME.','19:00-20:00 DJ Sally','20:00-21:00 22 Bullets','21:00-22:00 Dubvision','22:00-23:00 Yves V','23:00-00:00 Third Party','00:00-01:00 DVBBS'],
+['13:00-15:00 An!ka','15:00-17:00 Meltmode','17:00-19:00 Bibi Seck','19:00-20:30 Luuk van Dijk','20:30-21:30 DJ Boring b2b Luuk van Dijk','21:30-23:00 DJ Boring','23:00-01:00 Mind Against'],
+['13:00-15:00 Arten','15:00-17:00 Semsei','17:00-19:00 Rebeca Ark','19:00-21:00 DJ Licious','21:00-22:30 Carly Wilford','22:30-00:00 Coco Bevan'],
+['13:00-17:00 Jan V','17:00-21:00 Jerrooo','21:00-01:00 Jelle DK']
+],
+sun: [
+['13:00-14:25 Nuttrix','14:25-15:25 Halo','15:25-16:25 Botcash','16:30-17:30 MATTN','17:35-18:35 Kölsch','18:35-19:35 Novah','19:40-20:40 R3hab','20:40-21:40 Alok','21:45-22:45 Lost Frequencies','22:50-23:50 Swedish House Mafia'],
+['13:00-15:00 Yukio','15:00-16:30 Xenia Dia','16:30-18:00 Luna & Lenthe','18:00-19:30 Henri Bergmann','19:30-21:00 Agents Of Time','21:00-22:30 Kevin de Vries b2b MORTEN','22:30-00:00 Artbat b2b R3hab'],
+['13:00-14:30 Lora Matia','14:30-16:00 Angemi','16:00-17:30 Tiger Drama','17:30-18:30 Whisnu Santika','18:30-19:30 Matisse & Sadko','19:30-20:30 Lucas & Steve','20:30-22:00 Laidback Luke','22:00-23:00 Quintino','23:00-00:00 Brennan Heart'],
+['13:00-14:30 J-Nana','14:30-16:00 Maysaa','16:00-17:00 Pixzy','17:00-18:00 Merow','18:00-19:00 Rayray','19:00-20:00 Sabai','20:00-21:00 Andromedik','21:00-22:00 APASHE','22:00-23:00 Netsky','23:00-00:00 Yellow Claw'],
+['13:00-15:00 Dennis Gold','15:00-16:30 Capoon','16:30-18:00 Dino Lenny','18:00-19:30 Maxi Meraki','19:30-21:00 AMÉMÉ b2b Honeyluv','21:00-22:30 DJ Tennis','22:30-00:00 Joris Voorn b2b Krystal Klear'],
+['13:00-15:00 JOULIE','15:00-17:00 Neon','17:00-18:30 More to be announced','18:30-20:00 Onfaya','20:00-21:30 AdamK','21:30-23:00 JoWaves'],
+['13:00-17:00 Jerrooo','17:00-21:00 Jelle DK','21:00-00:00 Jan V']
+]
+};
+var G = {
+'Goldfish':'House','Rave Republic':'Big room','Raiden':'Progressive house','Amy Wiles':'Trance','DJ Licious':'House','Oppidan':'UK garage','Pegassi':'Techno','Angemi':'Big room','22 Bullets':'Big room','NOME.':'Bass house','Romeo Blanco':'Big room','Dino Lenny':'House','Maxi Meraki':'Afro house','AMÉMÉ b2b Honeyluv':'Afro house','Henri Bergmann':'Melodic house','Carly Wilford':'Techno','Lennert Wolfs':'Techno','Somnia':'Psytrance','Blazy':'Psytrance','Bibi Seck':'House','Rayray':'Bass','Artbat b2b R3hab':'Melodic techno',
+'Martin Garrix':'Progressive house','Alan Walker':'Electro house','Vini Vici':'Psytrance','Kevin de Vries':'Melodic techno','John Newman':'Dance-pop','Lilly Palmer':'Techno','Henri PFR':'Deep house',
+'Da Tweekaz':'Hardstyle','Bassjackers':'Big room','Kryder':'Progressive house','Flosstradamus b2b Yellow Claw':'Trap',
+'Cosmic Gate':'Trance','Aly & Fila':'Uplifting trance','Ferry Corsten':'Trance','Ferry Corsten b2b Marsh':'Trance','Marsh':'Progressive house','Eli & Fur b2b Yotto':'Melodic house',
+'Camelphat':'Tech house','Solardo':'Tech house','Funk Tribu':'Trance','X CLUB.':'Techno',
+'Steve Aoki':'Electro house','Dimitri Vegas & Like Mike':'Big room','Afrojack':'Electro house','Artbat':'Melodic techno','Sub Zero Project':'Hardstyle','Nervo':'Electro house','Miss Monique':'Progressive house',
+'Nico Moreno':'Hard techno','Hannah Laing':'Hard dance','Amber Broos b2b Space 92':'Techno','Nakadia':'Techno',
+'Infected Mushroom':'Psytrance','Blastoyz b2b WHITENO1SE':'Psytrance','Ghost Rider':'Psytrance','Vegas':'Psytrance','Mad Maxx b2b Stryker':'Psytrance',
+'Third Party':'Progressive house','Dubvision':'Progressive house','Yves V':'Big room','DVBBS':'Big room',
+'Mind Against':'Melodic techno','DJ Boring':'House','Luuk van Dijk':'House','DJ Boring b2b Luuk van Dijk':'House',
+'Swedish House Mafia':'Progressive house','Lost Frequencies':'Deep house','Alok':'Brazilian bass','R3hab':'Electro house','Kölsch':'Melodic techno','MATTN':'Big room',
+'Agents Of Time':'Melodic techno','Kevin de Vries b2b MORTEN':'Melodic techno',
+'Matisse & Sadko':'Progressive house','Lucas & Steve':'House','Laidback Luke':'Electro house','Quintino':'Big room','Brennan Heart':'Hardstyle',
+'Netsky':'Drum & bass','Andromedik':'Drum & bass','APASHE':'Bass','Yellow Claw':'Trap','Sabai':'Melodic bass',
+'DJ Tennis':'House','Joris Voorn b2b Krystal Klear':'House'
+};
+var days = [['fri','Fri','11 Dec'],['sat','Sat','12 Dec'],['sun','Sun','13 Dec']].map(function (d) {
+return { label: d[1], date: d[2], on: d[0] === day, off: d[0] !== day, pick: function () { self.setState({ day: d[0] }); } };
+});
+var sel = st.sel || {};
+var fav = st.fav || { 'fri|2|18:00': true, 'fri|0|19:40': true, 'fri|2|21:00': true, 'fri|0|21:45': true, 'fri|2|22:00': true, 'fri|0|23:50': true };
+var any = STAGES.some(function (x, i) { return !!sel[i]; });
+var stages = [{ label: 'All stages', on: !any, off: any, pick: function () { self.setState({ sel: {} }); } }].concat(STAGES.map(function (label, i) {
+return { label: label, on: !!sel[i], off: !sel[i], pick: function () { var n = {}; for (var k in sel) { n[k] = sel[k]; } n[i] = !sel[i]; self.setState({ sel: n }); } };
+}));
+var shown = [];
+STAGES.forEach(function (label, i) { if (!any || sel[i]) { shown.push(i); } });
+var colW = Math.max(160, Math.floor(338 / shown.length));
+var mins = function (s) { var h = parseInt(s.slice(0, 2), 10); return (h < 6 ? h + 24 : h) * 60 + parseInt(s.slice(3, 5), 10); };
+var cols = shown.map(function (i) {
+return { label: STAGES[i], w: colW + 'px', sets: DATA[day][i].map(function (r) {
+var name = r.slice(12);
+var known = !!G[name];
+var s = mins(r.slice(0, 5)); var e = mins(r.slice(6, 11)); if (e <= s) { e += 1440; }
+var photo = known || name.length % 3 !== 0;
+var key = day + '|' + i + '|' + r.slice(0, 5);
+var isFav = !!fav[key];
+var hue = 0; for (var ci = 0; ci < name.length; ci++) { hue = (hue * 31 + name.charCodeAt(ci)) % 360; }
+var initials = name.split(' ').filter(function (w) { return w && w !== 'b2b' && w !== '&'; }).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+return { top: Math.round((s - 780) * 1.6) + 1 + 'px', h: Math.round((e - s) * 1.6) - 2 + 'px', name: name, time: r.slice(0, 5) + '–' + r.slice(6, 11), genre: G[name] || '', hasGenre: known, favOn: isFav, favOff: !isFav, favLabel: (isFav ? 'Remove ' : 'Add ') + name + (isFav ? ' from favourites' : ' to favourites'), toggle: function () { var n = {}; for (var k in fav) { n[k] = fav[k]; } n[key] = !isFav; self.setState({ fav: n }); }, photo: photo, i1: photo && hue % 6 === 0, i2: photo && hue % 6 === 1, i3: photo && hue % 6 === 2, i4: photo && hue % 6 === 3, i5: photo && hue % 6 === 4, i6: photo && hue % 6 === 5, href: 'FavArtist.dc.html' };
+}) };
+});
+var hours = [];
+for (var hh = 13; hh <= 24; hh++) { hours.push({ label: (hh % 24 < 10 ? '0' : '') + (hh % 24) + ':00', top: (hh - 13) * 96 + 'px' }); }
+return { hint: st.hint !== false, dismiss: function () { self.setState({ hint: false }); }, days: days, stages: stages, cols: cols, hours: hours, gridW: 52 + colW * shown.length + 'px' };
+}
+}
+</script>
+</body>
+</html>
