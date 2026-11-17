@@ -176,7 +176,10 @@ const { tabs } = Astro.props;
     display: flex;
     gap: 0.25rem;
     overflow-x: auto;
-    border-bottom: 1px solid var(--color-line);
+    /* A scroll container with overflow-x also scrolls up and down, and then it catches the scroll of the page. */
+    overflow-y: hidden;
+    /* The line is a shadow inside the bar, so that the line of the selected tab can cover it. */
+    box-shadow: inset 0 -1px var(--color-line);
   }
 
   [role='tab'] {
@@ -188,7 +191,6 @@ const { tabs } = Astro.props;
     padding: 0 1rem;
     border: 0;
     border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
     background: none;
     color: var(--color-text-muted);
     font: inherit;
