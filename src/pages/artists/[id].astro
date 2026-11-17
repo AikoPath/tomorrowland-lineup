@@ -29,6 +29,13 @@ const musicTabs = toMusicTabs(artist);
           <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
       </a>
+      {
+        artist.image && (
+          <p class="top-title" aria-hidden="true">
+            {artist.name}
+          </p>
+        )
+      }
       <a href={editArtistDataUrl(artist.id)} class="fix" rel="noopener" target="_blank">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
           <path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -41,32 +48,33 @@ const musicTabs = toMusicTabs(artist);
       artist.image && (
         <div class="photo">
           <img src={artist.image} alt="" />
+          <h1 class="photo-name">{artist.name}</h1>
         </div>
       )
     }
 
     <main>
-      <header>
-        <div class="name">
-          {
-            !artist.image && (
-              <span class="initial" aria-hidden="true">
-                {artist.name.charAt(0)}
-              </span>
-            )
-          }
-          <h1>{artist.name}</h1>
-        </div>
-        {
-          artist.genres && (
-            <ul class="genres">
-              {artist.genres.map((genre) => (
-                <li>{genre}</li>
-              ))}
-            </ul>
-          )
-        }
-      </header>
+      {
+        (!artist.image || artist.genres) && (
+          <header>
+            {!artist.image && (
+              <div class="name">
+                <span class="initial" aria-hidden="true">
+                  {artist.name.charAt(0)}
+                </span>
+                <h1>{artist.name}</h1>
+              </div>
+            )}
+            {artist.genres && (
+              <ul class="genres">
+                {artist.genres.map((genre) => (
+                  <li>{genre}</li>
+                ))}
+              </ul>
+            )}
+          </header>
+        )
+      }
 
       {
         sets.length > 0 && (
@@ -158,15 +166,48 @@ const musicTabs = toMusicTabs(artist);
 
   .top {
     display: flex;
+    gap: 0.75rem;
+    align-items: center;
     justify-content: space-between;
     padding: 1rem 1rem 0;
   }
 
-  /* On a photo, the buttons are on top of the photo. */
+  /* On a photo, the buttons stay at the top of the screen. After the name scrolls away, a bar with the name shows behind them. */
   .has-photo .top {
-    position: absolute;
+    position: fixed;
     z-index: 1;
-    inset: 0 0 auto;
+    top: 0;
+    right: 0;
+    left: 0;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding-bottom: 1rem;
+  }
+
+  .has-photo .top::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-bottom: 1px solid var(--color-border-faint);
+    background: var(--color-bar);
+    content: '';
+  }
+
+  .top-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .has-photo .top::before,
+  .top-title {
+    opacity: 0;
+    visibility: hidden;
   }
 
   .back,
@@ -202,9 +243,32 @@ const musicTabs = toMusicTabs(artist);
   }
 
   .photo {
+    position: relative;
     height: var(--photo-height);
     overflow: hidden;
     background: var(--color-surface);
+  }
+
+  /* A dark fade at the bottom of the photo makes the name easy to read. */
+  .photo::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 200px;
+    background: linear-gradient(transparent, color-mix(in srgb, var(--color-background) 75%, transparent) 60%, var(--color-background));
+    content: '';
+  }
+
+  .photo-name {
+    position: absolute;
+    z-index: 1;
+    right: 1.25rem;
+    bottom: 1rem;
+    left: 1.25rem;
+    font-size: 2.5rem;
+    line-height: 1.05;
+    transform-origin: left bottom;
   }
 
   .photo img {
@@ -222,15 +286,95 @@ const musicTabs = toMusicTabs(artist);
     }
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-      /* With the "animation" shorthand, the build puts the timeline into the shorthand, and Chromium ignores that rule. */
+  @keyframes name-out {
+    to {
+      opacity: 0;
+      transform: translateY(-24px) scale(0.82);
+    }
+  }
+
+  @keyframes bar-in {
+    from {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(8px);
+    }
+
+    1% {
+      visibility: visible;
+    }
+
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+    }
+  }
+
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    1% {
+      visibility: visible;
+    }
+
+    to {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  /*
+   * With the "animation" shorthand, the build puts the timeline into the shorthand, and Chromium ignores that rule.
+   * The scroll ranges fit a photo height of 380px.
+   */
+  @supports (animation-timeline: scroll()) {
+    .photo img,
+    .photo-name,
+    .has-photo .top::before,
+    .top-title {
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+      animation-timing-function: linear;
+    }
+
+    .photo img {
+      animation-name: photo-parallax;
+      animation-range: 0 var(--photo-height);
+    }
+
+    .photo-name {
+      animation-name: name-out;
+      animation-range: 150px 290px;
+    }
+
+    .has-photo .top::before,
+    .top-title {
+      animation-name: bar-in;
+      animation-range: 290px 340px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
       .photo img {
-        animation-name: photo-parallax;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        animation-timeline: scroll(root);
-        animation-range: 0 var(--photo-height);
+        animation-name: none;
+      }
+
+      .photo-name {
+        animation-name: fade-out;
+      }
+
+      .has-photo .top::before,
+      .top-title {
+        animation-name: fade-in;
       }
     }
   }
@@ -241,6 +385,10 @@ const musicTabs = toMusicTabs(artist);
     gap: 1.5rem;
     padding: 1.25rem 1.25rem 3rem;
     background: var(--color-background);
+  }
+
+  .has-photo main {
+    padding-top: 0.25rem;
   }
 
   header {
@@ -268,6 +416,10 @@ const musicTabs = toMusicTabs(artist);
 
   h1 {
     margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .name h1 {
     font-size: 1.875rem;
     line-height: 1.15;
     overflow-wrap: anywhere;
