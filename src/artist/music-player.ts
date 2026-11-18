@@ -1,5 +1,5 @@
 import type { Artist } from '../data/schema.ts';
-import { artistLinks, type Link, type MusicKey } from './artist-page.ts';
+import { artistLinks, musicLabels, type Link, type MusicKey } from './artist-page.ts';
 
 export type Player =
   /** The page loads `src` when the player comes into view, and `autoplaySrc` after a click on a tab. */
@@ -19,10 +19,34 @@ export function musicTabs(artist: Artist): MusicTab[] {
   });
 }
 
-/** The player for the play button of the artist list: the player of the first music tab that has one. */
-export function previewPlayer(artist: Artist): { service: MusicKey; player: Player } | undefined {
-  const tab = musicTabs(artist).find((candidate) => candidate.player);
-  return tab?.player && { service: tab.key, player: tab.player };
+export interface PreviewPlayer {
+  service: MusicKey;
+  player: Player;
+}
+
+/** The players for the play button of the artist list, in the order of the music tabs. */
+export function previewPlayers(artist: Artist): PreviewPlayer[] {
+  return musicTabs(artist).flatMap((tab) => (tab.player ? [{ service: tab.key, player: tab.player }] : []));
+}
+
+/** The player of the service that the user chose. When the artist has no player for that service, the first player. */
+export function choosePreview(players: PreviewPlayer[], service: MusicKey | undefined): PreviewPlayer | undefined {
+  return players.find((candidate) => candidate.service === service) ?? players[0];
+}
+
+export const MUSIC_SERVICE_STORAGE_KEY = 'music-service';
+
+/** The part of the Storage interface that the choice of the music service uses. */
+export type MusicServiceStorage = Pick<Storage, 'getItem' | 'setItem'>;
+
+/** Gives no service when the user did not choose one, or when the storage has an unknown value. */
+export function readMusicService(storage: MusicServiceStorage): MusicKey | undefined {
+  const value = storage.getItem(MUSIC_SERVICE_STORAGE_KEY);
+  return value !== null && Object.hasOwn(musicLabels, value) ? (value as MusicKey) : undefined;
+}
+
+export function saveMusicService(storage: MusicServiceStorage, service: MusicKey): void {
+  storage.setItem(MUSIC_SERVICE_STORAGE_KEY, service);
 }
 
 /** For example `spotify:artist:4D75GcNG95ebPtNvoNVXhz` for the embed of a Spotify artist. */

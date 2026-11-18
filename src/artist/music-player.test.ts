@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { appleSongEmbedUrl, musicTabs, previewPlayer, spotifyUri } from './music-player.ts';
+import {
+  appleSongEmbedUrl,
+  choosePreview,
+  MUSIC_SERVICE_STORAGE_KEY,
+  musicTabs,
+  previewPlayers,
+  readMusicService,
+  saveMusicService,
+  spotifyUri,
+  type MusicServiceStorage,
+  type PreviewPlayer,
+} from './music-player.ts';
 
 test('musicTabs gives one tab with an embed player for each music link, in the order of the links, with an autoplay address when the service has one', () => {
   const tabs = musicTabs({
@@ -108,26 +119,65 @@ test('appleSongEmbedUrl gives no URL when the lookup has no song', () => {
   assert.equal(appleSongEmbedUrl({}), undefined);
 });
 
-test('previewPlayer gives the player of the first music link that has one', () => {
+const youtubePreview: PreviewPlayer = {
+  service: 'youtube',
+  player: {
+    kind: 'embed',
+    src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc',
+    autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc&autoplay=1',
+  },
+};
+
+const spotifyPreview: PreviewPlayer = {
+  service: 'spotify',
+  player: { kind: 'embed', src: 'https://open.spotify.com/embed/artist/4D75GcNG95ebPtNvoNVXhz' },
+};
+
+test('previewPlayers gives the player of each music link that has one, in the order of the tabs', () => {
   assert.deepEqual(
-    previewPlayer({
+    previewPlayers({
       id: 'example',
       name: 'Example',
       music: {
+        soundcloud: 'https://soundcloud.com/example',
         spotify: 'https://open.spotify.com/user/example',
         youtube: 'https://www.youtube.com/channel/UCabc',
       },
-    }),
-    {
-      service: 'youtube',
-      player: {
-        kind: 'embed',
-        src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc',
-        autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc&autoplay=1',
-      },
-    },
+    }).map((preview) => preview.service),
+    ['youtube', 'soundcloud'],
   );
-  assert.equal(previewPlayer({ id: 'example', name: 'Example' }), undefined);
+  assert.deepEqual(previewPlayers({ id: 'example', name: 'Example' }), []);
+});
+
+test('choosePreview gives the player of the chosen service', () => {
+  assert.equal(choosePreview([spotifyPreview, youtubePreview], 'youtube'), youtubePreview);
+});
+
+test('choosePreview gives the first player when the artist has no player for the chosen service', () => {
+  assert.equal(choosePreview([spotifyPreview, youtubePreview], 'soundcloud'), spotifyPreview);
+  assert.equal(choosePreview([spotifyPreview, youtubePreview], undefined), spotifyPreview);
+  assert.equal(choosePreview([], 'spotify'), undefined);
+});
+
+function memoryStorage(values: Record<string, string> = {}): MusicServiceStorage {
+  return {
+    getItem: (key) => values[key] ?? null,
+    setItem: (key, value) => {
+      values[key] = value;
+    },
+  };
+}
+
+test('readMusicService gives the service that saveMusicService saved', () => {
+  const storage = memoryStorage();
+  assert.equal(readMusicService(storage), undefined);
+  saveMusicService(storage, 'apple_music');
+  assert.equal(readMusicService(storage), 'apple_music');
+});
+
+test('readMusicService gives no service for an unknown value', () => {
+  assert.equal(readMusicService(memoryStorage({ [MUSIC_SERVICE_STORAGE_KEY]: 'tidal' })), undefined);
+  assert.equal(readMusicService(memoryStorage({ [MUSIC_SERVICE_STORAGE_KEY]: 'toString' })), undefined);
 });
 
 test('spotifyUri gives the URI of the artist of a Spotify embed', () => {
