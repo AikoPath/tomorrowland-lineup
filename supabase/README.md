@@ -52,10 +52,11 @@ Do these steps one time. They take approximately 30 minutes.
 3. Set the production branch to `main`.
 4. Turn on **Deploy to production**.
 5. Turn off **Automatic branching**. Each preview branch is a separate database that costs money.
-6. Merge the PR with the `supabase/` folder into `main`.
-7. Open **Table Editor**. Make sure that the table `favourites` shows the label "RLS enabled".
+6. Click **Save**. The integration runs the migrations only on a push to `main` after this save.
+7. Merge the PR with the `supabase/` folder into `main`.
+8. Open **Table Editor**. Make sure that the table `favourites` shows the label "RLS enabled".
 
-The site shows no sign-in link until step 7, so you can merge the PR before the other steps.
+The site shows no sign-in link until section 7, so you can merge the PR before the other steps.
 
 ### 3. Set the links
 
