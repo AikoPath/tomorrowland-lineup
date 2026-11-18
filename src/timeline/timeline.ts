@@ -1,3 +1,4 @@
+import { photoUrl } from '../artist/photo.ts';
 import type { Artist, Lineup } from '../data/schema.ts';
 import { favouriteKey } from '../favourites/favourites.ts';
 
@@ -47,7 +48,7 @@ export function timelineDays(lineup: Lineup): TimelineDay[] {
             stageName: stage.name,
             start: set.start,
             end: set.end,
-            ...(image && { image }),
+            ...(image && { image: photoUrl(image, 'small') }),
           };
         });
       const end = sets.map((set) => set.end).reduce((latest, candidate) => (candidate > latest ? candidate : latest));

@@ -1,3 +1,4 @@
+import { photoUrl } from '../artist/photo.ts';
 import type { Artist, Day, Stage } from '../data/schema.ts';
 import { favouriteKey } from '../favourites/favourites.ts';
 
@@ -72,7 +73,7 @@ export function layoutDay(day: Day, stages: Stage[], artists: Artist[]): DayTime
           };
           const image = setArtists.find((artist) => artist.image)?.image;
           const genre = setArtists.find((artist) => artist.genres?.length)?.genres?.[0];
-          if (image) placed.image = image;
+          if (image) placed.image = photoUrl(image, 'small');
           if (genre) placed.genre = genre;
           return placed;
         }),
