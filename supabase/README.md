@@ -23,6 +23,8 @@ A build without the Supabase values has no sign-in. The favourites then stay on 
 - The browser does not send the user id. The database takes it from the session token, so a user cannot write rows of a different user.
 - The table accepts only set keys in the correct format and a maximum of 1000 rows for each user.
 - Supabase limits the number of sign-in emails for each hour.
+- The sign-in links go only to the production site and to `localhost`. See step 3.
+- Supabase runs each migration that you merge into `main`, with all rights on the database. Read each change to `supabase/` in a PR from a contributor before you merge it.
 - Do not put the secret key (`sb_secret_…`) in the site or in an environment variable with the `PUBLIC_` prefix. The secret key ignores row level security.
 - The database keeps the email address and the favourite sets of each user. To delete a user and their favourites, delete the user in **Authentication → Users**.
 
@@ -59,12 +61,11 @@ The site shows no sign-in link until step 7, so you can merge the PR before the 
 
 1. Open **Authentication → URL Configuration**.
 2. Set **Site URL** to `https://tomorrowland.aiko.dev`.
-3. Add these three values to **Redirect URLs**:
+3. Add these two values to **Redirect URLs**:
    - `https://tomorrowland.aiko.dev/sign-in/confirm/`
-   - `https://tomorrowland-lineup-*.vercel.app/sign-in/confirm/`
    - `http://localhost:4321/sign-in/confirm/`
 
-Supabase sends a link only to a page in this list.
+Supabase sends a link only to a page in this list. Do not add a pattern for `vercel.app`. Any person can make a Vercel project with a name that matches the pattern, and then get the sign-in link of a different user. Thus the sign-in works only on the production site and on your computer.
 
 ### 4. Change the sign-in email
 
