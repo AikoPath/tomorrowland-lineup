@@ -50,8 +50,13 @@ function matchingIds(filter: Partial<ArtistFilter>): string[] {
 test('artistListEntries gives all artists with their sets, also the artists with no sets', () => {
   const charlotte = entries.find((entry) => entry.artist.id === 'charlotte-de-witte')!;
   assert.deepEqual(charlotte.sets, [
-    { date: '2026-12-11', stage: { id: 'mainstage', name: 'Mainstage' }, start: '2026-12-11T22:00' },
-    { date: '2026-12-11', stage: { id: 'freedom', name: 'Freedom' }, start: '2026-12-12T00:30' },
+    {
+      key: '2026-12-11/amelie-lens+charlotte-de-witte',
+      date: '2026-12-11',
+      stage: { id: 'mainstage', name: 'Mainstage' },
+      start: '2026-12-11T22:00',
+    },
+    { key: '2026-12-11/charlotte-de-witte', date: '2026-12-11', stage: { id: 'freedom', name: 'Freedom' }, start: '2026-12-12T00:30' },
   ]);
   assert.deepEqual(charlotte.filter, {
     words: ['charlotte', 'de', 'witte'],

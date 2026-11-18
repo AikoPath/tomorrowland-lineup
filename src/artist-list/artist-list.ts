@@ -1,5 +1,6 @@
 import { formatTime } from '../artist/artist-page.ts';
 import type { Artist, Lineup, Stage } from '../data/schema.ts';
+import { favouriteKey } from '../favourites/favourites.ts';
 
 /** The data that the filter needs for one artist. The page sends it to the browser as JSON. */
 export interface FilterData {
@@ -11,6 +12,8 @@ export interface FilterData {
 }
 
 export interface ListSet {
+  /** From `favouriteKey`. */
+  key: string;
   /** The festival day, `YYYY-MM-DD`. */
   date: string;
   stage: Stage;
@@ -48,7 +51,12 @@ export function artistListEntries(lineup: Lineup): ArtistListEntry[] {
     const sets = lineup.days.flatMap(({ date, sets: daySets }) =>
       daySets
         .filter((set) => set.artists.includes(artist.id))
-        .map((set) => ({ date, stage: stages.get(set.stage)!, start: set.start })),
+        .map((set) => ({
+          key: favouriteKey(date, set.artists),
+          date,
+          stage: stages.get(set.stage)!,
+          start: set.start,
+        })),
     );
     return {
       artist,
