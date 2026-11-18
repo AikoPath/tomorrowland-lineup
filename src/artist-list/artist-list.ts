@@ -33,7 +33,8 @@ export interface ArtistFilter {
   query: string;
   date: string;
   stage: string;
-  genre: string;
+  /** The artist must have one of these genres. */
+  genres: string[];
 }
 
 export interface FilterOptions {
@@ -110,6 +111,11 @@ export function genreLabel(genre: string): string {
   return genre.charAt(0).toUpperCase() + genre.slice(1);
 }
 
+/** For example `Trance, Techno or House`. */
+export function genresLabel(genres: string[]): string {
+  return new Intl.ListFormat('en-GB', { type: 'disjunction' }).format(genres.map(genreLabel));
+}
+
 /** For example `3 artists · Trance`. */
 export function listHeading(count: number, activeFilters: string[]): string {
   return [count === 1 ? '1 artist' : `${count} artists`, ...activeFilters].join(' · ');
@@ -135,7 +141,7 @@ export function searchWords(text: string): string[] {
 export function matchesFilter(data: FilterData, filter: ArtistFilter): boolean {
   const queryWords = searchWords(filter.query);
   if (!queryWords.every((queryWord) => data.words.some((word) => word.includes(queryWord)))) return false;
-  if (filter.genre && !data.genres.includes(filter.genre)) return false;
+  if (filter.genres.length > 0 && !filter.genres.some((genre) => data.genres.includes(genre))) return false;
   if (!filter.date && !filter.stage) return true;
   return data.sets.some(
     (set) => (!filter.date || set.date === filter.date) && (!filter.stage || set.stage === filter.stage),
