@@ -5,6 +5,7 @@ import {
   FAVOURITES_STORAGE_KEY,
   dismissHint,
   favouriteKey,
+  isFavourite,
   isHintShown,
   readFavourites,
   toggleFavourite,
@@ -31,10 +32,19 @@ test('gives a different key to each set in the lineup data', async () => {
 
 test('adds a set and removes it again', () => {
   const storage = memoryStorage();
-  assert.deepEqual([...toggleFavourite(storage, 'a')], ['a']);
-  assert.deepEqual([...toggleFavourite(storage, 'b')], ['a', 'b']);
-  assert.deepEqual([...toggleFavourite(storage, 'a')], ['b']);
+  assert.deepEqual([...toggleFavourite(storage, ['a'])], ['a']);
+  assert.deepEqual([...toggleFavourite(storage, ['b'])], ['a', 'b']);
+  assert.deepEqual([...toggleFavourite(storage, ['a'])], ['b']);
   assert.deepEqual([...readFavourites(storage)], ['b']);
+});
+
+test('adds all sets of a heart, and removes them when all are favourites', () => {
+  const storage = memoryStorage();
+  toggleFavourite(storage, ['a']);
+  assert.equal(isFavourite(readFavourites(storage), ['a', 'b']), false);
+  assert.deepEqual([...toggleFavourite(storage, ['a', 'b'])], ['a', 'b']);
+  assert.equal(isFavourite(readFavourites(storage), ['a', 'b']), true);
+  assert.deepEqual([...toggleFavourite(storage, ['a', 'b'])], []);
 });
 
 test('gives no favourites for content that is not a list of keys', () => {
@@ -46,10 +56,10 @@ test('gives no favourites for content that is not a list of keys', () => {
 test('shows the hint after the first favourite until the user closes it', () => {
   const storage = memoryStorage();
   assert.equal(isHintShown(storage), false);
-  toggleFavourite(storage, 'a');
+  toggleFavourite(storage, ['a']);
   assert.equal(isHintShown(storage), true);
   dismissHint(storage);
   assert.equal(isHintShown(storage), false);
-  toggleFavourite(storage, 'b');
+  toggleFavourite(storage, ['b']);
   assert.equal(isHintShown(storage), false);
 });

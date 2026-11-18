@@ -11,6 +11,9 @@ export function favouriteKey(date: string, artistIds: string[]): string {
 export const FAVOURITES_STORAGE_KEY = 'favourites';
 export const HINT_DISMISSED_STORAGE_KEY = 'favourites-hint-dismissed';
 
+/** The heart buttons send this event to the document after each change of the favourites. */
+export const FAVOURITES_CHANGE_EVENT = 'favourites-change';
+
 /** The part of the Storage interface that the favourites use. */
 export type FavouriteStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
@@ -24,11 +27,19 @@ export function readFavourites(storage: FavouriteStorage): Set<string> {
   }
 }
 
-/** Adds or removes the set, and returns the new favourites. */
-export function toggleFavourite(storage: FavouriteStorage, key: string): Set<string> {
+/** A heart can stand for more than one set, for example all sets of an artist. The heart is on when all its sets are favourites. */
+export function isFavourite(favourites: Set<string>, keys: string[]): boolean {
+  return keys.every((key) => favourites.has(key));
+}
+
+/** Removes the sets when all are favourites, or else adds all the sets. Returns the new favourites. */
+export function toggleFavourite(storage: FavouriteStorage, keys: string[]): Set<string> {
   const favourites = readFavourites(storage);
-  if (favourites.has(key)) favourites.delete(key);
-  else favourites.add(key);
+  const remove = isFavourite(favourites, keys);
+  for (const key of keys) {
+    if (remove) favourites.delete(key);
+    else favourites.add(key);
+  }
   writeFavourites(storage, favourites);
   return favourites;
 }

@@ -76,7 +76,7 @@ test('the device gets a removal that a different device sent to the account', as
 test('the account gets a removal from this device', async () => {
   const storage = memoryStorage({ [FAVOURITES_STORAGE_KEY]: '["a","b"]' });
   const account = memoryAccount(['a', 'b']);
-  toggleFavourite(storage, 'a');
+  toggleFavourite(storage, ['a']);
   addPending(storage, [{ key: 'a', favourite: false }]);
   await syncFavourites(storage, account);
   assert.deepEqual([...account.keys], ['b']);

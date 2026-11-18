@@ -13,8 +13,10 @@ const lastDay = lineup.days.at(-1);
 ---
 
 <header class="page-header">
-  <p class="festival">
-    Tomorrowland Thailand{firstDay && lastDay && ` · ${dateRangeLabel(firstDay.date, lastDay.date)}`}
+  <p class="eyebrow">
+    <slot name="eyebrow">
+      Tomorrowland Thailand{firstDay && lastDay && ` · ${dateRangeLabel(firstDay.date, lastDay.date)}`}
+    </slot>
   </p>
   <h1>{title}</h1>
 </header>
@@ -26,7 +28,7 @@ const lastDay = lineup.days.at(-1);
     gap: 0.375rem;
   }
 
-  .festival {
+  .eyebrow {
     margin: 0;
     color: var(--color-accent);
     font-size: 0.75rem;

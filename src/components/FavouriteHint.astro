@@ -27,16 +27,27 @@ import { SIGN_IN_URL } from '../urls.ts';
 <script>
   import { ACCOUNT_AVAILABLE } from '../account/available.ts';
   import { hasSession } from '../account/session.ts';
-  import { dismissHint, isHintShown, readFavourites, toggleFavourite } from '../favourites/favourites.ts';
+  import {
+    FAVOURITES_CHANGE_EVENT,
+    dismissHint,
+    isFavourite,
+    isHintShown,
+    readFavourites,
+    toggleFavourite,
+  } from '../favourites/favourites.ts';
   import { addPending, syncFavourites } from '../favourites/sync.ts';
 
   const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
 
+  function setKeys(button: HTMLButtonElement): string[] {
+    return button.dataset.favouriteKey!.split(' ');
+  }
+
   function render() {
     const favourites = readFavourites(localStorage);
     for (const button of buttons) {
-      const on = favourites.has(button.dataset.favouriteKey!);
+      const on = isFavourite(favourites, setKeys(button));
       const subject = button.dataset.favouriteSubject!;
       button.setAttribute('aria-pressed', String(on));
       button.setAttribute('aria-label', on ? `Remove ${subject} from favourites` : `Add ${subject} to favourites`);
@@ -48,7 +59,7 @@ import { SIGN_IN_URL } from '../urls.ts';
     return ACCOUNT_AVAILABLE && hasSession(localStorage);
   }
 
-  // One sync at a time. A user who is not signed in does not download the Supabase client.
+  // One sync at a time. The page loads the Supabase client only for a user who is signed in.
   let syncs = Promise.resolve();
   function sync() {
     if (!signedIn()) return;
@@ -57,6 +68,7 @@ import { SIGN_IN_URL } from '../urls.ts';
         const { favouriteAccount } = await import('../account/supabase.ts');
         await syncFavourites(localStorage, favouriteAccount);
         render();
+        document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
       })
       // With no network connection, the changes stay pending until the next sync.
       .catch(() => {});
@@ -64,10 +76,11 @@ import { SIGN_IN_URL } from '../urls.ts';
 
   for (const button of buttons) {
     button.addEventListener('click', () => {
-      const key = button.dataset.favouriteKey!;
-      const favourite = toggleFavourite(localStorage, key).has(key);
-      if (signedIn()) addPending(localStorage, [{ key, favourite }]);
+      const keys = setKeys(button);
+      const favourites = toggleFavourite(localStorage, keys);
+      if (signedIn()) addPending(localStorage, keys.map((key) => ({ key, favourite: favourites.has(key) })));
       render();
+      document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
       sync();
     });
   }
