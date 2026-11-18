@@ -27,11 +27,19 @@ export function readFavourites(storage: FavouriteStorage): Set<string> {
   }
 }
 
-/** Adds or removes the set, and returns the new favourites. */
-export function toggleFavourite(storage: FavouriteStorage, key: string): Set<string> {
+/** A heart can stand for more than one set, for example all sets of an artist. The heart is on when all its sets are favourites. */
+export function isFavourite(favourites: Set<string>, keys: string[]): boolean {
+  return keys.every((key) => favourites.has(key));
+}
+
+/** Removes the sets when all are favourites, or else adds all the sets. Returns the new favourites. */
+export function toggleFavourite(storage: FavouriteStorage, keys: string[]): Set<string> {
   const favourites = readFavourites(storage);
-  if (favourites.has(key)) favourites.delete(key);
-  else favourites.add(key);
+  const remove = isFavourite(favourites, keys);
+  for (const key of keys) {
+    if (remove) favourites.delete(key);
+    else favourites.add(key);
+  }
   storage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify([...favourites]));
   return favourites;
 }

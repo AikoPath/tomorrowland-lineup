@@ -8,6 +8,7 @@ import {
   setLabel,
 } from '../../artist-list/artist-list.ts';
 import { previewPlayer, spotifyUri } from '../../artist/music-player.ts';
+import FavouriteButton from '../../components/FavouriteButton.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
@@ -150,6 +151,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
                       </span>
                     )}
                   </a>
+                  {sets.length > 0 && <FavouriteButton setKey={sets.map((set) => set.key)} subject={artist.name} />}
                 </div>
               </li>
             );
@@ -562,6 +564,11 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     align-items: center;
     min-height: 4.25rem;
     padding: 0.5rem 1.25rem;
+  }
+
+  /* The design puts the heart at the right end of the row, with a smaller space after it. */
+  .row:has(:global(.favourite)) {
+    padding-right: 0.5rem;
   }
 
   .media {
