@@ -7,7 +7,8 @@ import { initials } from '../now/now-next.ts';
 import { SITE_NAME } from '../site.ts';
 import { timelineDays } from '../timeline/timeline.ts';
 import { dayLabelParts } from '../timetable/layout.ts';
-import { LINEUP_URL, artistUrl } from '../urls.ts';
+import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+import { LINEUP_URL, SIGN_IN_URL, artistUrl } from '../urls.ts';
 
 const lineup = await loadLineup();
 const days = timelineDays(lineup);
@@ -39,6 +40,18 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
       <div class="device-note">
         <p>Saved on this device only.</p>
+        {
+          ACCOUNT_AVAILABLE && (
+            <>
+              <a class="account-action sign-in" href={SIGN_IN_URL}>
+                Sign in to keep them
+              </a>
+              <button type="button" class="account-action sign-out" hidden>
+                Sign out
+              </button>
+            </>
+          )
+        }
       </div>
     </div>
 
@@ -106,6 +119,8 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 </Base>
 
 <script>
+  import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+  import { sessionEmail } from '../account/session.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
@@ -163,11 +178,38 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     });
   }
 
-  // A change in an other tab, and a page from the back-forward cache, show the current favourites.
+  const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
+  const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
+  const signOutButton = document.querySelector<HTMLButtonElement>('.device-note .sign-out');
+
+  function renderAccount() {
+    const email = ACCOUNT_AVAILABLE ? sessionEmail(localStorage) : null;
+    deviceNote.textContent = email ? `Saved to your account ${email}.` : 'Saved on this device only.';
+    if (signInLink) signInLink.hidden = email !== null;
+    if (signOutButton) signOutButton.hidden = email === null;
+  }
+
+  signOutButton?.addEventListener('click', async () => {
+    signOutButton.disabled = true;
+    try {
+      const { signOut } = await import('../account/supabase.ts');
+      await signOut();
+    } finally {
+      signOutButton.disabled = false;
+      renderAccount();
+    }
+  });
+
+  // A change in an other tab, and a page from the back-forward cache, show the current favourites and account.
   document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
-  addEventListener('storage', render);
-  addEventListener('pageshow', render);
+  for (const type of ['storage', 'pageshow']) {
+    addEventListener(type, () => {
+      render();
+      renderAccount();
+    });
+  }
   render();
+  renderAccount();
 </script>
 
 <style>
@@ -239,9 +281,27 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
   .device-note p {
     flex: 1;
+    min-width: 0;
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+    overflow-wrap: anywhere;
+  }
+
+  .account-action {
+    display: flex;
+    flex: none;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-accent);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
   }
 
   main {
