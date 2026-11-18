@@ -89,7 +89,8 @@ Supabase lets you change the sign-in email only when you use your own email serv
    | Username     | `resend`                                |
    | Password     | The API key from Resend                 |
 
-8. Open **Authentication → Rate Limits**. Set the emails for each hour to `100`.
+
+Keep the default email limit in **Authentication → Rate Limits**. The free plan of Resend sends 100 emails each day. A lower limit for each hour makes it slower for a person to use all 100 emails with false sign-in requests.
 
 ### 5. Change the sign-in email
 
