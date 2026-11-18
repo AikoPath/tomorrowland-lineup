@@ -24,6 +24,8 @@
   /* The top bar of the artist page, on top of the photo and the text. */
   --color-bar-translucent: hsl(334 26% 5% / 94%);
   --gradient-photo: linear-gradient(90deg, hsl(334 26% 5% / 85%), hsl(334 26% 5% / 55%));
+  /* The shadow below an open list, for example the list of a dropdown. */
+  --shadow-popover: 0 0.75rem 2rem hsl(334 26% 2% / 70%);
 
   /* The fixed bottom bar covers this height at the bottom of each page. */
   --main-nav-height: calc(4.75rem + env(safe-area-inset-bottom));

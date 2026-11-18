@@ -1,5 +1,6 @@
 ---
 import { artistListEntries, filterOptions } from '../../artist-list/artist-list.ts';
+import Dropdown from '../../components/Dropdown.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
@@ -21,22 +22,26 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     <form class="filters" role="search" aria-label="Find artists">
       <input type="search" name="q" placeholder="Search by name" aria-label="Artist name" autocomplete="off" />
       <div class="selects">
-        <select name="day" aria-label="Day">
-          <option value="">All days</option>
-          {options.dates.map((date) => <option value={date}>{dayLabel(date)}</option>)}
-        </select>
-        <select name="stage" aria-label="Stage">
-          <option value="">All stages</option>
-          {options.stages.map((stage) => <option value={stage.id}>{stage.name}</option>)}
-        </select>
+        <Dropdown
+          name="day"
+          label="Day"
+          anyLabel="All days"
+          options={options.dates.map((date) => ({ value: date, label: dayLabel(date) }))}
+        />
+        <Dropdown
+          name="stage"
+          label="Stage"
+          anyLabel="All stages"
+          options={options.stages.map((stage) => ({ value: stage.id, label: stage.name }))}
+        />
         {
           options.genres.length > 0 && (
-            <select name="genre" aria-label="Genre">
-              <option value="">All genres</option>
-              {options.genres.map((genre) => (
-                <option value={genre}>{genre}</option>
-              ))}
-            </select>
+            <Dropdown
+              name="genre"
+              label="Genre"
+              anyLabel="All genres"
+              options={options.genres.map((genre) => ({ value: genre, label: genre }))}
+            />
           )
         }
       </div>
@@ -159,21 +164,19 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     gap: 0.5rem;
   }
 
-  input,
-  select {
+  input {
     width: 100%;
     min-width: 0;
     min-height: 2.75rem;
     padding: 0 0.875rem;
-    border: 1px solid var(--color-line);
-    border-radius: 999px;
-    background: var(--color-surface);
+    border: 1px solid var(--color-control-line);
+    border-radius: 0.5rem;
+    background: var(--color-control);
     color: inherit;
     font: inherit;
   }
 
-  input:focus,
-  select:focus {
+  input:focus {
     border-color: var(--color-accent);
   }
 
