@@ -1,6 +1,10 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
 import { loadLineup } from './src/data/load.ts';
+import { writeServiceWorker } from './src/pwa/service-worker.ts';
+
+/** @type {URL} */
+let root;
 
 // https://astro.build/config
 export default defineConfig({
@@ -24,6 +28,17 @@ export default defineConfig({
       hooks: {
         'astro:build:start': async () => {
           await loadLineup();
+        },
+      },
+    },
+    {
+      name: 'service-worker',
+      hooks: {
+        'astro:config:done': ({ config }) => {
+          root = config.root;
+        },
+        'astro:build:done': async ({ dir }) => {
+          await writeServiceWorker(dir, root);
         },
       },
     },
