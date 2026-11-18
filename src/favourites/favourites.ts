@@ -29,8 +29,12 @@ export function toggleFavourite(storage: FavouriteStorage, key: string): Set<str
   const favourites = readFavourites(storage);
   if (favourites.has(key)) favourites.delete(key);
   else favourites.add(key);
-  storage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify([...favourites]));
+  writeFavourites(storage, favourites);
   return favourites;
+}
+
+export function writeFavourites(storage: FavouriteStorage, favourites: Set<string>): void {
+  storage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify([...favourites]));
 }
 
 /** The message about the device shows when there are favourites, until the user closes it. */

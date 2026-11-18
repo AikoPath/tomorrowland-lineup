@@ -16,6 +16,11 @@ export const NOW_URL = '/now/';
 /** The favourite sets of the user. */
 export const TIMELINE_URL = '/timeline/';
 
+export const SIGN_IN_URL = '/sign-in/';
+
+/** The link in the sign-in email opens this page. */
+export const SIGN_IN_CONFIRM_URL = '/sign-in/confirm/';
+
 /** The Explore page lists all artists. */
 export const EXPLORE_URL = '/artists/';
 

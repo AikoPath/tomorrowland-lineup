@@ -1,10 +1,21 @@
 ---
 // Each page has this message above the bottom bar. The script also controls all heart buttons on the page.
+import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+import { SIGN_IN_URL } from '../urls.ts';
 ---
 
 <div class="favourite-hint" role="status">
   <div class="content" hidden>
-    <p>Favourite saved on this device only. Sign in to keep your favourites on all your devices.</p>
+    {
+      ACCOUNT_AVAILABLE ? (
+        <p>
+          Favourite saved on this device only. <a href={SIGN_IN_URL}>Sign in</a> to keep your favourites on all your
+          devices.
+        </p>
+      ) : (
+        <p>Favourite saved on this device only.</p>
+      )
+    }
     <button type="button" class="dismiss" aria-label="Dismiss">
       <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
@@ -14,7 +25,10 @@
 </div>
 
 <script>
+  import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+  import { hasSession } from '../account/session.ts';
   import { dismissHint, isHintShown, readFavourites, toggleFavourite } from '../favourites/favourites.ts';
+  import { addPending, syncFavourites } from '../favourites/sync.ts';
 
   const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
@@ -27,13 +41,34 @@
       button.setAttribute('aria-pressed', String(on));
       button.setAttribute('aria-label', on ? `Remove ${subject} from favourites` : `Add ${subject} to favourites`);
     }
-    hint.hidden = !isHintShown(localStorage);
+    hint.hidden = signedIn() || !isHintShown(localStorage);
+  }
+
+  function signedIn(): boolean {
+    return ACCOUNT_AVAILABLE && hasSession(localStorage);
+  }
+
+  // One sync at a time. A user who is not signed in does not download the Supabase client.
+  let syncs = Promise.resolve();
+  function sync() {
+    if (!signedIn()) return;
+    syncs = syncs
+      .then(async () => {
+        const { favouriteAccount } = await import('../account/supabase.ts');
+        await syncFavourites(localStorage, favouriteAccount);
+        render();
+      })
+      // With no network connection, the changes stay pending until the next sync.
+      .catch(() => {});
   }
 
   for (const button of buttons) {
     button.addEventListener('click', () => {
-      toggleFavourite(localStorage, button.dataset.favouriteKey!);
+      const key = button.dataset.favouriteKey!;
+      const favourite = toggleFavourite(localStorage, key).has(key);
+      if (signedIn()) addPending(localStorage, [{ key, favourite }]);
       render();
+      sync();
     });
   }
 
@@ -43,8 +78,13 @@
   });
 
   // A change in an other tab, and a page from the back-forward cache, show the current favourites.
+  // The pageshow event also comes after the first load of the page, so each page gets the favourites of the account.
   addEventListener('storage', render);
-  addEventListener('pageshow', render);
+  addEventListener('pageshow', () => {
+    render();
+    sync();
+  });
+  addEventListener('online', sync);
   render();
 </script>
 
@@ -75,6 +115,11 @@
     margin: 0;
     padding: 0.5rem 0;
     font-size: 0.8125rem;
+  }
+
+  p a {
+    font-weight: 700;
+    color: var(--color-accent);
   }
 
   .dismiss {
