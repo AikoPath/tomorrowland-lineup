@@ -45,6 +45,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       <div class="dropdowns">
         <label class="dropdown">
           <select name="day" aria-label="Day">
+            <button type="button"><selectedcontent></selectedcontent></button>
             <option value="">Any day</option>
             {options.dates.map((date) => <option value={date}>{dayLabel(date)}</option>)}
           </select>
@@ -52,6 +53,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
         </label>
         <label class="dropdown">
           <select name="stage" aria-label="Stage">
+            <button type="button"><selectedcontent></selectedcontent></button>
             <option value="">Any stage</option>
             {options.stages.map((stage) => <option value={stage.id}>{stage.name}</option>)}
           </select>
@@ -420,6 +422,54 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
 
   option {
     background: var(--color-background);
+  }
+
+  /* Browsers with a customizable select show the open list in the theme. Other browsers show their own list. */
+  @supports (appearance: base-select) {
+    select,
+    ::picker(select) {
+      appearance: base-select;
+    }
+
+    select {
+      display: flex;
+      align-items: center;
+    }
+
+    selectedcontent {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    select::picker-icon {
+      display: none;
+    }
+
+    ::picker(select) {
+      margin-top: 0.375rem;
+      padding: 0.25rem;
+      border: 1px solid var(--color-control-line);
+      border-radius: 0.5rem;
+      background: var(--color-card);
+      box-shadow: var(--shadow-popover);
+    }
+
+    option {
+      min-height: 2.75rem;
+      padding: 0 0.75rem;
+      border-radius: 0.375rem;
+      background: none;
+    }
+
+    option:hover {
+      background: var(--color-control);
+    }
+
+    option:checked {
+      color: var(--color-accent);
+      font-weight: 700;
+    }
   }
 
   input:focus,
