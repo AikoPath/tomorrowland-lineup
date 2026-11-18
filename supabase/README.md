@@ -12,7 +12,7 @@ A user can sign in with a link in an email. Then the favourites stay the same on
 
 The Supabase GitHub integration runs each new file in `migrations/` on the production database after the merge to `main`. Do not run a migration in the SQL Editor. A second run of a migration fails.
 
-The integration does not send the Auth settings in `config.toml` to production. Set them in the dashboard, as in steps 3 and 4.
+The integration does not send the Auth settings in `config.toml` to production. Set them in the dashboard, as in sections 3 and 5.
 
 A build without the Supabase values has no sign-in. The favourites then stay on the device only. Thus you do not need Supabase to change the lineup data.
 
@@ -56,7 +56,7 @@ Do these steps one time. They take approximately 30 minutes.
 7. Merge the PR with the `supabase/` folder into `main`.
 8. Open **Table Editor**. Make sure that the table `favourites` shows the label "RLS enabled".
 
-The site shows no sign-in link until section 7, so you can merge the PR before the other steps.
+The site shows no sign-in link until section 8, so you can merge the PR before the other steps.
 
 ### 3. Set the links
 
@@ -68,26 +68,49 @@ The site shows no sign-in link until section 7, so you can merge the PR before t
 
 Supabase sends a link only to a page in this list. Do not add a pattern for `vercel.app`. Any person can make a Vercel project with a name that matches the pattern, and then get the sign-in link of a different user. Thus the sign-in works only on the production site and on your computer.
 
-### 4. Change the sign-in email
+### 4. Send emails from your own domain
 
-Supabase sends the "Confirm signup" email to a new user and the "Magic link" email to a known user. Change the two emails.
+Supabase lets you change the sign-in email only when you use your own email service. The email service in Supabase also sends emails only to the members of your Supabase organization, and only 2 emails in each hour.
+
+1. Make an account on https://resend.com. The free plan sends 3000 emails each month.
+2. Add the domain `tomorrowland.aiko.dev` in Resend.
+3. Add the DNS records that Resend shows to the Porkbun DNS of `aiko.dev`. In Porkbun, the host of each record has no `.aiko.dev` at the end, for example `send.tomorrowland`.
+4. Wait until Resend shows the domain as verified.
+5. Make an API key in Resend with the permission "Sending access".
+6. In Supabase, open **Authentication → Emails → SMTP Settings** and turn on **Enable custom SMTP**.
+7. Write these values, then click **Save changes**:
+
+   | Field        | Value                                   |
+   | ------------ | --------------------------------------- |
+   | Sender email | `noreply@tomorrowland.aiko.dev`         |
+   | Sender name  | `Tomorrowland Thailand 2026 lineup`     |
+   | Host         | `smtp.resend.com`                       |
+   | Port         | `465`                                   |
+   | Username     | `resend`                                |
+   | Password     | The API key from Resend                 |
+
+8. Open **Authentication → Rate Limits**. Set the emails for each hour to `100`.
+
+### 5. Change the sign-in email
+
+Supabase sends the "Confirm sign up" email to a new user and the "Magic link or OTP" email to a known user. Change the two emails.
 
 1. Open **Authentication → Emails → Templates**.
-2. Open **Confirm signup**.
+2. Open **Confirm sign up**.
 3. Set the subject to `Your sign-in link`.
 4. Replace all the text of the body with the text of `supabase/templates/sign-in.html`.
 5. Click **Save changes**.
-6. Do steps 3 to 5 again for **Magic link**.
+6. Do steps 3 to 5 again for **Magic link or OTP**.
 
 The link in the email opens `/sign-in/confirm/` on the site, and JavaScript on that page does the sign-in. An email scanner that opens the link does not use the token, because it does not run JavaScript.
 
-### 5. Copy the keys
+### 6. Copy the keys
 
 1. Open **Project Settings → API Keys**.
 2. Copy the **publishable key**. It starts with `sb_publishable_`.
 3. Open **Project Settings → Data API** and copy the **Project URL**.
 
-### 6. Test on your computer
+### 7. Test on your computer
 
 1. Make a file `.env` in the root of the repo with these two lines:
 
@@ -105,7 +128,7 @@ The link in the email opens `/sign-in/confirm/` on the site, and JavaScript on t
 
 Git ignores the `.env` file.
 
-### 7. Add the keys to Vercel
+### 8. Add the keys to Vercel
 
 1. Open the Vercel project `tomorrowland-lineup`, then **Settings → Environment Variables**.
 2. Add `PUBLIC_SUPABASE_URL` for **Production** only.
@@ -115,26 +138,3 @@ Git ignores the `.env` file.
 The preview deployments get no keys, because the sign-in links go only to the production site. A preview thus shows no sign-in link.
 
 Do not connect the Supabase integration of Vercel. It adds the secret keys of the project to Vercel, and the site does not use them.
-
-### 8. Send emails from your own domain
-
-The email service in Supabase is for tests only. It sends emails only to the members of your Supabase organization, and only a small number in each hour. Do these steps before other users sign in.
-
-1. Make an account on https://resend.com. The free plan sends 3000 emails each month.
-2. Add the domain `tomorrowland.aiko.dev` in Resend.
-3. Add the DNS records that Resend shows to the Porkbun DNS of `aiko.dev`.
-4. Wait until Resend shows the domain as verified.
-5. Make an API key in Resend with the permission "Sending access".
-6. In Supabase, open **Authentication → Emails → SMTP Settings** and turn on **Enable custom SMTP**.
-7. Write these values, then click **Save changes**:
-
-   | Field        | Value                                   |
-   | ------------ | --------------------------------------- |
-   | Sender email | `noreply@tomorrowland.aiko.dev`         |
-   | Sender name  | `Tomorrowland Thailand 2026 lineup`     |
-   | Host         | `smtp.resend.com`                       |
-   | Port         | `465`                                   |
-   | Username     | `resend`                                |
-   | Password     | The API key from Resend                 |
-
-8. Open **Authentication → Rate Limits**. Set the emails for each hour to `100`.
