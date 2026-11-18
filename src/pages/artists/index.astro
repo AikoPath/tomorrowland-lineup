@@ -7,10 +7,12 @@ import {
   listHeading,
   setLabel,
 } from '../../artist-list/artist-list.ts';
-import { previewPlayer, spotifyUri } from '../../artist/music-player.ts';
+import { musicLabels, type MusicKey } from '../../artist/artist-page.ts';
+import { previewPlayers } from '../../artist/music-player.ts';
 import { photoUrl } from '../../artist/photo.ts';
 import FavouriteButton from '../../components/FavouriteButton.astro';
 import PageHeader from '../../components/PageHeader.astro';
+import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../site.ts';
@@ -26,6 +28,7 @@ const options = filterOptions(lineup);
 const commonGenres = options.genres.slice(0, COMMON_GENRE_COUNT);
 const otherGenres = options.genres.slice(COMMON_GENRE_COUNT);
 // Escape "<", so that a genre in the data cannot close the script element.
+const musicServices = Object.entries(musicLabels) as [MusicKey, string][];
 const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceAll('<', '\\u003c');
 ---
 
@@ -94,12 +97,36 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     </form>
 
     <main>
-      <h2 class="heading" aria-live="polite">{listHeading(entries.length, [])}</h2>
+      <div class="list-bar">
+        <h2 class="heading" aria-live="polite">{listHeading(entries.length, [])}</h2>
+        {/* A preference, not a filter: it is not in the form, so it is not in the URL. */}
+        <label class="dropdown service">
+          {/* "▶ plays on Spotify" tells the user that the icon on the photos is a play button. */}
+          <span class="service-label">
+            <span class="play-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="9" height="9"><path d="M8 5v14l11-7z"></path></svg>
+            </span>
+            plays on
+          </span>
+          <select name="music-service" aria-label="Play previews on">
+            <button type="button"><selectedcontent></selectedcontent></button>
+            {
+              musicServices.map(([key, label]) => (
+                <option value={key}>
+                  <PlatformIcon platform={key} />
+                  <span>{label}</span>
+                </option>
+              ))
+            }
+          </select>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+        </label>
+      </div>
       <p class="empty" hidden>No artist matches the filters.</p>
       <ul class="artists">
         {
           entries.map(({ artist, sets }, index) => {
-            const preview = previewPlayer(artist);
+            const players = previewPlayers(artist);
             return (
               <li data-index={index}>
                 <div class="row">
@@ -119,17 +146,14 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
                         <span class="photo initials">{initials(artist.name)}</span>
                       )}
                     </a>
-                    {preview && (
+                    {players.length > 0 && (
                       <button
                         type="button"
                         class="play"
                         aria-pressed="false"
                         aria-label={`Play a preview of ${artist.name}`}
                         data-artist={artist.name}
-                        data-service={preview.service}
-                        data-embed-src={preview.player.kind === 'embed' ? (preview.player.autoplaySrc ?? preview.player.src) : undefined}
-                        data-apple-lookup={preview.player.kind === 'apple-top-song' ? preview.player.lookupUrl : undefined}
-                        data-spotify-uri={spotifyUri(preview.player)}
+                        data-players={JSON.stringify(players)}
                       >
                         <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                           <path d="M8 5v14l11-7z"></path>
@@ -171,7 +195,15 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     type ArtistFilter,
     type FilterData,
   } from '../../artist-list/artist-list.ts';
-  import { embedUrl, type Player } from '../../artist/music-player.ts';
+  import { musicLabels, type MusicKey } from '../../artist/artist-page.ts';
+  import {
+    choosePreview,
+    embedUrl,
+    readMusicService,
+    saveMusicService,
+    spotifyUri,
+    type PreviewPlayer,
+  } from '../../artist/music-player.ts';
   import { playSpotify } from '../../artist/spotify-iframe-api.ts';
 
   const form = document.querySelector<HTMLFormElement>('.filters')!;
@@ -275,8 +307,18 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   /** The compact form of the Spotify player. */
   const SPOTIFY_PLAYER_HEIGHT = 152;
 
+  const serviceSelect = document.querySelector<HTMLSelectElement>('select[name="music-service"]')!;
+  let chosenService = readMusicService(localStorage);
+  if (chosenService) serviceSelect.value = chosenService;
+
+  function previewOf(button: HTMLButtonElement): PreviewPlayer | undefined {
+    const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
+    return choosePreview(players, chosenService);
+  }
+
   // Only one preview plays at a time.
   let playingItem: HTMLLIElement | undefined;
+  let playingService: MusicKey | undefined;
 
   function stopPreview(item: HTMLLIElement) {
     item.querySelector('.preview')?.remove();
@@ -285,24 +327,39 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       button.setAttribute('aria-pressed', 'false');
       button.setAttribute('aria-label', `Play a preview of ${button.dataset.artist}`);
     }
-    if (playingItem === item) playingItem = undefined;
+    if (playingItem === item) {
+      playingItem = undefined;
+      playingService = undefined;
+    }
   }
 
   async function startPreview(item: HTMLLIElement, button: HTMLButtonElement) {
     if (playingItem) stopPreview(playingItem);
+    const choice = previewOf(button);
+    if (!choice) return;
+    const { service, player } = choice;
     playingItem = item;
+    playingService = service;
     button.setAttribute('aria-pressed', 'true');
     button.setAttribute('aria-label', `Stop the preview of ${button.dataset.artist}`);
 
-    const service = button.dataset.service ?? '';
     const preview = document.createElement('div');
     preview.className = 'preview';
     preview.dataset.service = service;
+    if (chosenService && service !== chosenService) {
+      const note = document.createElement('p');
+      note.className = 'fallback';
+      note.textContent = `${button.dataset.artist} has no ${musicLabels[chosenService]} player. This is ${musicLabels[service]}.`;
+      preview.append(note);
+    }
+    // The players replace the content of the slot, so the note stays.
+    const slot = document.createElement('div');
+    preview.append(slot);
     item.append(preview);
 
-    const { embedSrc, appleLookup, spotifyUri } = button.dataset;
-    if (spotifyUri) {
-      const started = await playSpotify(preview, spotifyUri, SPOTIFY_PLAYER_HEIGHT, playerTitles.spotify!).then(
+    const uri = spotifyUri(player);
+    if (uri) {
+      const started = await playSpotify(slot, uri, SPOTIFY_PLAYER_HEIGHT, playerTitles.spotify!).then(
         () => true,
         () => false,
       );
@@ -311,15 +368,12 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       if (!preview.isConnected) return;
     }
 
-    const player: Player = appleLookup
-      ? { kind: 'apple-top-song', lookupUrl: appleLookup }
-      : { kind: 'embed', src: embedSrc! };
-    if (appleLookup) preview.textContent = 'Loading the top song…';
-    const src = await embedUrl(player);
+    if (player.kind === 'apple-top-song') slot.textContent = 'Loading the top song…';
+    const src = await embedUrl(player.kind === 'embed' ? { ...player, src: player.autoplaySrc ?? player.src } : player);
     // The user can stop the preview or start another preview during the lookup.
     if (!preview.isConnected) return;
     if (!src) {
-      preview.textContent = 'Apple Music did not give a song for this artist.';
+      slot.textContent = 'Apple Music did not give a song for this artist.';
       return;
     }
 
@@ -327,7 +381,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     iframe.src = src;
     iframe.title = playerTitles[service] ?? 'Music player';
     iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-    preview.replaceChildren(iframe);
+    slot.replaceChildren(iframe);
   }
 
   for (const item of items) {
@@ -337,6 +391,14 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       else void startPreview(item, button);
     });
   }
+
+  serviceSelect.addEventListener('change', () => {
+    chosenService = serviceSelect.value as MusicKey;
+    saveMusicService(localStorage, chosenService);
+    // The preview that plays changes to the new service, when the artist has a player for it.
+    const button = playingItem?.querySelector<HTMLButtonElement>('.play');
+    if (playingItem && button && previewOf(button)?.service !== playingService) void startPreview(playingItem, button);
+  });
 
   // Some image links in the data have a format that a browser cannot show, for example a Photoshop file.
   function showInitials(image: HTMLImageElement) {
@@ -392,7 +454,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   .search svg,
-  .dropdown svg {
+  .dropdown > svg {
     fill: none;
     stroke: var(--color-icon);
     stroke-linecap: round;
@@ -406,7 +468,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     pointer-events: none;
   }
 
-  .dropdown svg {
+  .dropdown > svg {
     position: absolute;
     right: 0.875rem;
     pointer-events: none;
@@ -543,14 +605,59 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     font-weight: 700;
   }
 
+  .list-bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem 0.5rem;
+  }
+
   .heading {
     margin: 0;
-    padding: 1.25rem 1.25rem 0.5rem;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .service {
+    flex: none;
+    gap: 0.5rem;
+  }
+
+  .service-label {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+
+  .service select {
+    height: 2.25rem;
+    padding-left: 0.625rem;
+  }
+
+  .service > svg {
+    right: 0.625rem;
+  }
+
+  /* The icon of the service shows in the open list and in the button. A browser with no customizable select shows only the text. */
+  .service option,
+  .service selectedcontent {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .service option :global(svg),
+  .service selectedcontent :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
   }
 
   .empty {
@@ -662,19 +769,30 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   /* A round button on the lower right part of the photo, as in the design. */
+  .play,
+  .play-badge {
+    display: grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-text);
+    color: var(--color-background);
+  }
+
+  /* Smaller than the play buttons, so that it does not look like a button. */
+  .play-badge {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
   .play {
     position: absolute;
     right: 0.25rem;
     bottom: 0.25rem;
-    display: grid;
-    width: 1.5rem;
-    height: 1.5rem;
-    place-items: center;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: var(--color-text);
-    color: var(--color-background);
     cursor: pointer;
   }
 
@@ -685,7 +803,8 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     content: '';
   }
 
-  .play svg {
+  .play svg,
+  .play-badge svg {
     fill: currentColor;
     stroke: none;
   }
@@ -703,6 +822,10 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     padding: 0 1.25rem 0.75rem;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+  }
+
+  .artists :global(.preview .fallback) {
+    margin: 0 0 0.5rem;
   }
 
   .artists :global(.preview iframe) {

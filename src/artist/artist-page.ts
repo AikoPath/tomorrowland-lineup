@@ -47,7 +47,7 @@ const socialLabels = {
   website: 'Website',
 } satisfies Record<SocialKey, string>;
 
-const musicLabels = {
+export const musicLabels = {
   spotify: 'Spotify',
   apple_music: 'Apple Music',
   youtube: 'YouTube',
