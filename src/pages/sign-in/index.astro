@@ -53,7 +53,6 @@ import { LINEUP_URL } from '../../urls.ts';
 <script>
   import { ACCOUNT_AVAILABLE } from '../../account/available.ts';
   import { hasSession } from '../../account/session.ts';
-  import { clearPending } from '../../favourites/sync.ts';
 
   const form = document.querySelector<HTMLFormElement>('form.send');
   if (ACCOUNT_AVAILABLE && form) {
@@ -106,8 +105,6 @@ import { LINEUP_URL } from '../../urls.ts';
     });
 
     signedIn.querySelector('.sign-out')!.addEventListener('click', async () => {
-      // The favourites stay on this device. The changes that the account does not have yet go away.
-      clearPending(localStorage);
       await (await account()).signOut();
       show('form');
     });
