@@ -5,6 +5,7 @@ import {
   artistListEntries,
   filterOptions,
   genreLabel,
+  genresLabel,
   initials,
   listHeading,
   matchesFilter,
@@ -41,7 +42,7 @@ const lineup: Lineup = {
 };
 
 const entries = artistListEntries(lineup);
-const noFilter: ArtistFilter = { query: '', date: '', stage: '', genre: '' };
+const noFilter: ArtistFilter = { query: '', date: '', stage: '', genres: [] };
 
 function matchingIds(filter: Partial<ArtistFilter>): string[] {
   return entries.filter((entry) => matchesFilter(entry.filter, { ...noFilter, ...filter })).map((entry) => entry.artist.id);
@@ -101,7 +102,12 @@ test('matchesFilter finds an artist by a part of each word of the name', () => {
 test('matchesFilter finds the artists of a day, a stage and a genre', () => {
   assert.deepEqual(matchingIds({ date: '2026-12-12' }), ['dimitri-vegas-like-mike']);
   assert.deepEqual(matchingIds({ stage: 'freedom' }), ['charlotte-de-witte']);
-  assert.deepEqual(matchingIds({ genre: 'big room' }), ['dimitri-vegas-like-mike']);
+  assert.deepEqual(matchingIds({ genres: ['big room'] }), ['dimitri-vegas-like-mike']);
+});
+
+test('matchesFilter with more genres finds the artists with one of the genres', () => {
+  assert.deepEqual(matchingIds({ genres: ['big room', 'acid techno'] }), ['charlotte-de-witte', 'dimitri-vegas-like-mike']);
+  assert.deepEqual(matchingIds({ genres: ['big room', 'trance'] }), ['dimitri-vegas-like-mike']);
 });
 
 test('matchesFilter needs one set that matches the day and the stage', () => {
@@ -123,6 +129,12 @@ test('initials gives the first letters of the first 2 words', () => {
 
 test('genreLabel gives the genre with a capital first letter', () => {
   assert.equal(genreLabel('big room'), 'Big room');
+});
+
+test('genresLabel gives the genres as a list with "or"', () => {
+  assert.equal(genresLabel(['trance']), 'Trance');
+  assert.equal(genresLabel(['trance', 'big room']), 'Trance or Big room');
+  assert.equal(genresLabel(['trance', 'big room', 'techno']), 'Trance, Big room or Techno');
 });
 
 test('listHeading gives the count and the active filters', () => {

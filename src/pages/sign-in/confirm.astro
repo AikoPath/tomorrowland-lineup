@@ -1,0 +1,50 @@
+---
+// The link in the sign-in email opens this page. See supabase/templates/sign-in.html.
+import SignInScreen from '../../components/SignInScreen.astro';
+import { SIGN_IN_URL } from '../../urls.ts';
+---
+
+<SignInScreen>
+  <p class="progress" role="status">Sign-in in progress.</p>
+  <p class="error" role="alert" hidden>
+    The sign-in link is not valid. A link works one time and for one hour only. <a href={SIGN_IN_URL}
+      >Send a new link</a
+    >
+  </p>
+</SignInScreen>
+
+<script>
+  import { addDeviceFavouritesToPending, syncFavourites } from '../../favourites/sync.ts';
+  import { SIGN_IN_URL } from '../../urls.ts';
+
+  const tokenHash = new URLSearchParams(location.search).get('token_hash');
+  // The token must not stay in the browser history.
+  history.replaceState(null, '', location.pathname);
+
+  try {
+    if (!tokenHash) throw new Error('The link has no token.');
+    const { confirmSignIn, favouriteAccount } = await import('../../account/supabase.ts');
+    await confirmSignIn(tokenHash);
+    addDeviceFavouritesToPending(localStorage);
+    // With no network connection, the favourites stay pending. The next page sends them.
+    await syncFavourites(localStorage, favouriteAccount).catch(() => {});
+    location.replace(SIGN_IN_URL);
+  } catch {
+    document.querySelector<HTMLElement>('.progress')!.hidden = true;
+    document.querySelector<HTMLElement>('.error')!.hidden = false;
+  }
+</script>
+
+<style>
+  p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+  }
+
+  a {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+</style>

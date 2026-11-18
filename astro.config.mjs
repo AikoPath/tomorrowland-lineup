@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import { loadLineup } from './src/data/load.ts';
 import { writeServiceWorker } from './src/pwa/service-worker.ts';
 
@@ -9,6 +9,13 @@ let root;
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  env: {
+    schema: {
+      // The browser uses these values to sign in. Without them, the site has no sign-in. See supabase/README.md.
+      PUBLIC_SUPABASE_URL: envField.string({ context: 'client', access: 'public', optional: true }),
+      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({ context: 'client', access: 'public', optional: true }),
+    },
+  },
   fonts: [
     {
       // Tomorrowland uses Europa, an Adobe font with a license. Figtree is a free font with a similar shape.

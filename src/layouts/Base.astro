@@ -10,9 +10,11 @@ interface Props {
   title: string;
   /** The link of this main page in the bottom bar shows in the accent color. */
   mainPage?: MainPage;
+  /** A page with no bottom bar and no message about favourites, for example the sign-in page. */
+  bare?: boolean;
 }
 
-const { title, mainPage } = Astro.props;
+const { title, mainPage, bare = false } = Astro.props;
 ---
 
 <html lang="en">
@@ -28,11 +30,17 @@ const { title, mainPage } = Astro.props;
     <Font cssVariable="--font-body" preload />
     <title>{title}</title>
   </head>
-  <body>
+  <body class:list={{ bare }}>
     <slot />
-    <SiteFooter />
-    <FavouriteHint />
-    <MainNav current={mainPage} />
+    {
+      !bare && (
+        <>
+          <SiteFooter />
+          <FavouriteHint />
+          <MainNav current={mainPage} />
+        </>
+      )
+    }
     <script>
       import { SERVICE_WORKER_URL } from '../urls';
 
@@ -43,3 +51,9 @@ const { title, mainPage } = Astro.props;
     </script>
   </body>
 </html>
+
+<style>
+  .bare {
+    padding-bottom: 0;
+  }
+</style>

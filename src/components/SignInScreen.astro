@@ -1,0 +1,90 @@
+---
+// The frame of the sign-in pages from design/project/FavSignIn.dc.html: the close button, the heart and the title.
+import Base from '../layouts/Base.astro';
+import { SITE_NAME } from '../site.ts';
+import { LINEUP_URL } from '../urls.ts';
+---
+
+<Base title={`Keep your favourites · ${SITE_NAME}`} bare>
+  <div class="screen">
+    <div class="top">
+      <a class="close" href={LINEUP_URL} data-close aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </a>
+    </div>
+    <main>
+      <svg class="heart" width="48" height="48" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"></path>
+      </svg>
+      <h1>Keep your favourites</h1>
+      <slot />
+    </main>
+    <slot name="footer" />
+  </div>
+</Base>
+
+<script>
+  import { SIGN_IN_URL } from '../urls.ts';
+
+  // Close goes back to the page before the sign-in. A page from a different site, or no page, gives the line-up.
+  const previous = document.referrer ? new URL(document.referrer) : null;
+  if (previous?.origin === location.origin && !previous.pathname.startsWith(SIGN_IN_URL)) {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-close]')) link.href = previous.href;
+  }
+</script>
+
+<style>
+  .screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    max-width: 30rem;
+    margin: 0 auto;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .top {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 1rem 0;
+  }
+
+  .close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--color-control-line-strong);
+    border-radius: 50%;
+  }
+
+  .close svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 3rem 1.25rem 1.5rem;
+  }
+
+  .heart {
+    fill: var(--color-accent);
+    stroke: var(--color-accent);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+
+  h1 {
+    margin: 0 0 -0.875rem;
+    font-size: 2rem;
+    line-height: 1.15;
+  }
+</style>
