@@ -107,9 +107,13 @@ Git ignores the `.env` file.
 ### 7. Add the keys to Vercel
 
 1. Open the Vercel project `tomorrowland-lineup`, then **Settings → Environment Variables**.
-2. Add `PUBLIC_SUPABASE_URL` for **Production** and **Preview**.
-3. Add `PUBLIC_SUPABASE_PUBLISHABLE_KEY` for **Production** and **Preview**.
+2. Add `PUBLIC_SUPABASE_URL` for **Production** only.
+3. Add `PUBLIC_SUPABASE_PUBLISHABLE_KEY` for **Production** only.
 4. Deploy again. Astro writes the values into the JavaScript at build time.
+
+The preview deployments get no keys, because the sign-in links go only to the production site. A preview thus shows no sign-in link.
+
+Do not connect the Supabase integration of Vercel. It adds the secret keys of the project to Vercel, and the site does not use them.
 
 ### 8. Send emails from your own domain
 
