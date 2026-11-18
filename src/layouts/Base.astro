@@ -42,11 +42,20 @@ const { title, mainPage, bare = false } = Astro.props;
       )
     }
     <script>
-      import { SERVICE_WORKER_URL } from '../urls';
+      import { SAVE_PHOTOS_MESSAGE, SERVICE_WORKER_URL } from '../urls';
+
+      // The service worker starts after the page loads, so the page gets the network first.
+      // After that, the service worker saves the artist photos. See src/pwa/sw.js.
+      async function startServiceWorker() {
+        await navigator.serviceWorker.register(SERVICE_WORKER_URL);
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage(SAVE_PHOTOS_MESSAGE);
+      }
 
       // The dev server does not make the service worker. Only the build makes it.
       if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.register(SERVICE_WORKER_URL);
+        if (document.readyState === 'complete') void startServiceWorker();
+        else addEventListener('load', () => void startServiceWorker());
       }
     </script>
   </body>

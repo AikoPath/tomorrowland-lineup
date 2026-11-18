@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { photoUrl } from '../artist/photo.ts';
 import { loadLineup } from '../data/load.ts';
 import type { Artist } from '../data/schema.ts';
-import { SERVICE_WORKER_URL } from '../urls.ts';
+import { SAVE_PHOTOS_MESSAGE, SERVICE_WORKER_URL } from '../urls.ts';
 
 /** The URL of a file in the build output. A page URL ends with a slash, as in src/urls.ts. */
 export function buildFileUrl(file: string): string {
@@ -55,7 +55,8 @@ export async function writeServiceWorker(outDir: URL, root: URL): Promise<void> 
     `const CACHE_NAME = ${JSON.stringify(cacheName([...files, { file: serviceWorkerFile, content: code }]))};\n` +
       `const PRECACHE_URLS = ${JSON.stringify(fileNames.map(buildFileUrl))};\n` +
       `const SMALL_PHOTO_URLS = ${JSON.stringify(photos.small)};\n` +
-      `const LARGE_PHOTO_URLS = ${JSON.stringify(photos.large)};\n\n` +
+      `const LARGE_PHOTO_URLS = ${JSON.stringify(photos.large)};\n` +
+      `const SAVE_PHOTOS_MESSAGE = ${JSON.stringify(SAVE_PHOTOS_MESSAGE)};\n\n` +
       code,
   );
 }

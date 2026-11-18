@@ -28,6 +28,6 @@ test('artistPhotoUrls gives each photo one time, in the small and the large size
       { id: 'b', name: 'B', image },
       { id: 'c', name: 'C' },
     ]),
-    { small: [`${image}?width=400`], large: [`${image}?width=800`] },
+    { small: ['/photos/tml/1-photo.jpg?width=400'], large: ['/photos/tml/1-photo.jpg?width=800'] },
   );
 });

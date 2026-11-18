@@ -161,7 +161,9 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
   // With no network, the page shows the saved small photo. With no photo at all, the page shows only the name.
   function showFallbackPhoto(image: HTMLImageElement) {
     const smallSrc = image.dataset.smallSrc;
-    if (smallSrc && image.src !== smallSrc) image.src = smallSrc;
+    // The attribute is removed, so a failed small photo does not start the fallback again.
+    delete image.dataset.smallSrc;
+    if (smallSrc) image.src = smallSrc;
     else image.remove();
   }
   const photo = document.querySelector<HTMLImageElement>('.photo img');
