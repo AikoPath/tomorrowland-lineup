@@ -11,6 +11,9 @@ export function favouriteKey(date: string, artistIds: string[]): string {
 export const FAVOURITES_STORAGE_KEY = 'favourites';
 export const HINT_DISMISSED_STORAGE_KEY = 'favourites-hint-dismissed';
 
+/** The heart buttons send this event to the document after each change of the favourites. */
+export const FAVOURITES_CHANGE_EVENT = 'favourites-change';
+
 /** The part of the Storage interface that the favourites use. */
 export type FavouriteStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
