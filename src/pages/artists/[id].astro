@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro';
 import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/artist-page.ts';
 import { musicTabs as toMusicTabs } from '../../artist/music-player.ts';
+import FavouriteButton from '../../components/FavouriteButton.astro';
 import MusicPlayer from '../../components/MusicPlayer.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
@@ -94,6 +95,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
                     <p class="set-time">
                       {formatTime(set.start)}–{formatTime(set.end)}
                     </p>
+                    <FavouriteButton class="set-favourite" setKey={set.key} subject="this set" />
                   </div>
                   {set.otherArtists.length > 0 && (
                     <p class="set-b2b">
@@ -493,7 +495,13 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     justify-content: space-between;
   }
 
+  /* The button is larger than the text, so it goes past the padding of the card. */
+  .set :global(.set-favourite) {
+    margin: -0.375rem -0.5rem -0.375rem 0;
+  }
+
   .set-place {
+    flex: 1;
     display: grid;
     gap: 0.1875rem;
   }

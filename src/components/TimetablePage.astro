@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
 import { artistUrl, dayUrl } from '../urls';
+import FavouriteButton from './FavouriteButton.astro';
 import PageHeader from './PageHeader.astro';
 
 interface Props {
@@ -91,6 +92,11 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
                   <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
                 </span>
                 {set.genre && <span class="genre">{set.genre}</span>}
+                <FavouriteButton
+                  class="set-favourite"
+                  setKey={set.key}
+                  subject={set.artists.map((artist) => artist.name).join(' b2b ')}
+                />
               </li>
             ))}
           </ol>
@@ -350,6 +356,8 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   }
 
   .artists {
+    /* The heart button is at the top right of the card. */
+    padding-right: 1.875rem;
     font-size: 0.875rem;
     font-weight: 700;
     line-height: 1.2;
@@ -374,6 +382,14 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
   .b2b {
     font-weight: 400;
+  }
+
+  /* Above the link that covers the card. */
+  .set :global(.set-favourite) {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
   }
 
   .time {

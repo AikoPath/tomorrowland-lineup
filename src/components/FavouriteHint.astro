@@ -1,0 +1,92 @@
+---
+// Each page has this message above the bottom bar. The script also controls all heart buttons on the page.
+---
+
+<div class="favourite-hint" role="status">
+  <div class="content" hidden>
+    <p>Favourite saved on this device only. Sign in to keep your favourites on all your devices.</p>
+    <button type="button" class="dismiss" aria-label="Dismiss">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  import { dismissHint, isHintShown, readFavourites, toggleFavourite } from '../favourites/favourites.ts';
+
+  const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
+
+  function render() {
+    const favourites = readFavourites(localStorage);
+    for (const button of buttons) {
+      const on = favourites.has(button.dataset.favouriteKey!);
+      const subject = button.dataset.favouriteSubject!;
+      button.setAttribute('aria-pressed', String(on));
+      button.setAttribute('aria-label', on ? `Remove ${subject} from favourites` : `Add ${subject} to favourites`);
+    }
+    hint.hidden = !isHintShown(localStorage);
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      toggleFavourite(localStorage, button.dataset.favouriteKey!);
+      render();
+    });
+  }
+
+  hint.querySelector('.dismiss')!.addEventListener('click', () => {
+    dismissHint(localStorage);
+    render();
+  });
+
+  // A change in an other tab, and a page from the back-forward cache, show the current favourites.
+  addEventListener('storage', render);
+  addEventListener('pageshow', render);
+  render();
+</script>
+
+<style>
+  .favourite-hint {
+    position: fixed;
+    right: 0;
+    bottom: var(--main-nav-height);
+    left: 0;
+    z-index: 10;
+  }
+
+  .content {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.25rem 0.25rem 0.25rem 1rem;
+    border-top: 1px solid var(--color-control-line);
+    background: var(--color-card);
+  }
+
+  .content[hidden] {
+    display: none;
+  }
+
+  p {
+    flex: 1;
+    margin: 0;
+    padding: 0.5rem 0;
+    font-size: 0.8125rem;
+  }
+
+  .dismiss {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+</style>

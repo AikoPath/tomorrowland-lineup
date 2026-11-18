@@ -44,6 +44,7 @@ test('places each set in the column of its stage, in the order of the stages', (
   );
   const [mainstage, freedom] = timetable.columns;
   assert.deepEqual(freedom.sets[0], {
+    key: '2026-12-11/charlotte-de-witte',
     artists: [artists[1]],
     offset: 20,
     length: 70,

@@ -31,6 +31,7 @@ const lineup: Lineup = {
 test('artistSets gives each set of the artist with the festival day, the stage and the other B2B artists', () => {
   assert.deepEqual(artistSets(lineup, 'charlotte-de-witte'), [
     {
+      key: '2026-12-11/amelie-lens+charlotte-de-witte',
       date: '2026-12-11',
       stage: { id: 'mainstage', name: 'Mainstage' },
       start: '2026-12-11T22:00',
@@ -38,6 +39,7 @@ test('artistSets gives each set of the artist with the festival day, the stage a
       otherArtists: [{ id: 'amelie-lens', name: 'Amelie Lens' }],
     },
     {
+      key: '2026-12-11/charlotte-de-witte',
       date: '2026-12-11',
       stage: { id: 'freedom', name: 'Freedom' },
       start: '2026-12-12T00:30',

@@ -1,7 +1,7 @@
 ---
-import { EXPLORE_URL, LINEUP_URL, NOW_URL } from '../urls';
+import { EXPLORE_URL, LINEUP_URL, NOW_URL, TIMELINE_URL } from '../urls';
 
-export type MainPage = 'lineup' | 'now' | 'explore';
+export type MainPage = 'lineup' | 'now' | 'timeline' | 'explore';
 
 interface Props {
   /** The main page that shows now. An artist page is not a main page. */
@@ -13,6 +13,12 @@ const { current } = Astro.props;
 const links: { page: MainPage; href: string; label: string; icon: string }[] = [
   { page: 'lineup', href: LINEUP_URL, label: 'Line-up', icon: 'M4 6h16M4 12h16M4 18h10' },
   { page: 'now', href: NOW_URL, label: 'Now', icon: 'M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18M12 7v5l3 2' },
+  {
+    page: 'timeline',
+    href: TIMELINE_URL,
+    label: 'My timeline',
+    icon: 'M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z',
+  },
   { page: 'explore', href: EXPLORE_URL, label: 'Explore', icon: 'M11 4a7 7 0 1 1 0 14a7 7 0 1 1 0-14M20 20l-3.5-3.5' },
 ];
 ---
@@ -48,7 +54,7 @@ const links: { page: MainPage; href: string; label: string; icon: string }[] = [
     left: 0;
     z-index: 10;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     height: var(--main-nav-height);
     padding: 0.5rem 0.75rem calc(1rem + env(safe-area-inset-bottom));
     border-top: 1px solid var(--color-divider);
