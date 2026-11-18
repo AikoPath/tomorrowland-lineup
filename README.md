@@ -2,7 +2,7 @@
 
 This site makes the Tomorrowland Thailand 2026 timetable easier to explore. It shows each artist with genres, social links and music previews.
 
-The site is static. [Astro](https://astro.build) reads the YAML data files at build time and writes HTML files. The site has no backend and no database.
+The site is static. [Astro](https://astro.build) reads the YAML data files at build time and writes HTML files. The site has no backend. The optional sign-in uses Supabase from the browser. See [supabase/README.md](supabase/README.md).
 
 To add or correct artist and timetable data, read [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -33,6 +33,8 @@ Vercel builds and serves the site at https://tomorrowland.aiko.dev. The Vercel p
 - Each PR gets a preview deployment.
 - The build stops on a data problem, so a PR with data that is not valid shows a failed Vercel check.
 
+Vercel has the Supabase values `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` as environment variables. A build without them has no sign-in.
+
 A different static host can also serve the `dist/` directory. The host does not need a server runtime.
 
 ## Project structure
@@ -40,14 +42,17 @@ A different static host can also serve the `dist/` directory. The host does not 
 ```text
 data/            The lineup data in YAML. See data/README.md.
 public/          Files that Astro copies to dist/ with no change
+src/account/     The sign-in with Supabase
 src/artist/      The data of the artist page
 src/artist-list/ The artist list and its filter
 src/components/  The parts of the pages
 src/data/        The schema and the loader of the lineup data
+src/favourites/  The favourite sets on the device and their sync with the account
 src/layouts/     The page layout that all pages use
 src/now/         The current and next set on each stage for the Now & next page
 src/pages/       One .astro file for each page of the site
 src/site.ts      The name of the site
 src/styles/      theme.css with the colors of the site as CSS variables
 src/timetable/   The calculation of the timetable grid
+supabase/        The database table, the sign-in email and the Supabase setup
 ```

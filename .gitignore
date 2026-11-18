@@ -25,6 +25,10 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# Supabase CLI files
+supabase/.temp/
+supabase/.branches/
+
 # local data tools
 scripts/
 .context/
