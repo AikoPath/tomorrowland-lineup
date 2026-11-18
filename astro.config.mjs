@@ -1,14 +1,27 @@
 // @ts-check
 import { defineConfig, envField, fontProviders } from 'astro/config';
+import { PHOTO_PROXIES } from './src/artist/photo.ts';
 import { loadLineup } from './src/data/load.ts';
 import { writeServiceWorker } from './src/pwa/service-worker.ts';
 
 /** @type {URL} */
 let root;
 
+/** The same photo paths as the rewrites in vercel.json, for `astro dev` and `astro preview`. */
+const photoProxy = Object.fromEntries(
+  PHOTO_PROXIES.map(({ path, origin }) => [
+    path,
+    { target: origin, changeOrigin: true, rewrite: (/** @type {string} */ url) => url.slice(path.length) },
+  ]),
+);
+
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  vite: {
+    server: { proxy: photoProxy },
+    preview: { proxy: photoProxy },
+  },
   env: {
     schema: {
       // The browser uses these values to sign in. Without them, the site has no sign-in. See supabase/README.md.

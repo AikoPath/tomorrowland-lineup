@@ -9,6 +9,7 @@ import {
 } from '../../artist-list/artist-list.ts';
 import { musicLabels, type MusicKey } from '../../artist/artist-page.ts';
 import { previewPlayers } from '../../artist/music-player.ts';
+import { photoUrl } from '../../artist/photo.ts';
 import FavouriteButton from '../../components/FavouriteButton.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import PlatformIcon from '../../components/PlatformIcon.astro';
@@ -135,7 +136,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
                       {artist.image ? (
                         <img
                           class="photo"
-                          src={artist.image}
+                          src={photoUrl(artist.image, 'small')}
                           alt=""
                           loading="lazy"
                           decoding="async"

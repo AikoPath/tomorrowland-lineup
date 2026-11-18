@@ -74,7 +74,13 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                   <span class:list={['details', { single: set.artists.length === 1 }]}>
                     <span class="photo">
                       {set.image ? (
-                        <img src={set.image} alt="" loading="lazy" decoding="async" />
+                        <img
+                          src={set.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          data-initials={initials(set.artists[0].name)}
+                        />
                       ) : (
                         <span aria-hidden="true">{initials(set.artists[0].name)}</span>
                       )}
@@ -210,6 +216,18 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   }
   render();
   renderAccount();
+
+  // With no network, a photo that the service worker did not save cannot load.
+  function showInitials(image: HTMLImageElement) {
+    const span = document.createElement('span');
+    span.setAttribute('aria-hidden', 'true');
+    span.textContent = image.dataset.initials ?? '';
+    image.replaceWith(span);
+  }
+  for (const image of document.querySelectorAll<HTMLImageElement>('.photo img')) {
+    if (image.complete && image.naturalWidth === 0) showInitials(image);
+    else image.addEventListener('error', () => showInitials(image));
+  }
 </script>
 
 <style>

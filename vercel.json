@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/photos/tml/:path*", "destination": "https://artist-lineup-cdn.tomorrowland.com/:path*" },
+    { "source": "/photos/bunny/:path*", "destination": "https://artist-lineup-assets.b-cdn.net/:path*" },
+    { "source": "/photos/spotify/:path*", "destination": "https://i.scdn.co/:path*" }
+  ]
+}

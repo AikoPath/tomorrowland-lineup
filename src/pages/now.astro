@@ -153,9 +153,16 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
       if (current) {
         const [firstArtist] = current.set.artists;
         const image = part<HTMLImageElement>('.photo img');
-        if (firstArtist.image) image.src = firstArtist.image;
-        else image.remove();
-        part('.initials').textContent = firstArtist.image ? '' : firstArtist.initials;
+        const initials = part('.initials');
+        if (firstArtist.image) {
+          // With no network, a photo that the service worker did not save cannot load.
+          image.addEventListener('error', () => {
+            initials.textContent = firstArtist.initials;
+            image.remove();
+          });
+          image.src = firstArtist.image;
+        } else image.remove();
+        initials.textContent = firstArtist.image ? '' : firstArtist.initials;
         showNames(part('.current .names'), current.set.artists);
         part('.set-time').textContent = setTime(current.set);
         part('.progress-bar').style.width = `${current.progress * 100}%`;

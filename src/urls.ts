@@ -27,6 +27,9 @@ export const EXPLORE_URL = '/artists/';
 /** The build writes the service worker to this URL. See src/pwa/service-worker.ts. */
 export const SERVICE_WORKER_URL = '/sw.js';
 
+/** The page sends this message to the service worker after it loads. Then the service worker saves the artist photos. */
+export const SAVE_PHOTOS_MESSAGE = 'save-photos';
+
 /** GitHub opens the file in its editor and makes a fork for a user with no write access. */
 export function editArtistDataUrl(artistId: string): string {
   return `${REPO_URL}/edit/main/data/artists/${artistId}.yml`;

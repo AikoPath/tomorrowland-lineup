@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from 'astro';
 import { artistLinks, artistSets, formatDay, formatTime } from '../../artist/artist-page.ts';
 import { musicTabs as toMusicTabs } from '../../artist/music-player.ts';
+import { photoUrl } from '../../artist/photo.ts';
 import FavouriteButton from '../../components/FavouriteButton.astro';
 import MusicPlayer from '../../components/MusicPlayer.astro';
 import { loadLineup } from '../../data/load.ts';
@@ -49,7 +50,7 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
     {
       artist.image && (
         <div class="photo">
-          <img src={artist.image} alt="" />
+          <img src={photoUrl(artist.image, 'large')} data-small-src={photoUrl(artist.image, 'small')} alt="" />
           <h1 class="photo-name">{artist.name}</h1>
         </div>
       )
@@ -155,6 +156,21 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 
   update();
   setInterval(update, 30_000);
+
+  // The service worker saves the small photo of each artist, but only the large photos that a user opened.
+  // With no network, the page shows the saved small photo. With no photo at all, the page shows only the name.
+  function showFallbackPhoto(image: HTMLImageElement) {
+    const smallSrc = image.dataset.smallSrc;
+    // The attribute is removed, so a failed small photo does not start the fallback again.
+    delete image.dataset.smallSrc;
+    if (smallSrc) image.src = smallSrc;
+    else image.remove();
+  }
+  const photo = document.querySelector<HTMLImageElement>('.photo img');
+  if (photo) {
+    photo.addEventListener('error', () => showFallbackPhoto(photo));
+    if (photo.complete && photo.naturalWidth === 0) showFallbackPhoto(photo);
+  }
 </script>
 
 <style>

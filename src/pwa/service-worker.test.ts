@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildFileUrl, cacheName } from './service-worker.ts';
+import { artistPhotoUrls, buildFileUrl, cacheName } from './service-worker.ts';
 
 test('buildFileUrl gives the page URL with a slash for an index.html file', () => {
   assert.equal(buildFileUrl('index.html'), '/');
@@ -18,4 +18,16 @@ test('cacheName changes when the content of a file changes', () => {
   const after = cacheName([{ file: 'index.html', content: Buffer.from('b') }]);
   assert.notEqual(before, after);
   assert.equal(before, cacheName([{ file: 'index.html', content: Buffer.from('a') }]));
+});
+
+test('artistPhotoUrls gives each photo one time, in the small and the large size', () => {
+  const image = 'https://artist-lineup-cdn.tomorrowland.com/1-photo.jpg';
+  assert.deepEqual(
+    artistPhotoUrls([
+      { id: 'a', name: 'A', image },
+      { id: 'b', name: 'B', image },
+      { id: 'c', name: 'C' },
+    ]),
+    { small: ['/photos/tml/1-photo.jpg?width=400'], large: ['/photos/tml/1-photo.jpg?width=800'] },
+  );
 });

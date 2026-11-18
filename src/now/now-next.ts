@@ -1,3 +1,4 @@
+import { photoUrl } from '../artist/photo.ts';
 import type { Artist, Lineup } from '../data/schema.ts';
 import { dayLabel } from '../timetable/layout.ts';
 import { artistUrl } from '../urls.ts';
@@ -88,7 +89,7 @@ function nowArtist(artist: Artist): NowArtist {
   return {
     name: artist.name,
     url: artistUrl(artist.id),
-    ...(artist.image && { image: artist.image }),
+    ...(artist.image && { image: photoUrl(artist.image, 'small') }),
     initials: initials(artist.name),
   };
 }
