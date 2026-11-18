@@ -1,4 +1,4 @@
--- The favourite sets of each user. Run this file one time in the SQL editor of the Supabase project.
+-- The favourite sets of each user. The Supabase GitHub integration runs this migration after the merge to main.
 
 create table public.favourites (
   -- The database sets the user from the session. The browser does not send it.

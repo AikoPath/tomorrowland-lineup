@@ -109,7 +109,7 @@ test('a change during the sync stays pending and shows on the device', async () 
 });
 
 test('the database accepts the key of each set in the lineup data', async () => {
-  const sql = await readFile(new URL('../../supabase/favourites.sql', import.meta.url), 'utf8');
+  const sql = await readFile(new URL('../../supabase/migrations/20261118000000_favourites.sql', import.meta.url), 'utf8');
   const pattern = new RegExp(sql.match(/set_key ~ '([^']+)'/)![1]);
   const lineup = await loadLineup();
   for (const day of lineup.days) {

@@ -6,7 +6,7 @@ import { SESSION_STORAGE_KEY } from './session.ts';
 
 /**
  * The browser calls Supabase directly with the publishable key. The key is public.
- * The row level security in supabase/favourites.sql lets each user read and change only their own favourites.
+ * The row level security in supabase/migrations/20261118000000_favourites.sql lets each user read and change only their own favourites.
  */
 let client: SupabaseClient | undefined;
 
@@ -19,7 +19,7 @@ function supabase(): SupabaseClient {
   return client;
 }
 
-/** Supabase sends an email with a link to the confirm page. The email template is in supabase/email-sign-in.html. */
+/** Supabase sends an email with a link to the confirm page. The email template is in supabase/templates/sign-in.html. */
 export async function sendSignInLink(email: string): Promise<void> {
   const { error } = await supabase().auth.signInWithOtp({
     email,

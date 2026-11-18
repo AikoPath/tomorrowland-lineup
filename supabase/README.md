@@ -4,17 +4,22 @@ A user can sign in with a link in an email. Then the favourites stay the same on
 
 [Supabase](https://supabase.com) gives the sign-in and the database. The site stays static. The browser calls Supabase directly.
 
-| File                  | Content                                                       |
-| --------------------- | ------------------------------------------------------------- |
-| `favourites.sql`      | The table of the favourites and its access rules.             |
-| `email-sign-in.html`  | The text of the sign-in email.                                |
+| File                                       | Content                                                     |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| `migrations/20261118000000_favourites.sql` | The table of the favourites and its access rules.           |
+| `templates/sign-in.html`                   | The text of the sign-in email.                              |
+| `config.toml`                              | The settings for preview branches and for `supabase start`. |
+
+The Supabase GitHub integration runs each new file in `migrations/` on the production database after the merge to `main`. Do not run a migration in the SQL Editor. A second run of a migration fails.
+
+The integration does not send the Auth settings in `config.toml` to production. Set them in the dashboard, as in steps 3 and 4.
 
 A build without the Supabase values has no sign-in. The favourites then stay on the device only. Thus you do not need Supabase to change the lineup data.
 
 ## Security
 
 - The publishable key and the project URL are in the JavaScript of the site. They are public, as the Supabase design intends.
-- Row level security in `favourites.sql` lets a signed-in user read, add and remove only their own rows. A user who is not signed in gets no rows.
+- Row level security in the migration lets a signed-in user read, add and remove only their own rows. A user who is not signed in gets no rows.
 - The browser does not send the user id. The database takes it from the session token, so a user cannot write rows of a different user.
 - The table accepts only set keys in the correct format and a maximum of 1000 rows for each user.
 - Supabase limits the number of sign-in emails for each hour.
@@ -27,20 +32,28 @@ Do these steps one time. They take approximately 30 minutes.
 
 ### 1. Make the project
 
-1. Open https://supabase.com/dashboard and sign in with GitHub.
-2. Click **New project**.
+1. Open https://supabase.com/dashboard and click **New project**.
+2. Select **Connected to GitHub**, then select the repo `AikoPath/tomorrowland-lineup`.
 3. Write `tomorrowland-lineup` as the name.
 4. Click **Generate a password**, then keep the password in your password manager. The site does not use it.
 5. Select the region **Southeast Asia (Singapore)**. This region is near the festival.
-6. Click **Create new project**. Wait until the project is ready.
+6. Under **Security**, set these values:
+   - **Enable Data API**: on. The site uses it.
+   - **Automatically expose new tables**: off. The migration gives the access rights.
+   - **Enable automatic RLS**: on.
+7. Click **Create new project**. Wait until the project is ready.
 
-### 2. Make the table
+### 2. Connect the migrations
 
-1. Open **SQL Editor** in the left menu.
-2. Click **New query**.
-3. Paste all the text of `supabase/favourites.sql`.
-4. Click **Run**. The result must be "Success. No rows returned".
-5. Open **Table Editor**. Make sure that the table `favourites` shows the label "RLS enabled".
+1. Open **Project Settings → Integrations → GitHub**.
+2. Set **Working directory** to `.`.
+3. Set the production branch to `main`.
+4. Turn on **Deploy to production**.
+5. Turn off **Automatic branching**. Each preview branch is a separate database that costs money.
+6. Merge the PR with the `supabase/` folder into `main`.
+7. Open **Table Editor**. Make sure that the table `favourites` shows the label "RLS enabled".
+
+The site shows no sign-in link until step 7, so you can merge the PR before the other steps.
 
 ### 3. Set the links
 
@@ -60,7 +73,7 @@ Supabase sends the "Confirm signup" email to a new user and the "Magic link" ema
 1. Open **Authentication → Emails → Templates**.
 2. Open **Confirm signup**.
 3. Set the subject to `Your sign-in link`.
-4. Replace all the text of the body with the text of `supabase/email-sign-in.html`.
+4. Replace all the text of the body with the text of `supabase/templates/sign-in.html`.
 5. Click **Save changes**.
 6. Do steps 3 to 5 again for **Magic link**.
 
