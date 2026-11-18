@@ -14,7 +14,13 @@
 </div>
 
 <script>
-  import { dismissHint, isHintShown, readFavourites, toggleFavourite } from '../favourites/favourites.ts';
+  import {
+    FAVOURITES_CHANGE_EVENT,
+    dismissHint,
+    isHintShown,
+    readFavourites,
+    toggleFavourite,
+  } from '../favourites/favourites.ts';
 
   const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
@@ -34,6 +40,7 @@
     button.addEventListener('click', () => {
       toggleFavourite(localStorage, button.dataset.favouriteKey!);
       render();
+      document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
     });
   }
 

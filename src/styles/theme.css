@@ -27,6 +27,10 @@
   /* The shadow below an open list, for example the list of a dropdown. */
   --shadow-popover: 0 0.75rem 2rem hsl(334 26% 2% / 70%);
 
+  /* The note about two favourite sets that overlap, in design/project/FavTimeline.dc.html */
+  --color-warning: hsl(33 100% 56%);
+  --color-warning-background: hsl(33 100% 46% / 14%);
+
   /* The fixed bottom bar covers this height at the bottom of each page. */
   --main-nav-height: calc(4.75rem + env(safe-area-inset-bottom));
 }
