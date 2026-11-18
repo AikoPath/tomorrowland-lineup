@@ -65,7 +65,6 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       {
         options.genres.length > 0 && (
           <div class="chips" role="group" aria-label="Genre">
-            <input type="hidden" name="genre" />
             <button type="button" class="chip" data-genre="" aria-pressed="true">
               All
             </button>
@@ -165,7 +164,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
 
 <script>
   import {
-    genreLabel,
+    genresLabel,
     listHeading,
     matchesFilter,
     type ArtistFilter,
@@ -182,7 +181,10 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   const otherGenres = document.getElementById('other-genres');
   const moreButton = form.querySelector<HTMLButtonElement>('.more');
   const data: FilterData[] = JSON.parse(document.getElementById('artist-filter-data')!.textContent!);
-  const fields = ['q', 'day', 'stage', 'genre'] as const;
+  const fields = ['q', 'day', 'stage'] as const;
+  const genreParam = 'genre';
+  // The user can select more genres. An empty set shows the artists of all genres.
+  const selectedGenres = new Set<string>();
 
   function field(name: (typeof fields)[number]) {
     return form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
@@ -200,6 +202,9 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     const value = params.get(name);
     if (input && value) input.value = value;
   }
+  for (const genre of params.getAll(genreParam)) {
+    if (chips.some((chip) => chip.dataset.genre === genre)) selectedGenres.add(genre);
+  }
 
   function showOtherGenres(show: boolean) {
     if (!otherGenres || !moreButton) return;
@@ -213,10 +218,13 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       query: field('q')?.value ?? '',
       date: field('day')?.value ?? '',
       stage: field('stage')?.value ?? '',
-      genre: field('genre')?.value ?? '',
+      genres: [...selectedGenres],
     };
 
-    for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.genre === filter.genre));
+    for (const chip of chips) {
+      const genre = chip.dataset.genre ?? '';
+      chip.setAttribute('aria-pressed', String(genre ? selectedGenres.has(genre) : selectedGenres.size === 0));
+    }
 
     let shown = 0;
     items.forEach((item, index) => {
@@ -225,7 +233,11 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       if (match) shown += 1;
       else stopPreview(item);
     });
-    const activeFilters = [selectedText('day'), selectedText('stage'), filter.genre && genreLabel(filter.genre)];
+    const activeFilters = [
+      selectedText('day'),
+      selectedText('stage'),
+      filter.genres.length > 0 && genresLabel(filter.genres),
+    ];
     heading.textContent = listHeading(shown, activeFilters.filter((label): label is string => Boolean(label)));
     empty.hidden = shown > 0;
 
@@ -235,12 +247,18 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
       if (value) url.searchParams.set(name, value);
       else url.searchParams.delete(name);
     }
+    url.searchParams.delete(genreParam);
+    for (const genre of selectedGenres) url.searchParams.append(genreParam, genre);
     history.replaceState(null, '', url);
   }
 
   for (const chip of chips) {
     chip.addEventListener('click', () => {
-      field('genre')!.value = chip.dataset.genre ?? '';
+      const genre = chip.dataset.genre ?? '';
+      // The "All" chip clears the selection. A genre chip adds the genre or removes it.
+      if (!genre) selectedGenres.clear();
+      else if (selectedGenres.has(genre)) selectedGenres.delete(genre);
+      else selectedGenres.add(genre);
       applyFilter();
     });
   }
@@ -496,7 +514,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     display: contents;
   }
 
-  /* The collapsed list shows only the selected genre, so that the selected chip is always visible. */
+  /* The collapsed list shows only the selected genres, so that the selected chips are always visible. */
   .other-genres.collapsed .chip:not([aria-pressed='true']) {
     display: none;
   }
