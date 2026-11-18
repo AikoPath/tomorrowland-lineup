@@ -1,32 +1,383 @@
 ---
+import FavouriteButton from '../components/FavouriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { loadLineup } from '../data/load.ts';
 import Base from '../layouts/Base.astro';
+import { initials } from '../now/now-next.ts';
 import { SITE_NAME } from '../site.ts';
-import { LINEUP_URL } from '../urls.ts';
+import { timelineDays } from '../timeline/timeline.ts';
+import { dayLabelParts } from '../timetable/layout.ts';
+import { LINEUP_URL, artistUrl } from '../urls.ts';
 
-// The task "Build the My timeline page" replaces this page with the list of the favourite sets.
 const lineup = await loadLineup();
+const days = timelineDays(lineup);
+const clockTime = (localTime: string) => localTime.slice(11, 16);
 ---
 
 <Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline">
   <div class="page">
-    <PageHeader lineup={lineup} title="My timeline" />
-    <p>
-      Your favourite sets will show here soon. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
-    </p>
+    <div class="top">
+      <PageHeader lineup={lineup} title="My timeline">
+        <span slot="eyebrow" class="count" aria-live="polite"></span>
+      </PageHeader>
+
+      {
+        days.length > 0 && (
+          <div class="days" role="group" aria-label="Festival days">
+            {days.map(({ date, end }) => {
+              const { weekday, dayAndMonth } = dayLabelParts(date);
+              return (
+                <button type="button" data-date={date} data-end={end} aria-pressed="false">
+                  <span class="weekday">{weekday}</span>
+                  <span class="date">{dayAndMonth}</span>
+                </button>
+              );
+            })}
+          </div>
+        )
+      }
+
+      <div class="device-note">
+        <p>Saved on this device only.</p>
+      </div>
+    </div>
+
+    <main>
+      {
+        days.map(({ date, sets }) => (
+          <ol class="sets" data-date={date} hidden>
+            {sets.map((set) => {
+              const names = set.artists.map((artist) => artist.name).join(' b2b ');
+              return (
+                <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
+                  <span class="time">
+                    <time class="start" datetime={set.start}>
+                      {clockTime(set.start)}
+                    </time>
+                    <time class="end" datetime={set.end}>
+                      {clockTime(set.end)}
+                    </time>
+                  </span>
+                  <span class:list={['details', { single: set.artists.length === 1 }]}>
+                    <span class="photo">
+                      {set.image ? (
+                        <img src={set.image} alt="" loading="lazy" decoding="async" />
+                      ) : (
+                        <span aria-hidden="true">{initials(set.artists[0].name)}</span>
+                      )}
+                    </span>
+                    <span class="text">
+                      <span class="artists">
+                        {set.artists.map((artist, index) => (
+                          <>
+                            {index > 0 && <span class="b2b"> b2b </span>}
+                            <a href={artistUrl(artist.id)}>{artist.name}</a>
+                          </>
+                        ))}
+                      </span>
+                      <span class="stage">{set.stageName}</span>
+                    </span>
+                  </span>
+                  <FavouriteButton setKey={set.key} subject={names} />
+                </li>
+              );
+            })}
+          </ol>
+        ))
+      }
+
+      <p class="empty" hidden>
+        No favourite sets on this day. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
+      </p>
+      <noscript>
+        <p class="empty">Turn on JavaScript to see your favourite sets.</p>
+      </noscript>
+
+      <template id="overlap-note">
+        <li class="overlap">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 4l9 16H3z M12 10v4M12 17.5v.5"></path>
+          </svg>
+          <span></span>
+        </li>
+      </template>
+    </main>
   </div>
 </Base>
 
-<style>
-  .page {
-    display: grid;
-    gap: 1rem;
-    padding: 1.75rem 1.25rem;
+<script>
+  import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
+  import { festivalNow } from '../now/now-next.ts';
+  import { FESTIVAL_TIME_ZONE } from '../site.ts';
+  import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
+
+  const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
+  const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
+  const count = document.querySelector<HTMLElement>('.count')!;
+  const empty = document.querySelector<HTMLElement>('.empty')!;
+  const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note')!;
+
+  function favouriteDates(favourites: Set<string>): Set<string> {
+    return new Set([...favourites].map((key) => key.split('/')[0]));
   }
 
-  p {
+  const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
+  let selectedDate =
+    days.length > 0
+      ? initialDate(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE), favouriteDates(readFavourites(localStorage)))
+      : undefined;
+
+  function render() {
+    const favourites = readFavourites(localStorage);
+    for (const button of dayButtons) button.setAttribute('aria-pressed', String(button.dataset.date === selectedDate));
+
+    for (const list of lists) {
+      list.hidden = list.dataset.date !== selectedDate;
+      for (const note of list.querySelectorAll('.overlap')) note.remove();
+      const shown = [...list.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
+        row.hidden = !favourites.has(row.dataset.key!);
+        return !row.hidden;
+      });
+      if (list.hidden) continue;
+
+      shown.slice(1).forEach((row, index) => {
+        const earlier = shown[index];
+        const minutes = overlapMinutes(
+          { start: earlier.dataset.start!, end: earlier.dataset.end! },
+          { start: row.dataset.start!, end: row.dataset.end! },
+        );
+        if (minutes === 0) return;
+        const note = overlapTemplate.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
+        note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
+        row.before(note);
+      });
+      count.textContent = selectedDate ? setCountLabel(shown.length, selectedDate) : '';
+      empty.hidden = shown.length > 0;
+    }
+  }
+
+  for (const button of dayButtons) {
+    button.addEventListener('click', () => {
+      selectedDate = button.dataset.date;
+      render();
+    });
+  }
+
+  // A change in an other tab, and a page from the back-forward cache, show the current favourites.
+  document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
+  addEventListener('storage', render);
+  addEventListener('pageshow', render);
+  render();
+</script>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1.75rem;
+  }
+
+  .top {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 1.25rem;
+  }
+
+  .days {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .days button {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem;
+    border: 1px solid var(--color-control-line);
+    border-radius: 0.5rem;
+    background: var(--color-control);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .weekday {
+    font-weight: 700;
+  }
+
+  .date {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .days button[aria-pressed='true'] {
+    border-color: var(--color-text);
+    background: var(--color-text);
+    color: var(--color-background);
+  }
+
+  .days button[aria-pressed='true'] .date {
+    color: inherit;
+    font-weight: 700;
+  }
+
+  .device-note {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.875rem;
+    border-radius: 0.5rem;
+    background: var(--color-control);
+  }
+
+  .device-note p {
+    flex: 1;
     margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  main {
+    border-top: 1px solid var(--color-divider);
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .set {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-height: 4.25rem;
+    padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .time {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.125rem;
+    width: 2.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .start {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  .end {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .details {
+    position: relative;
+    display: flex;
+    flex: 1;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+    min-height: 3rem;
+  }
+
+  .photo {
+    display: grid;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    overflow: hidden;
+    place-items: center;
+    border-radius: 0.5rem;
+    background: var(--color-card);
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+    min-width: 0;
+  }
+
+  .artists {
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .artists a {
+    text-decoration: none;
+  }
+
+  .artists a:hover,
+  .artists a:focus-visible {
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* A set with one artist is a link from the photo to the stage name. A B2B set has one link for each artist. */
+  .single .artists a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .b2b {
+    font-weight: 400;
+  }
+
+  .stage {
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .overlap {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    border-bottom: 1px solid var(--color-divider);
+    background: var(--color-warning-background);
+    color: var(--color-warning);
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+
+  .overlap svg {
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .empty {
+    margin: 0;
+    padding: 1rem 1.25rem;
     color: var(--color-text-muted);
   }
 </style>
