@@ -33,7 +33,22 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     )
   }
   <div class="page">
-    <PageHeader lineup={lineup} title="Line-up" />
+    <div class="title-row">
+      <PageHeader lineup={lineup} title="Line-up" />
+      <button
+        type="button"
+        class="favourites-switch"
+        role="switch"
+        aria-checked="false"
+        aria-label="Highlight favourites"
+        title="Highlight favourites"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.6-7.5 10-7.5 10z"></path>
+        </svg>
+        <span class="track" aria-hidden="true"><span class="thumb"></span></span>
+      </button>
+    </div>
 
     <nav class="days" aria-label="Festival days">
       {
@@ -60,6 +75,12 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
       }
     </div>
 
+    <p class="no-favourites" hidden>
+      <span class="no-favourites-day">You have no favourites on this day.</span>
+      <span class="no-favourites-stages">You have no favourites on the selected stages on this day.</span>
+      Select the heart on a set to add it to your favourites.
+    </p>
+
     <main
       class="timetable"
       style={`--stages: ${timetable.columns.length}; --length: ${timetable.length};`}
@@ -77,6 +98,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
             {sets.map((set) => (
               <li
                 class:list={['set', { photo: set.image, single: set.artists.length === 1 }]}
+                data-set-key={set.key}
                 style={`--offset: ${set.offset}; --length: ${set.length}`}
               >
                 {set.image && <img src={set.image} alt="" loading="lazy" decoding="async" />}
@@ -107,15 +129,30 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 </Base>
 
 <script>
+  import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
+  import { isSetDimmed, readHighlight, withHighlight } from '../timetable/favourite-highlight.ts';
   import { isStageShown, readStageSelection, toggleStage, withStageSelection } from '../timetable/stage-filter.ts';
 
   const timetable = document.querySelector<HTMLElement>('.timetable')!;
+  const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
+  const noFavourites = document.querySelector<HTMLElement>('.no-favourites')!;
   const chips = [...document.querySelectorAll<HTMLButtonElement>('.stage-chips button')];
   const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
+  const sets = [...timetable.querySelectorAll<HTMLElement>('.set')];
   const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
   const stageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
 
   let selection = readStageSelection(location.search, stageIds);
+  let highlight = readHighlight(location.search);
+
+  function withFilters(url: URL): URL {
+    return withHighlight(withStageSelection(url, selection), highlight);
+  }
+
+  /** The sets that are favourites, in a column that shows. */
+  function shownFavourites(): HTMLElement[] {
+    return sets.filter((set) => !set.classList.contains('dimmed') && !set.closest<HTMLElement>('.stage')!.hidden);
+  }
 
   function render() {
     for (const chip of chips) {
@@ -127,8 +164,30 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     const shownCount = selection.length === 0 ? stageIds.length : selection.length;
     timetable.style.setProperty('--stages', String(shownCount));
 
-    history.replaceState(null, '', withStageSelection(new URL(location.href), selection));
-    for (const link of dayLinks) link.href = withStageSelection(new URL(link.href), selection).href;
+    favouritesSwitch.setAttribute('aria-checked', String(highlight));
+    timetable.classList.toggle('highlight', highlight);
+    const favourites = readFavourites(localStorage);
+    for (const set of sets) set.classList.toggle('dimmed', isSetDimmed(highlight, favourites, set.dataset.setKey!));
+    noFavourites.hidden = !highlight || shownFavourites().length > 0;
+    noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = selection.length > 0;
+    noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = selection.length === 0;
+
+    history.replaceState(null, '', withFilters(new URL(location.href)));
+    for (const link of dayLinks) link.href = withFilters(new URL(link.href)).href;
+  }
+
+  /** Scrolls the timetable to the earliest favourite set, below the stage names and right of the hours. */
+  function scrollToFirstFavourite() {
+    const [first] = shownFavourites().sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+    if (!first) return;
+    const box = timetable.getBoundingClientRect();
+    const set = first.getBoundingClientRect();
+    const header = timetable.querySelector<HTMLElement>('.corner')!.getBoundingClientRect();
+    timetable.scrollTo({
+      top: timetable.scrollTop + set.top - box.top - header.height - 8,
+      left: timetable.scrollLeft + set.left - box.left - header.width - 8,
+      behavior: 'smooth',
+    });
   }
 
   // A browser cannot show some image files, for example a PSD file. Then the card has no photo.
@@ -148,7 +207,16 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
       render();
     });
   }
+  favouritesSwitch.addEventListener('click', () => {
+    highlight = !highlight;
+    render();
+    if (highlight) scrollToFirstFavourite();
+  });
+  // A heart click, a sync with the account or a change in an other tab changes the favourite sets.
+  document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
+  addEventListener('storage', render);
   render();
+  if (highlight) scrollToFirstFavourite();
 </script>
 
 <style>
@@ -158,8 +226,73 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     height: calc(100dvh - var(--main-nav-height));
   }
 
-  .page > :global(.page-header) {
+  /* The switch is next to the title. It does not make the line above the title narrower. */
+  .title-row {
+    position: relative;
     padding: 1.75rem 1.25rem 0;
+  }
+
+  .favourites-switch {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 0;
+    display: flex;
+    flex: none;
+    gap: 0.5rem;
+    align-items: center;
+    height: 2.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .favourites-switch svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .track {
+    position: relative;
+    width: 2.75rem;
+    height: 1.625rem;
+    border-radius: 999px;
+    background: var(--color-control-line);
+    transition: background 150ms;
+  }
+
+  .thumb {
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: var(--color-text);
+    transition: transform 150ms;
+  }
+
+  .favourites-switch[aria-checked='true'] svg {
+    fill: var(--color-accent);
+    stroke: var(--color-accent);
+  }
+
+  .favourites-switch[aria-checked='true'] .track {
+    background: var(--color-accent);
+  }
+
+  .favourites-switch[aria-checked='true'] .thumb {
+    transform: translateX(1.125rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .track,
+    .thumb {
+      transition: none;
+    }
   }
 
   .days {
@@ -231,6 +364,25 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     background: var(--color-text);
     color: var(--color-background);
     font-weight: 700;
+  }
+
+  .no-favourites {
+    margin: 0;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--color-divider);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .no-favourites span {
+    display: block;
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  .no-favourites[hidden],
+  .no-favourites [hidden] {
+    display: none;
   }
 
   /*
@@ -382,6 +534,17 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
   .b2b {
     font-weight: 400;
+  }
+
+  .set.dimmed {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+
+  /* An outline shows above the photo. A box shadow does not. */
+  .highlight .set:not(.dimmed) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
   }
 
   /* Above the link that covers the card. */
