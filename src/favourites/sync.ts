@@ -82,3 +82,17 @@ export async function syncFavourites(storage: FavouriteStorage, account: Favouri
   writeFavourites(storage, favourites);
   return favourites;
 }
+
+/**
+ * The account gets the pending changes before the sign-out, if the network connection lets it.
+ * The pending changes go away only after the sign-out succeeds. If the sign-out fails, the user stays signed in and the next sync sends them.
+ */
+export async function signOutAfterSync(
+  storage: FavouriteStorage,
+  account: FavouriteAccount,
+  signOut: () => Promise<void>,
+): Promise<void> {
+  await syncFavourites(storage, account).catch(() => {});
+  await signOut();
+  clearPending(storage);
+}
