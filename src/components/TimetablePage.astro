@@ -63,7 +63,12 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
       }
     </nav>
 
-    <div class="stage-chips" role="group" aria-label="Stages">
+    <div
+      class="stage-chips"
+      role="group"
+      aria-label="Stages"
+      data-stage-ids={lineup.stages.map(({ id }) => id).join(' ')}
+    >
       <button type="button" data-stage="" aria-pressed="true">All stages</button>
       {
         timetable.columns.map(({ stage }) => (
@@ -130,7 +135,13 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 <script>
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { isSetDimmed, readHighlight, withHighlight } from '../timetable/favourite-highlight.ts';
-  import { isStageShown, readStageSelection, toggleStage, withStageSelection } from '../timetable/stage-filter.ts';
+  import {
+    daySelection,
+    isStageShown,
+    readStageSelection,
+    toggleStage,
+    withStageSelection,
+  } from '../timetable/stage-filter.ts';
 
   const timetable = document.querySelector<HTMLElement>('.timetable')!;
   const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
@@ -139,7 +150,8 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
   const sets = [...timetable.querySelectorAll<HTMLElement>('.set')];
   const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
-  const stageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
+  const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
+  const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
 
   let selection = readStageSelection(location.search, stageIds);
   let highlight = readHighlight(location.search);
@@ -154,13 +166,14 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   }
 
   function render() {
+    const shown = daySelection(selection, dayStageIds);
     for (const chip of chips) {
       const stage = chip.dataset.stage!;
-      const pressed = stage ? selection.includes(stage) : selection.length === 0;
+      const pressed = stage ? shown.includes(stage) : shown.length === 0;
       chip.setAttribute('aria-pressed', String(pressed));
     }
-    for (const column of columns) column.hidden = !isStageShown(selection, column.dataset.stage!);
-    const shownCount = selection.length === 0 ? stageIds.length : selection.length;
+    for (const column of columns) column.hidden = !isStageShown(shown, column.dataset.stage!);
+    const shownCount = shown.length === 0 ? dayStageIds.length : shown.length;
     timetable.style.setProperty('--stages', String(shownCount));
 
     favouritesSwitch.setAttribute('aria-checked', String(highlight));
@@ -168,8 +181,8 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     const favourites = readFavourites(localStorage);
     for (const set of sets) set.classList.toggle('dimmed', isSetDimmed(highlight, favourites, set.dataset.setKey!));
     noFavourites.hidden = !highlight || shownFavourites().length > 0;
-    noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = selection.length > 0;
-    noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = selection.length === 0;
+    noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = shown.length > 0;
+    noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = shown.length === 0;
 
     history.replaceState(null, '', withFilters(new URL(location.href)));
     for (const link of dayLinks) link.href = withFilters(new URL(link.href)).href;

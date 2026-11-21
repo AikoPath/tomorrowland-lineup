@@ -3,12 +3,17 @@ export const STAGE_PARAM = 'stage';
 
 /**
  * The selected stage ids, in the order of `stageIds`.
- * The function ignores an id that is not in `stageIds`, for example a stage with no sets on this day.
- * An empty list selects all stages.
+ * `stageIds` are all the stages of the festival, so the selection keeps a stage with no sets on this day.
+ * The function ignores an id that is not in `stageIds`. An empty list selects all stages.
  */
 export function readStageSelection(search: string, stageIds: string[]): string[] {
   const selected = new Set(new URLSearchParams(search).getAll(STAGE_PARAM));
   return stageIds.filter((id) => selected.has(id));
+}
+
+/** The selected stages that have sets on the day. An empty list shows all stages of the day. */
+export function daySelection(selection: string[], dayStageIds: string[]): string[] {
+  return selection.filter((id) => dayStageIds.includes(id));
 }
 
 /** Adds the stage to the selection or removes it from the selection. */
