@@ -3,7 +3,7 @@ import type { Lineup } from '../data/schema';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
-import { artistUrl, dayUrl } from '../urls';
+import { LINEUP_URL, artistUrl, dayUrl } from '../urls';
 import FavouriteButton from './FavouriteButton.astro';
 import PageHeader from './PageHeader.astro';
 
@@ -17,14 +17,13 @@ const { lineup, date } = Astro.props;
 const day = lineup.days.find((candidate) => candidate.date === date);
 if (!day) throw new Error(`The lineup has no day ${date}`);
 
-const firstDate = lineup.days[0].date;
 const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
 <Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup">
   {
-    date === firstDate && (
+    Astro.url.pathname === LINEUP_URL && (
       <script is:inline define:vars={{ otherDates }}>
         // The en-CA locale gives the local date as YYYY-MM-DD. The stage selection in the URL stays.
         const today = new Date().toLocaleDateString('en-CA');
@@ -55,7 +54,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
         lineup.days.map(({ date: tabDate }) => {
           const { weekday, dayAndMonth } = dayLabelParts(tabDate);
           return (
-            <a href={dayUrl(tabDate, firstDate)} aria-current={tabDate === date ? 'page' : undefined}>
+            <a href={dayUrl(tabDate)} aria-current={tabDate === date ? 'page' : undefined}>
               <span class="weekday">{weekday}</span>
               <span class="date">{dayAndMonth}</span>
             </a>

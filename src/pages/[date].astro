@@ -5,8 +5,7 @@ import { loadLineup } from '../data/load';
 
 export const getStaticPaths = (async () => {
   const lineup = await loadLineup();
-  // The home page shows the first day.
-  return lineup.days.slice(1).map(({ date }) => ({ params: { date }, props: { lineup } }));
+  return lineup.days.map(({ date }) => ({ params: { date }, props: { lineup } }));
 }) satisfies GetStaticPaths;
 
 const { lineup } = Astro.props;

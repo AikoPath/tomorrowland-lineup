@@ -4,9 +4,9 @@ export function artistUrl(artistId: string): string {
   return `/artists/${artistId}/`;
 }
 
-/** The home page shows the first festival day. Each other day has its own page. */
-export function dayUrl(date: string, firstDate: string): string {
-  return date === firstDate ? '/' : `/${date}/`;
+/** Each festival day has its own page. The home page also shows the first day, but sends the user to the page of today. */
+export function dayUrl(date: string): string {
+  return `/${date}/`;
 }
 
 export const LINEUP_URL = '/';
