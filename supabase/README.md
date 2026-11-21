@@ -4,11 +4,12 @@ A user can sign in with a link in an email. Then the favourites stay the same on
 
 [Supabase](https://supabase.com) gives the sign-in and the database. The site stays static. The browser calls Supabase directly.
 
-| File                                       | Content                                                     |
-| ------------------------------------------ | ----------------------------------------------------------- |
-| `migrations/20261118000000_favourites.sql` | The table of the favourites and its access rules.           |
-| `templates/sign-in.html`                   | The text of the sign-in email.                              |
-| `config.toml`                              | The settings for preview branches and for `supabase start`. |
+| File                                                          | Content                                                               |
+| ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `migrations/20261118000000_favourites.sql`                    | The table of the favourites and its access rules.                     |
+| `migrations/20261121000000_favourites_limit_existing_key.sql` | The limit of 1000 favourites accepts a key that the user already has. |
+| `templates/sign-in.html`                                      | The text of the sign-in email.                                        |
+| `config.toml`                                                 | The settings for preview branches and for `supabase start`.           |
 
 The Supabase GitHub integration runs each new file in `migrations/` on the production database after the merge to `main`. Do not run a migration in the SQL Editor. A second run of a migration fails.
 

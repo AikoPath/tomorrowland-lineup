@@ -22,6 +22,9 @@ import { SIGN_IN_URL } from '../urls.ts';
       </svg>
     </button>
   </div>
+  <div class="content sync-failed" hidden>
+    <p>Your account did not get your last changes. The site will try again.</p>
+  </div>
 </div>
 
 <script>
@@ -38,6 +41,7 @@ import { SIGN_IN_URL } from '../urls.ts';
   import { addPending, syncFavourites } from '../favourites/sync.ts';
 
   const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
+  const syncFailed = document.querySelector<HTMLElement>('.favourite-hint .sync-failed')!;
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
 
   function setKeys(button: HTMLButtonElement): string[] {
@@ -67,11 +71,14 @@ import { SIGN_IN_URL } from '../urls.ts';
       .then(async () => {
         const { favouriteAccount } = await import('../account/supabase.ts');
         await syncFavourites(localStorage, favouriteAccount);
+        syncFailed.hidden = true;
         render();
         document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
       })
-      // With no network connection, the changes stay pending until the next sync.
-      .catch(() => {});
+      // The changes stay pending until the next sync.
+      .catch(() => {
+        syncFailed.hidden = false;
+      });
   }
 
   for (const button of buttons) {
@@ -117,6 +124,10 @@ import { SIGN_IN_URL } from '../urls.ts';
     padding: 0.25rem 0.25rem 0.25rem 1rem;
     border-top: 1px solid var(--color-control-line);
     background: var(--color-card);
+  }
+
+  .sync-failed {
+    padding-right: 1rem;
   }
 
   .content[hidden] {

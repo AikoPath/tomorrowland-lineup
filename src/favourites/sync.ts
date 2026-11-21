@@ -7,6 +7,9 @@ import { readFavourites, writeFavourites, type FavouriteStorage } from './favour
  */
 export const PENDING_STORAGE_KEY = 'favourites-pending';
 
+/** The same pattern as the set_key check in supabase/migrations/20261118000000_favourites.sql. */
+export const SET_KEY_PATTERN = '^\\d{4}-\\d{2}-\\d{2}/[a-z0-9+-]{1,200}$';
+
 export interface FavouriteChange {
   key: string;
   favourite: boolean;
@@ -60,6 +63,12 @@ export function addDeviceFavouritesToPending(storage: FavouriteStorage): void {
  * If the network connection stops, the function throws an error and the pending changes stay.
  */
 export async function syncFavourites(storage: FavouriteStorage, account: FavouriteAccount): Promise<Set<string>> {
+  // The database refuses all changes of a request when it refuses one key. Thus a refused key stops all later syncs.
+  const pattern = new RegExp(SET_KEY_PATTERN);
+  writePending(
+    storage,
+    readPending(storage).filter((change) => pattern.test(change.key)),
+  );
   const sent = readPending(storage);
   const added = sent.filter((change) => change.favourite).map((change) => change.key);
   const removed = sent.filter((change) => !change.favourite).map((change) => change.key);
