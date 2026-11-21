@@ -13,6 +13,7 @@ import {
   addDeviceFavouritesToPending,
   addPending,
   readPending,
+  signOutAfterSync,
   syncFavourites,
   type FavouriteAccount,
 } from './sync.ts';
@@ -106,6 +107,31 @@ test('a change during the sync stays pending and shows on the device', async () 
   assert.deepEqual([...account.keys], ['a']);
   assert.deepEqual(readPending(storage), [{ key: 'b', favourite: true }]);
   assert.deepEqual([...readFavourites(storage)].sort(), ['a', 'b']);
+});
+
+test('before the sign-out, the account gets the pending changes', async () => {
+  const storage = memoryStorage();
+  const account = memoryAccount();
+  addPending(storage, [{ key: 'a', favourite: true }]);
+  await signOutAfterSync(storage, account, async () => {});
+  assert.deepEqual([...account.keys], ['a']);
+  assert.deepEqual(readPending(storage), []);
+});
+
+test('with no network connection, the sign-out continues and the pending changes go away', async () => {
+  const storage = memoryStorage();
+  addPending(storage, [{ key: 'a', favourite: true }]);
+  await signOutAfterSync(storage, offlineAccount, async () => {});
+  assert.deepEqual(readPending(storage), []);
+});
+
+test('when the sign-out fails, the pending changes stay', async () => {
+  const storage = memoryStorage();
+  addPending(storage, [{ key: 'a', favourite: true }]);
+  await assert.rejects(
+    signOutAfterSync(storage, offlineAccount, () => Promise.reject(new Error('offline'))),
+  );
+  assert.deepEqual(readPending(storage), [{ key: 'a', favourite: true }]);
 });
 
 test('the database accepts the key of each set in the lineup data', async () => {

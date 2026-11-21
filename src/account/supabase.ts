@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from 'astro:env/client';
-import { clearPending, type FavouriteAccount } from '../favourites/sync.ts';
+import { signOutAfterSync, type FavouriteAccount } from '../favourites/sync.ts';
 import { SIGN_IN_CONFIRM_URL } from '../urls.ts';
 import { SESSION_STORAGE_KEY } from './session.ts';
 
@@ -41,12 +41,13 @@ export async function signedInEmail(): Promise<string | null> {
 
 /**
  * Only this device signs out. The other devices stay signed in.
- * The favourites stay on this device. The changes that the account does not have yet go away.
+ * The favourites stay on this device.
  */
 export async function signOut(): Promise<void> {
-  clearPending(localStorage);
-  const { error } = await supabase().auth.signOut({ scope: 'local' });
-  if (error) throw error;
+  await signOutAfterSync(localStorage, favouriteAccount, async () => {
+    const { error } = await supabase().auth.signOut({ scope: 'local' });
+    if (error) throw error;
+  });
 }
 
 export const favouriteAccount: FavouriteAccount = {
