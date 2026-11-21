@@ -4,5 +4,14 @@
     { "source": "/photos/tml/:path*", "destination": "https://artist-lineup-cdn.tomorrowland.com/:path*" },
     { "source": "/photos/bunny/:path*", "destination": "https://artist-lineup-assets.b-cdn.net/:path*" },
     { "source": "/photos/spotify/:path*", "destination": "https://i.scdn.co/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/photos/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Content-Security-Policy", "value": "default-src 'none'; sandbox" }
+      ]
+    }
   ]
 }

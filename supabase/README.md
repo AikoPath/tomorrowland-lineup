@@ -24,6 +24,7 @@ A build without the Supabase values has no sign-in. The favourites then stay on 
 - The browser does not send the user id. The database takes it from the session token, so a user cannot write rows of a different user.
 - The table accepts only set keys in the correct format and a maximum of 1000 rows for each user.
 - Supabase limits the number of sign-in emails for each hour.
+- A different person can send a user their own sign-in link. The confirm page then shows the email address of the account and asks the user. The favourites of the device go to the account only if this device asked for the link or if the user agrees.
 - The sign-in links go only to the production site and to `localhost`. See step 3.
 - Supabase runs each migration that you merge into `main`, with all rights on the database. Read each change to `supabase/` in a PR from a contributor before you merge it.
 - Do not put the secret key (`sb_secret_…`) in the site or in an environment variable with the `PUBLIC_` prefix. The secret key ignores row level security.
