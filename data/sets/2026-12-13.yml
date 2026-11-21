@@ -1,5 +1,5 @@
-# npm run import:lineup writes this file from the Tomorrowland timetable.
-# Changes here go away at the next import.
+# This file is the source of truth for the sets on this day.
+# Contributors edit it by hand.
 
 - artists: [j-nana]
   stage: codex
