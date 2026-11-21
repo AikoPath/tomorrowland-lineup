@@ -3,6 +3,7 @@ import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from 'astro:env/
 import { signOutAfterSync, type FavouriteAccount } from '../favourites/sync.ts';
 import { SIGN_IN_CONFIRM_URL } from '../urls.ts';
 import { SESSION_STORAGE_KEY } from './session.ts';
+import { saveSignInRequest } from './sign-in-request.ts';
 
 /**
  * The browser calls Supabase directly with the publishable key. The key is public.
@@ -26,6 +27,7 @@ export async function sendSignInLink(email: string): Promise<void> {
     options: { emailRedirectTo: new URL(SIGN_IN_CONFIRM_URL, location.origin).href },
   });
   if (error) throw error;
+  saveSignInRequest(localStorage, email);
 }
 
 export async function confirmSignIn(tokenHash: string): Promise<void> {
