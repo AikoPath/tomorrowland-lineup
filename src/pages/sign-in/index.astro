@@ -12,12 +12,12 @@ import { LINEUP_URL } from '../../urls.ts';
   {
     ACCOUNT_AVAILABLE ? (
       <>
-        <form class="send">
+        <form class="send" method="post">
           <div class="field">
             <label for="email">Email address</label>
             <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
           </div>
-          <button type="submit" class="primary">
+          <button type="submit" class="primary" disabled>
             Send sign-in link
           </button>
           <p class="note">We email you a link. No password needed.</p>
@@ -76,11 +76,6 @@ import { LINEUP_URL } from '../../urls.ts';
     // The page loads the Supabase client only when it needs it.
     const account = () => import('../../account/supabase.ts');
 
-    if (hasSession(localStorage)) {
-      const email = await (await account()).signedInEmail();
-      if (email) show('signed-in', email);
-    }
-
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.hidden = true;
@@ -98,6 +93,7 @@ import { LINEUP_URL } from '../../urls.ts';
         submit.disabled = false;
       }
     });
+    submit.disabled = false;
 
     sent.querySelector('.change-email')!.addEventListener('click', () => {
       show('form');
@@ -108,6 +104,11 @@ import { LINEUP_URL } from '../../urls.ts';
       await (await account()).signOut();
       show('form');
     });
+
+    if (hasSession(localStorage)) {
+      const email = await (await account()).signedInEmail();
+      if (email) show('signed-in', email);
+    }
   }
 </script>
 
