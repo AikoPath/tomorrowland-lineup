@@ -22,8 +22,8 @@ test('photoUrl uses the 320 px Spotify photo for the small size', () => {
   assert.equal(photoUrl(image, 'large'), '/photos/spotify/image/ab6761610000e5eb0cb0d65b77539ed30fa1ebc6');
 });
 
-test('photoUrl keeps the URL of a photo from a different host', () => {
-  assert.equal(photoUrl('https://example.com/photo.jpg', 'small'), 'https://example.com/photo.jpg');
+test('photoUrl does not give the URL of a photo from a host with no proxy', () => {
+  assert.throws(() => photoUrl('https://example.com/photo.jpg', 'small'), /No photo proxy for https:\/\/example\.com\/photo\.jpg/);
 });
 
 test('vercel.json has a rewrite for each photo proxy', async () => {

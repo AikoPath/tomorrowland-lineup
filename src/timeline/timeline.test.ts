@@ -9,9 +9,9 @@ const lineup: Lineup = {
     { id: 'freedom', name: 'Freedom' },
   ],
   artists: [
-    { id: 'amelie-lens', name: 'Amelie Lens', image: 'https://example.com/amelie.png' },
+    { id: 'amelie-lens', name: 'Amelie Lens', image: 'https://artist-lineup-cdn.tomorrowland.com/amelie.png' },
     { id: 'aly-fila', name: 'Aly & Fila' },
-    { id: 'charlotte-de-witte', name: 'Charlotte de Witte', image: 'https://example.com/charlotte.png' },
+    { id: 'charlotte-de-witte', name: 'Charlotte de Witte', image: 'https://artist-lineup-cdn.tomorrowland.com/charlotte.png' },
   ],
   days: [
     {
@@ -50,7 +50,7 @@ test('gives each set its key, its artists and the image of the first artist with
     b2b.artists.map((artist) => artist.name),
     ['Aly & Fila', 'Charlotte de Witte'],
   );
-  assert.equal(b2b.image, 'https://example.com/charlotte.png');
+  assert.equal(b2b.image, '/photos/tml/charlotte.png?width=400');
   assert.equal(timelineDays(lineup)[0].sets[1].image, undefined);
 });
 

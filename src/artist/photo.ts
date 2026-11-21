@@ -9,6 +9,7 @@ export type PhotoSize = 'small' | 'large';
  * The site gets the artist photos from these hosts through its own domain. vercel.json has a rewrite for each path,
  * and astro.config.mjs has a proxy for each path in the dev server. With the photos on the same domain, the service
  * worker can read each photo: it sees errors, and the browser counts the real size of the saved photos.
+ * The artist schema accepts an image only from these hosts.
  */
 export const PHOTO_PROXIES = [
   { path: '/photos/tml', origin: 'https://artist-lineup-cdn.tomorrowland.com' },
@@ -25,11 +26,11 @@ const SPOTIFY_ORIGIN = 'https://i.scdn.co';
 const SPOTIFY_640_PREFIX = 'ab6761610000e5eb';
 const SPOTIFY_PREFIX: Record<PhotoSize, string> = { small: 'ab67616100005174', large: SPOTIFY_640_PREFIX };
 
-/** The URL of the artist photo at a size, on the domain of the site. A photo from a different host keeps its URL. */
+/** The URL of the artist photo at a size, on the domain of the site. */
 export function photoUrl(image: string, size: PhotoSize): string {
   const url = new URL(image);
   const proxy = PHOTO_PROXIES.find((candidate) => candidate.origin === url.origin);
-  if (!proxy) return image;
+  if (!proxy) throw new Error(`No photo proxy for ${image}`);
 
   if (RESIZING_ORIGINS.has(url.origin)) url.searchParams.set('width', String(RESIZED_WIDTH[size]));
   if (url.origin === SPOTIFY_ORIGIN && url.pathname.startsWith(`/image/${SPOTIFY_640_PREFIX}`)) {

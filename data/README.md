@@ -59,7 +59,7 @@ music:
 
 | Key             | Rule                                                                            |
 | --------------- | ------------------------------------------------------------------------------- |
-| `image`         | An https link to a photo of the artist. See [Images](#images).                  |
+| `image`         | An https link to a photo of the artist. See [Images](#images) for the hosts.    |
 | `genres`        | A list of lowercase genre names.                                                |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
@@ -67,9 +67,15 @@ music:
 
 ### Images
 
-Use an https link to a photo of the artist. Do not copy image files into the repo.
+Use an https link to a photo of the artist on one of these hosts:
 
-You can use each source that lets other sites show the photo, for example the Tomorrowland image, the Spotify artist photo or the press kit of the artist. Do not use links from Instagram or Facebook, because these links expire.
+| Host                                 | Source                   |
+| ------------------------------------ | ------------------------ |
+| `artist-lineup-cdn.tomorrowland.com` | The Tomorrowland image   |
+| `artist-lineup-assets.b-cdn.net`     | The Tomorrowland image   |
+| `i.scdn.co`                          | The Spotify artist photo |
+
+The site gets each photo through its own domain, so the browser of a visitor does not connect to the host. The build stops on a link to a different host. Do not copy image files into the repo.
 
 ## `sets/<YYYY-MM-DD>.yml`
 

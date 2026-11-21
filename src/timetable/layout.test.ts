@@ -14,7 +14,7 @@ const artists: Artist[] = [
   {
     id: 'charlotte-de-witte',
     name: 'Charlotte de Witte',
-    image: 'https://example.com/charlotte.jpg',
+    image: 'https://artist-lineup-cdn.tomorrowland.com/charlotte.jpg',
     genres: ['techno', 'acid techno'],
   },
 ];
@@ -50,7 +50,7 @@ test('places each set in the column of its stage, in the order of the stages', (
     length: 70,
     start: '13:20',
     end: '14:30',
-    image: 'https://example.com/charlotte.jpg',
+    image: '/photos/tml/charlotte.jpg?width=400',
     genre: 'techno',
   });
   assert.equal(mainstage.sets[0].offset, 10 * 60 + 30);
@@ -68,7 +68,7 @@ test('keeps all artists of a B2B set in order', () => {
 
 test('takes the image and the genre from the first B2B artist that has them', () => {
   const [mainstage] = layoutDay(day, stages, artists).columns;
-  assert.equal(mainstage.sets[0].image, 'https://example.com/charlotte.jpg');
+  assert.equal(mainstage.sets[0].image, '/photos/tml/charlotte.jpg?width=400');
   assert.equal(mainstage.sets[0].genre, 'techno');
 });
 

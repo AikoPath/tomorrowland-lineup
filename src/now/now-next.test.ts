@@ -19,7 +19,7 @@ const lineup: Lineup = {
     { id: 'core', name: 'Core' },
   ],
   artists: [
-    { id: 'amelie-lens', name: 'Amelie Lens', image: 'https://example.com/amelie.png' },
+    { id: 'amelie-lens', name: 'Amelie Lens', image: 'https://artist-lineup-cdn.tomorrowland.com/amelie.png' },
     { id: 'aly-fila', name: 'Aly & Fila' },
     { id: 'charlotte-de-witte', name: 'Charlotte de Witte' },
   ],
@@ -74,7 +74,7 @@ test('counts the minutes from 00:00 on the festival day, also after midnight', (
 
 test('gives each artist a link, the photo and the initials', () => {
   assert.deepEqual(mainstage.sets[1].artists, [
-    { name: 'Amelie Lens', url: '/artists/amelie-lens/', image: 'https://example.com/amelie.png', initials: 'AL' },
+    { name: 'Amelie Lens', url: '/artists/amelie-lens/', image: '/photos/tml/amelie.png?width=400', initials: 'AL' },
     { name: 'Charlotte de Witte', url: '/artists/charlotte-de-witte/', initials: 'CD' },
   ]);
 });

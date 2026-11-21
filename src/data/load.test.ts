@@ -82,6 +82,16 @@ test('rejects a value that is not an https URL', async () => {
   ]);
 });
 
+test('rejects an image from a host with no photo proxy', async () => {
+  const problems = await problemsFor({
+    ...validFiles,
+    'artists/charlotte-de-witte.yml': 'name: C\nimage: https://their-server.example/x.jpg\n',
+  });
+  assert.deepEqual(problems, [
+    'artists/charlotte-de-witte.yml: image: Expected an https link to artist-lineup-cdn.tomorrowland.com, artist-lineup-assets.b-cdn.net or i.scdn.co',
+  ]);
+});
+
 test('rejects a link to the wrong platform', async () => {
   const problems = await problemsFor({
     ...validFiles,

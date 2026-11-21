@@ -46,7 +46,8 @@ music:
 - Write genres in lowercase.
 - Use only https links to the platform of the key.
 - For `music.youtube`, use the `/channel/UC…` form of the link.
-- Do not copy image files into the repo. Use a link to the Tomorrowland image.
+- For `image`, use a link to `artist-lineup-cdn.tomorrowland.com`, `artist-lineup-assets.b-cdn.net` or `i.scdn.co`. The build stops on a link to a different host.
+- Do not copy image files into the repo.
 
 The import from Tomorrowland does not change a value that you write in an artist file.
 

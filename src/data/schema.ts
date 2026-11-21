@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PHOTO_PROXIES } from '../artist/photo.ts';
 
 export const idSchema = z
   .string()
@@ -15,6 +16,15 @@ function linkTo(...domains: string[]) {
   });
 }
 
+// The site shows a photo only through a photo proxy. Thus the schema accepts a photo only from the host of a proxy.
+const photoOrigins: string[] = PHOTO_PROXIES.map(({ origin }) => origin);
+const photoHosts = photoOrigins.map((origin) => new URL(origin).host);
+const photoLink = z
+  .url({ protocol: /^https$/, error: 'Expected an https URL', abort: true })
+  .refine((url) => photoOrigins.includes(new URL(url).origin), {
+    error: `Expected an https link to ${photoHosts.slice(0, -1).join(', ')} or ${photoHosts.at(-1)}`,
+  });
+
 // The YouTube player embeds a channel by its ID, and only /channel/ links contain the ID.
 const youtubeChannel = linkTo('youtube.com').refine(
   (url) => /^\/channel\/UC[\w-]+\/?$/.test(new URL(url).pathname),
@@ -23,7 +33,7 @@ const youtubeChannel = linkTo('youtube.com').refine(
 
 export const artistSchema = z.strictObject({
   name: z.string().trim().min(1),
-  image: httpsUrl.optional(),
+  image: photoLink.optional(),
   genres: z
     .array(
       z

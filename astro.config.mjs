@@ -3,6 +3,7 @@ import { defineConfig, envField, fontProviders } from 'astro/config';
 import { PHOTO_PROXIES } from './src/artist/photo.ts';
 import { loadLineup } from './src/data/load.ts';
 import { writeServiceWorker } from './src/pwa/service-worker.ts';
+import vercel from './vercel.json' with { type: 'json' };
 
 /** @type {URL} */
 let root;
@@ -15,9 +16,13 @@ const photoProxy = Object.fromEntries(
   ]),
 );
 
+const pageHeaders = vercel.headers.find(({ source }) => source === '/(.*)')?.headers ?? [];
+
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  // The same page headers as in vercel.json, for `astro dev` and `astro preview`.
+  server: { headers: Object.fromEntries(pageHeaders.map(({ key, value }) => [key, value])) },
   vite: {
     server: { proxy: photoProxy },
     preview: { proxy: photoProxy },
