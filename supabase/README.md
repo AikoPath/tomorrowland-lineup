@@ -8,7 +8,6 @@ A user can sign in with a link in an email. Then the favourites stay the same on
 | ------------------------------------------------------------- | --------------------------------------------------------------------- |
 | `migrations/20261118000000_favourites.sql`                    | The table of the favourites and its access rules.                     |
 | `migrations/20261121000000_favourites_limit_existing_key.sql` | The limit of 1000 favourites accepts a key that the user already has. |
-| `migrations/20261121000001_favourites_limit_lock.sql`         | The limit of 1000 favourites also for inserts at the same time.       |
 | `templates/sign-in.html`                                      | The text of the sign-in email.                                        |
 | `config.toml`                                                 | The settings for preview branches and for `supabase start`.           |
 
