@@ -2,6 +2,9 @@ export const SITE_NAME = 'Tomorrowland Thailand 2026 lineup';
 
 export const REPO_URL = 'https://github.com/AikoPath/tomorrowland-lineup';
 
+/** The same Ko-fi page that aiko.dev/tabs/about links to. */
+export const DONATION_URL = 'https://ko-fi.com/G2G5BKVAB';
+
 /** The set times in the data are local times in this time zone. */
 export const FESTIVAL_TIME_ZONE = 'Asia/Bangkok';
 
