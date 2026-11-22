@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Lineup } from '../data/schema.ts';
-import { artistLinks, artistSets, formatDay, formatTime, startsInText } from './artist-page.ts';
+import { artistLinks, artistSets, canGoBack, formatDay, formatTime, startsInText } from './artist-page.ts';
 
 const lineup: Lineup = {
   stages: [
@@ -99,4 +99,12 @@ test('startsInText gives the days and the hours before a set on a later day', ()
 test('startsInText gives no text when the set has started', () => {
   assert.equal(startsInText('2026-12-11T23:50', '2026-12-11T23:50'), undefined);
   assert.equal(startsInText('2026-12-11T23:50', '2026-12-12T00:30'), undefined);
+});
+
+test('canGoBack is true only when the previous page is on the same site in this tab', () => {
+  assert.equal(canGoBack('https://example.com/2026-12-12/?stage=core', 'https://example.com', 2), true);
+  assert.equal(canGoBack('https://example.com/', 'https://example.com', 1), false);
+  assert.equal(canGoBack('', 'https://example.com', 2), false);
+  assert.equal(canGoBack('https://other.example.com/', 'https://example.com', 2), false);
+  assert.equal(canGoBack('not-a-url', 'https://example.com', 2), false);
 });
