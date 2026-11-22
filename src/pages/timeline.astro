@@ -130,7 +130,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
-  import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
+  import { initialDate, overlapMinutes, setCountLabel, swipeDate } from '../timeline/timeline.ts';
 
   const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
   const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
@@ -183,6 +183,32 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
       render();
     });
   }
+
+  let touchStart: { x: number; y: number } | undefined;
+  document.addEventListener(
+    'touchstart',
+    (event) => {
+      const target = event.target;
+      if (event.touches.length !== 1 || (target instanceof Element && target.closest('.main-nav, .favourite-hint'))) {
+        touchStart = undefined;
+        return;
+      }
+      touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    },
+    { passive: true },
+  );
+  document.addEventListener('touchend', (event) => {
+    if (!touchStart || event.changedTouches.length !== 1) return;
+    const touch = event.changedTouches[0];
+    const nextDate = swipeDate(days, selectedDate, touch.clientX - touchStart.x, touch.clientY - touchStart.y);
+    touchStart = undefined;
+    if (!nextDate) return;
+    selectedDate = nextDate;
+    render();
+  });
+  document.addEventListener('touchcancel', () => {
+    touchStart = undefined;
+  });
 
   const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
   const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
