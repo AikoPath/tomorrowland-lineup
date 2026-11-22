@@ -3,7 +3,13 @@
   "rewrites": [
     { "source": "/photos/tml/:path*", "destination": "https://artist-lineup-cdn.tomorrowland.com/:path*" },
     { "source": "/photos/bunny/:path*", "destination": "https://artist-lineup-assets.b-cdn.net/:path*" },
-    { "source": "/photos/spotify/:path*", "destination": "https://i.scdn.co/:path*" }
+    { "source": "/photos/spotify/:path*", "destination": "https://i.scdn.co/:path*" },
+    { "source": "/photos/soundcloud/:path*", "destination": "https://i1.sndcdn.com/:path*" },
+    { "source": "/photos/ra/:path*", "destination": "https://static.ra.co/:path*" },
+    { "source": "/photos/edm-addicts/:path*", "destination": "https://app.edm-addicts.com/:path*" },
+    { "source": "/photos/youtube/:path*", "destination": "https://yt3.googleusercontent.com/:path*" },
+    { "source": "/photos/beatport/:path*", "destination": "https://geo-media.beatport.com/:path*" },
+    { "source": "/photos/ade/:path*", "destination": "https://cdn.amsterdam-dance-event.nl/:path*" }
   ],
   "headers": [
     {

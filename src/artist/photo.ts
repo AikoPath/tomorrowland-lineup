@@ -14,6 +14,12 @@ export const PHOTO_PROXIES = [
   { path: '/photos/tml', origin: 'https://artist-lineup-cdn.tomorrowland.com' },
   { path: '/photos/bunny', origin: 'https://artist-lineup-assets.b-cdn.net' },
   { path: '/photos/spotify', origin: 'https://i.scdn.co' },
+  { path: '/photos/soundcloud', origin: 'https://i1.sndcdn.com' },
+  { path: '/photos/ra', origin: 'https://static.ra.co' },
+  { path: '/photos/edm-addicts', origin: 'https://app.edm-addicts.com' },
+  { path: '/photos/youtube', origin: 'https://yt3.googleusercontent.com' },
+  { path: '/photos/beatport', origin: 'https://geo-media.beatport.com' },
+  { path: '/photos/ade', origin: 'https://cdn.amsterdam-dance-event.nl' },
 ] as const;
 
 /** These hosts use the Bunny CDN optimizer. It resizes a photo and also converts files such as TIFF that a browser cannot show. */
