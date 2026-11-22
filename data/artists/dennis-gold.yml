@@ -1,5 +1,7 @@
 name: Dennis Gold
 image: https://artist-lineup-cdn.tomorrowland.com/240506842-Image%20-%2020.jpg
+genres:
+  - house
 music:
   apple_music: https://music.apple.com/us/artist/dennis-gold/1724603354
   spotify: https://open.spotify.com/artist/47J6Id8OV765OFL0yvoJDq

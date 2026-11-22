@@ -1,5 +1,7 @@
 name: TA:REK
 image: https://i.scdn.co/image/ab6761610000e5eb94a0d3ddd58c4b6388c7352b
+genres:
+  - house
 music:
   apple_music: https://music.apple.com/us/artist/ta-rek/1820930087
   spotify: https://open.spotify.com/artist/3sbX33dX1oHGpCjPCXx4A4

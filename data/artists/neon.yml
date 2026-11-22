@@ -1,4 +1,6 @@
 name: Neon
 image: https://artist-lineup-cdn.tomorrowland.com/32558165-Neon-SQ.jpg
+genres:
+  - house
 music:
   apple_music: https://music.apple.com/us/artist/n-e-o-n/1531762495

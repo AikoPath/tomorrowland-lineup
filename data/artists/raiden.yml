@@ -1,5 +1,7 @@
 name: Raiden
 image: https://i.scdn.co/image/ab6761610000e5eb87649f75c7cb7538cd57c21c
+genres:
+  - dance
 music:
   spotify: https://open.spotify.com/artist/4YXNoMVTHRt01jYaKXTumJ
   apple_music: https://music.apple.com/us/artist/raiden/78559383

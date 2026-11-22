@@ -1,4 +1,6 @@
 name: Vegas
 image: https://artist-lineup-cdn.tomorrowland.com/114275110-VEGAS%20-%205.jpg
+genres:
+  - hardstyle
 music:
   apple_music: https://music.apple.com/us/artist/vegas/1712106548
