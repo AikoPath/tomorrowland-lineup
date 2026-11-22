@@ -1,6 +1,7 @@
 ---
 import FavouriteButton from '../components/FavouriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import { loadLineup } from '../data/load.ts';
 import Base from '../layouts/Base.astro';
 import { initials } from '../now/now-next.ts';
@@ -15,7 +16,7 @@ const days = timelineDays(lineup);
 const clockTime = (localTime: string) => localTime.slice(11, 16);
 ---
 
-<Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline">
+<Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline" footer={false}>
   <div class="page">
     <div class="top">
       <PageHeader lineup={lineup} title="My timeline">
@@ -54,11 +55,14 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         }
       </div>
     </div>
+    <noscript>
+      <p class="empty">Turn on JavaScript to see your favourite sets.</p>
+    </noscript>
 
     <main>
       {
         days.map(({ date, sets }) => (
-          <ol class="sets" data-date={date} hidden>
+          <ol class="sets" data-date={date}>
             {sets.map((set) => {
               const names = set.artists.map((artist) => artist.name).join(' b2b ');
               return (
@@ -101,16 +105,15 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                 </li>
               );
             })}
+            <li class="empty" hidden>
+              No favourite sets on this day. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
+            </li>
+            <li>
+              <SiteFooter />
+            </li>
           </ol>
         ))
       }
-
-      <p class="empty" hidden>
-        No favourite sets on this day. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
-      </p>
-      <noscript>
-        <p class="empty">Turn on JavaScript to see your favourite sets.</p>
-      </noscript>
 
       <template id="overlap-note">
         <li class="overlap">
@@ -138,32 +141,28 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     if (!overlapTemplate) return;
 
     const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
-    const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
+    const main = document.querySelector('main')!;
+    const lists = [...main.querySelectorAll<HTMLOListElement>('.sets')];
     const count = document.querySelector<HTMLElement>('.count')!;
-    const empty = document.querySelector<HTMLElement>('.empty')!;
 
     function favouriteDates(favourites: Set<string>): Set<string> {
       return new Set([...favourites].map((key) => key.split('/')[0]));
     }
 
     const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
-    let selectedDate =
-      days.length > 0
-        ? initialDate(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE), favouriteDates(readFavourites(localStorage)))
-        : undefined;
+    const now = festivalNow(new Date(), FESTIVAL_TIME_ZONE);
+    const startDate = days.length > 0 ? initialDate(days, now, favouriteDates(readFavourites(localStorage))) : '';
+    let selectedIndex = days.findIndex(({ date }) => date === startDate);
+    main.scrollLeft = selectedIndex * main.clientWidth;
 
     function render() {
       const favourites = readFavourites(localStorage);
-      for (const button of dayButtons) button.setAttribute('aria-pressed', String(button.dataset.date === selectedDate));
-
       for (const list of lists) {
-        list.hidden = list.dataset.date !== selectedDate;
         for (const note of list.querySelectorAll('.overlap')) note.remove();
         const shown = [...list.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
           row.hidden = !favourites.has(row.dataset.key!);
           return !row.hidden;
         });
-        if (list.hidden) continue;
 
         shown.slice(1).forEach((row, index) => {
           const earlier = shown[index];
@@ -176,21 +175,35 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
           note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
           row.before(note);
         });
-        count.textContent = selectedDate ? setCountLabel(shown.length, selectedDate) : '';
-        empty.hidden = shown.length > 0;
+        list.querySelector<HTMLElement>('.empty')!.hidden = shown.length > 0;
       }
+      showSelectedDay();
     }
 
-    for (const button of dayButtons) {
-      button.addEventListener(
-        'click',
-        () => {
-          selectedDate = button.dataset.date;
-          render();
-        },
-        { signal },
-      );
+    function showSelectedDay() {
+      dayButtons.forEach((button, index) => button.setAttribute('aria-pressed', String(index === selectedIndex)));
+      const list = lists[selectedIndex];
+      const shown = list?.querySelectorAll('.set:not([hidden])').length ?? 0;
+      count.textContent = list ? setCountLabel(shown, list.dataset.date!) : '';
     }
+
+    dayButtons.forEach((button, index) => {
+      button.addEventListener('click', () => main.scrollTo({ left: index * main.clientWidth, behavior: 'smooth' }), {
+        signal,
+      });
+    });
+
+    // A swipe and a tap on a day scroll the lists. The list in view is the selected day.
+    main.addEventListener(
+      'scroll',
+      () => {
+        const index = Math.round(main.scrollLeft / main.clientWidth);
+        if (index === selectedIndex) return;
+        selectedIndex = index;
+        showSelectedDay();
+      },
+      { signal },
+    );
 
     const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
     const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
@@ -254,6 +267,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    height: calc(100dvh - var(--bottom-chrome-height));
     padding-top: 1.75rem;
   }
 
@@ -341,8 +355,29 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     cursor: pointer;
   }
 
+  /* Each day is a list in a row. A horizontal swipe snaps to the next or the previous day. */
   main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
     border-top: 1px solid var(--color-divider);
+  }
+
+  /*
+   * Each list ends with the footer.
+   * The position keeps the hidden text of the footer in the list, so the page is not wider than the screen.
+   */
+  .sets {
+    position: relative;
+    flex: none;
+    width: 100%;
+    overflow-y: auto;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   ol {
