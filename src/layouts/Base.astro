@@ -12,9 +12,11 @@ interface Props {
   mainPage?: MainPage;
   /** A page with no bottom bar and no message about favourites, for example the sign-in page. */
   bare?: boolean;
+  /** Render the footer at the bottom of the page. Set false when a page places SiteFooter inside its own scroll container. */
+  footer?: boolean;
 }
 
-const { title, mainPage, bare = false } = Astro.props;
+const { title, mainPage, bare = false, footer = true } = Astro.props;
 ---
 
 <html lang="en">
@@ -35,7 +37,7 @@ const { title, mainPage, bare = false } = Astro.props;
     {
       !bare && (
         <>
-          <SiteFooter />
+          {footer && <SiteFooter />}
           <FavouriteHint />
           <MainNav current={mainPage} />
         </>
