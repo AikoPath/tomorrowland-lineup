@@ -88,22 +88,8 @@ export function initialDate(days: { date: string; end: string }[], now: string, 
   return (days.find((day) => favouriteDates.has(day.date)) ?? days[0]).date;
 }
 
-const SWIPE_MIN_DISTANCE = 50;
-
-/**
- * The next or previous date after a horizontal swipe of `(dx, dy)` pixels.
- * A left swipe (`dx < 0`) goes to the next day; a right swipe (`dx > 0`) goes to the previous day.
- * Gives `undefined` for a short or mostly vertical swipe, or past the first or last day.
- */
-export function swipeDate(
-  days: { date: string }[],
-  currentDate: string | undefined,
-  dx: number,
-  dy: number,
-): string | undefined {
-  if (!currentDate) return undefined;
-  if (Math.abs(dx) < SWIPE_MIN_DISTANCE || Math.abs(dx) <= Math.abs(dy) * 1.5) return undefined;
-  const index = days.findIndex((day) => day.date === currentDate);
-  if (index === -1) return undefined;
-  return days[index + (dx < 0 ? 1 : -1)]?.date;
+/** The index of the day panel closest to the horizontal scroll position of the tab strip. */
+export function activeDayIndex(scrollLeft: number, panelWidth: number, dayCount: number): number {
+  if (dayCount <= 1 || panelWidth <= 0) return 0;
+  return Math.min(dayCount - 1, Math.max(0, Math.round(scrollLeft / panelWidth)));
 }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Lineup } from '../data/schema.ts';
-import { initialDate, overlapMinutes, setCountLabel, swipeDate, timelineDays } from './timeline.ts';
+import { activeDayIndex, initialDate, overlapMinutes, setCountLabel, timelineDays } from './timeline.ts';
 
 const lineup: Lineup = {
   stages: [
@@ -112,18 +112,13 @@ test('opens at the first day when there are no favourites', () => {
   assert.equal(initialDate(days, '2026-11-18T10:00', new Set()), '2026-12-11');
 });
 
-test('swipes left to the next day and right to the previous day', () => {
-  assert.equal(swipeDate(days, '2026-12-11', -60, 10), '2026-12-12');
-  assert.equal(swipeDate(days, '2026-12-12', -60, -10), '2026-12-13');
-  assert.equal(swipeDate(days, '2026-12-13', 60, 10), '2026-12-12');
-  assert.equal(swipeDate(days, '2026-12-12', 60, -10), '2026-12-11');
-});
-
-test('stops at the first and last day and ignores short or vertical swipes', () => {
-  assert.equal(swipeDate(days, '2026-12-11', 60, 0), undefined);
-  assert.equal(swipeDate(days, '2026-12-13', -60, 0), undefined);
-  assert.equal(swipeDate(days, '2026-12-12', -30, 0), undefined);
-  assert.equal(swipeDate(days, '2026-12-12', -60, 50), undefined);
-  assert.equal(swipeDate(days, '2026-12-12', 0, -100), undefined);
-  assert.equal(swipeDate(days, undefined, -60, 0), undefined);
+test('finds the active day panel from the horizontal scroll position', () => {
+  assert.equal(activeDayIndex(0, 400, 3), 0);
+  assert.equal(activeDayIndex(-40, 400, 3), 0);
+  assert.equal(activeDayIndex(199, 400, 3), 0);
+  assert.equal(activeDayIndex(200, 400, 3), 1);
+  assert.equal(activeDayIndex(400, 400, 3), 1);
+  assert.equal(activeDayIndex(850, 400, 3), 2);
+  assert.equal(activeDayIndex(400, 0, 3), 0);
+  assert.equal(activeDayIndex(400, 400, 1), 0);
 });
