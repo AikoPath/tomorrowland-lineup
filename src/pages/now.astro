@@ -103,10 +103,13 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     type NowDay,
     type NowSet,
   } from '../now/now-next.ts';
+  import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
 
-  const dataElement = document.getElementById('now-data');
-  if (dataElement) {
+  onPageMount((signal) => {
+    const dataElement = document.getElementById('now-data');
+    if (!dataElement) return;
+
     const days: NowDay[] = JSON.parse(dataElement.textContent!);
     const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-day]')];
     const [earlier, later] = [...document.querySelectorAll<HTMLButtonElement>('[data-step]')];
@@ -188,27 +191,36 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     }
 
     dayButtons.forEach((button, index) =>
-      button.addEventListener('click', () => {
-        dayIndex = index;
-        minute = clampTime(days[dayIndex], minute);
-        followsClock = false;
-        render();
-      }),
+      button.addEventListener(
+        'click',
+        () => {
+          dayIndex = index;
+          minute = clampTime(days[dayIndex], minute);
+          followsClock = false;
+          render();
+        },
+        { signal },
+      ),
     );
     for (const button of [earlier, later]) {
-      button.addEventListener('click', () => {
-        minute = clampTime(days[dayIndex], minute + Number(button.dataset.step) * TIME_STEP);
-        followsClock = false;
-        render();
-      });
+      button.addEventListener(
+        'click',
+        () => {
+          minute = clampTime(days[dayIndex], minute + Number(button.dataset.step) * TIME_STEP);
+          followsClock = false;
+          render();
+        },
+        { signal },
+      );
     }
-    document.querySelector('.now')!.addEventListener('click', goToNow);
-    setInterval(() => {
+    document.querySelector('.now')!.addEventListener('click', goToNow, { signal });
+    const interval = setInterval(() => {
       if (followsClock) goToNow();
     }, 30_000);
+    signal.addEventListener('abort', () => clearInterval(interval));
 
     goToNow();
-  }
+  });
 </script>
 
 <style>

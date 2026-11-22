@@ -79,13 +79,23 @@ async function savePhoto(cache, url) {
   return response;
 }
 
+// Page URLs end with a slash. ClientRouter fetches pages with fetch() instead of request.mode === 'navigate'.
+const PAGE_URLS = new Set(PRECACHE_URLS.filter((url) => url.endsWith('/')));
+
+function isPageRequest(request) {
+  if (request.mode === 'navigate') return true;
+  const url = new URL(request.url);
+  const pathname = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+  return PAGE_URLS.has(pathname);
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
   if (PHOTO_URLS.has(request.url)) event.respondWith(photoResponse(request));
   else if (new URL(request.url).origin === self.location.origin)
-    event.respondWith(request.mode === 'navigate' ? pageResponse(request) : fileResponse(request));
+    event.respondWith(isPageRequest(request) ? pageResponse(request) : fileResponse(request));
 });
 
 /**

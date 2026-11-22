@@ -5,10 +5,13 @@ import {
   choosePreview,
   MUSIC_SERVICE_STORAGE_KEY,
   musicTabs,
+  playableSetArtist,
   previewPlayers,
   readMusicService,
   saveMusicService,
+  soundcloudUrl,
   spotifyUri,
+  youtubePlaylistId,
   type MusicServiceStorage,
   type PreviewPlayer,
 } from './music-player.ts';
@@ -187,4 +190,36 @@ test('spotifyUri gives the URI of the artist of a Spotify embed', () => {
   );
   assert.equal(spotifyUri({ kind: 'embed', src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc' }), undefined);
   assert.equal(spotifyUri({ kind: 'apple-top-song', lookupUrl: 'https://itunes.apple.com/lookup?id=1' }), undefined);
+});
+
+test('playableSetArtist returns the first artist in a set that has an embeddable player', () => {
+  const withoutMusic = { id: 'first', name: 'First' };
+  const withMusic = {
+    id: 'second',
+    name: 'Second',
+    music: { spotify: 'https://open.spotify.com/artist/4D75GcNG95ebPtNvoNVXhz' },
+  };
+  const found = playableSetArtist([withoutMusic, withMusic]);
+  assert.equal(found?.artist.id, 'second');
+  assert.deepEqual(
+    found?.players.map((item) => item.service),
+    ['spotify'],
+  );
+  assert.equal(playableSetArtist([withoutMusic]), undefined);
+});
+
+test('soundcloudUrl extracts the artist URL from a SoundCloud embed player', () => {
+  assert.equal(
+    soundcloudUrl({
+      kind: 'embed',
+      src: 'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fafrojack',
+    }),
+    'https://soundcloud.com/afrojack',
+  );
+  assert.equal(soundcloudUrl(spotifyPreview.player), undefined);
+});
+
+test('youtubePlaylistId extracts the uploads playlist ID from a YouTube embed player', () => {
+  assert.equal(youtubePlaylistId(youtubePreview.player), 'UULFabc');
+  assert.equal(youtubePlaylistId(spotifyPreview.player), undefined);
 });

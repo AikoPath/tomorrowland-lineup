@@ -26,13 +26,17 @@ import { LINEUP_URL } from '../urls.ts';
 </Base>
 
 <script>
-  import { SIGN_IN_URL } from '../urls.ts';
+  import { getPreviousNonSignInUrl, onPageMount } from '../player/navigation.ts';
 
-  // Close goes back to the page before the sign-in. A page from a different site, or no page, gives the line-up.
-  const previous = document.referrer ? new URL(document.referrer) : null;
-  if (previous?.origin === location.origin && !previous.pathname.startsWith(SIGN_IN_URL)) {
-    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-close]')) link.href = previous.href;
-  }
+  onPageMount(() => {
+    const closeLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-close]')];
+    if (closeLinks.length === 0) return;
+    // Close goes back to the page before the sign-in. A page from a different site, or no page, gives the line-up.
+    const previous = getPreviousNonSignInUrl();
+    if (previous) {
+      for (const link of closeLinks) link.href = previous;
+    }
+  });
 </script>
 
 <style>

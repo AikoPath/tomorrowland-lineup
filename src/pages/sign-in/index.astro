@@ -53,9 +53,12 @@ import { LINEUP_URL } from '../../urls.ts';
 <script>
   import { ACCOUNT_AVAILABLE } from '../../account/available.ts';
   import { hasSession } from '../../account/session.ts';
+  import { onPageMount } from '../../player/navigation.ts';
 
-  const form = document.querySelector<HTMLFormElement>('form.send');
-  if (ACCOUNT_AVAILABLE && form) {
+  onPageMount((signal) => {
+    const form = document.querySelector<HTMLFormElement>('form.send');
+    if (!ACCOUNT_AVAILABLE || !form) return;
+
     const intro = document.querySelector<HTMLElement>('.intro')!;
     const sent = document.querySelector<HTMLElement>('.sent')!;
     const signedIn = document.querySelector<HTMLElement>('.signed-in')!;
@@ -76,40 +79,56 @@ import { LINEUP_URL } from '../../urls.ts';
     // The page loads the Supabase client only when it needs it.
     const account = () => import('../../account/supabase.ts');
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      error.hidden = true;
-      submit.disabled = true;
-      try {
-        await (await account()).sendSignInLink(input.value);
-        show('sent', input.value);
-      } catch (cause) {
-        error.textContent =
-          (cause as { status?: number }).status === 429
-            ? 'You asked for too many links. Wait some minutes, then try again.'
-            : 'We could not send the link. Make sure that you have a network connection, then try again.';
-        error.hidden = false;
-      } finally {
-        submit.disabled = false;
-      }
-    });
+    form.addEventListener(
+      'submit',
+      async (event) => {
+        event.preventDefault();
+        error.hidden = true;
+        submit.disabled = true;
+        try {
+          await (await account()).sendSignInLink(input.value);
+          if (!signal.aborted) show('sent', input.value);
+        } catch (cause) {
+          if (!signal.aborted) {
+            error.textContent =
+              (cause as { status?: number }).status === 429
+                ? 'You asked for too many links. Wait some minutes, then try again.'
+                : 'We could not send the link. Make sure that you have a network connection, then try again.';
+            error.hidden = false;
+          }
+        } finally {
+          if (!signal.aborted) submit.disabled = false;
+        }
+      },
+      { signal },
+    );
     submit.disabled = false;
 
-    sent.querySelector('.change-email')!.addEventListener('click', () => {
-      show('form');
-      input.focus();
-    });
+    sent.querySelector('.change-email')!.addEventListener(
+      'click',
+      () => {
+        show('form');
+        input.focus();
+      },
+      { signal },
+    );
 
-    signedIn.querySelector('.sign-out')!.addEventListener('click', async () => {
-      await (await account()).signOut();
-      show('form');
-    });
+    signedIn.querySelector('.sign-out')!.addEventListener(
+      'click',
+      async () => {
+        await (await account()).signOut();
+        if (!signal.aborted) show('form');
+      },
+      { signal },
+    );
 
     if (hasSession(localStorage)) {
-      const email = await (await account()).signedInEmail();
-      if (email) show('signed-in', email);
+      void (async () => {
+        const email = await (await account()).signedInEmail();
+        if (!signal.aborted && email) show('signed-in', email);
+      })();
     }
-  }
+  });
 </script>
 
 <style>
