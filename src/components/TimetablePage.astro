@@ -1,5 +1,6 @@
 ---
 import type { Lineup } from '../data/schema';
+import { genreLabel } from '../artist-list/artist-list';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
@@ -117,7 +118,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
                 <span class="time">
                   <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
                 </span>
-                {set.genre && <span class="genre">{set.genre}</span>}
+                {set.genres.length > 0 && <span class="genre">{set.genres.map(genreLabel).join(', ')}</span>}
                 <FavouriteButton
                   class="set-favourite"
                   setKey={set.key}
@@ -574,9 +575,5 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
   .genre {
     color: var(--color-text-muted);
-  }
-
-  .genre::first-letter {
-    text-transform: uppercase;
   }
 </style>
