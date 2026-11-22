@@ -16,8 +16,8 @@ export interface PlacedSet {
   end: string;
   /** The image of the first artist with an image. */
   image?: string;
-  /** The first genre of the first artist with a genre. */
-  genre?: string;
+  /** The genres of all artists of the set, in the order of the artists, with no duplicates. */
+  genres: string[];
 }
 
 export interface StageColumn {
@@ -70,11 +70,10 @@ export function layoutDay(day: Day, stages: Stage[], artists: Artist[]): DayTime
             length: toMinutes(set.end) - toMinutes(set.start),
             start: clockTime(set.start),
             end: clockTime(set.end),
+            genres: [...new Set(setArtists.flatMap((artist) => artist.genres ?? []))],
           };
           const image = setArtists.find((artist) => artist.image)?.image;
-          const genre = setArtists.find((artist) => artist.genres?.length)?.genres?.[0];
           if (image) placed.image = photoUrl(image, 'small');
-          if (genre) placed.genre = genre;
           return placed;
         }),
     }))

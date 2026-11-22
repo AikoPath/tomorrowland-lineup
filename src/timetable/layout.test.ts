@@ -11,6 +11,7 @@ const stages: Stage[] = [
 
 const artists: Artist[] = [
   { id: 'amelie-lens', name: 'Amelie Lens' },
+  { id: 'enrico-sangiuliano', name: 'Enrico Sangiuliano', genres: ['techno', 'hard techno'] },
   {
     id: 'charlotte-de-witte',
     name: 'Charlotte de Witte',
@@ -45,13 +46,13 @@ test('places each set in the column of its stage, in the order of the stages', (
   const [mainstage, freedom] = timetable.columns;
   assert.deepEqual(freedom.sets[0], {
     key: '2026-12-11/charlotte-de-witte',
-    artists: [artists[1]],
+    artists: [artists[2]],
     offset: 20,
     length: 70,
     start: '13:20',
     end: '14:30',
     image: 'https://example.com/charlotte.jpg',
-    genre: 'techno',
+    genres: ['techno', 'acid techno'],
   });
   assert.equal(mainstage.sets[0].offset, 10 * 60 + 30);
   assert.equal(mainstage.sets[0].length, 105);
@@ -66,10 +67,25 @@ test('keeps all artists of a B2B set in order', () => {
   );
 });
 
-test('takes the image and the genre from the first B2B artist that has them', () => {
+test('takes the image from the first B2B artist that has an image', () => {
   const [mainstage] = layoutDay(day, stages, artists).columns;
   assert.equal(mainstage.sets[0].image, 'https://example.com/charlotte.jpg');
-  assert.equal(mainstage.sets[0].genre, 'techno');
+});
+
+test('gives a B2B set the genres of all its artists, with no duplicates', () => {
+  const b2bDay: Day = {
+    date: '2026-12-11',
+    sets: [
+      {
+        artists: ['amelie-lens', 'charlotte-de-witte', 'enrico-sangiuliano'],
+        stage: 'core',
+        start: '2026-12-11T13:00',
+        end: '2026-12-11T14:00',
+      },
+    ],
+  };
+  const [core] = layoutDay(b2bDay, stages, artists).columns;
+  assert.deepEqual(core.sets[0].genres, ['techno', 'acid techno', 'hard techno']);
 });
 
 test('gives no image and no genre to a set of artists with no image and no genre', () => {
@@ -79,7 +95,7 @@ test('gives no image and no genre to a set of artists with no image and no genre
   };
   const [core] = layoutDay(soloDay, stages, artists).columns;
   assert.equal('image' in core.sets[0], false);
-  assert.equal('genre' in core.sets[0], false);
+  assert.deepEqual(core.sets[0].genres, []);
 });
 
 test('returns an empty timetable for a day with no sets', () => {
