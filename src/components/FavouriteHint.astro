@@ -39,82 +39,101 @@ import { SIGN_IN_URL } from '../urls.ts';
     toggleFavourite,
   } from '../favourites/favourites.ts';
   import { addPending, syncFavourites } from '../favourites/sync.ts';
+  import { onPageMount } from '../player/navigation.ts';
 
-  const hint = document.querySelector<HTMLElement>('.favourite-hint .content')!;
-  const syncFailed = document.querySelector<HTMLElement>('.favourite-hint .sync-failed')!;
-  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
-
-  function setKeys(button: HTMLButtonElement): string[] {
-    return button.dataset.favouriteKey!.split(' ');
-  }
-
-  function render() {
-    const favourites = readFavourites(localStorage);
-    for (const button of buttons) {
-      const on = isFavourite(favourites, setKeys(button));
-      const subject = button.dataset.favouriteSubject!;
-      button.setAttribute('aria-pressed', String(on));
-      button.setAttribute('aria-label', on ? `Remove ${subject} from favourites` : `Add ${subject} to favourites`);
-    }
-    hint.hidden = signedIn() || !isHintShown(localStorage);
-  }
+  // One sync at a time across the whole session. The page loads the Supabase client only for a user who is signed in.
+  let syncs = Promise.resolve();
 
   function signedIn(): boolean {
     return ACCOUNT_AVAILABLE && hasSession(localStorage);
   }
 
-  // One sync at a time. The page loads the Supabase client only for a user who is signed in.
-  let syncs = Promise.resolve();
-  function sync() {
-    if (!signedIn()) return;
-    syncs = syncs
-      .then(async () => {
-        const { favouriteAccount } = await import('../account/supabase.ts');
-        await syncFavourites(localStorage, favouriteAccount);
-        syncFailed.hidden = true;
+  onPageMount((signal) => {
+    const hint = document.querySelector<HTMLElement>('.favourite-hint .content');
+    const syncFailed = document.querySelector<HTMLElement>('.favourite-hint .sync-failed');
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-favourite-key]')];
+    if (!hint || !syncFailed) return;
+
+    function setKeys(button: HTMLButtonElement): string[] {
+      return button.dataset.favouriteKey!.split(' ');
+    }
+
+    function render() {
+      const favourites = readFavourites(localStorage);
+      for (const button of buttons) {
+        const on = isFavourite(favourites, setKeys(button));
+        const subject = button.dataset.favouriteSubject!;
+        button.setAttribute('aria-pressed', String(on));
+        button.setAttribute('aria-label', on ? `Remove ${subject} from favourites` : `Add ${subject} to favourites`);
+      }
+      hint!.hidden = signedIn() || !isHintShown(localStorage);
+    }
+
+    function sync() {
+      if (!signedIn()) return;
+      syncs = syncs
+        .then(async () => {
+          const { favouriteAccount } = await import('../account/supabase.ts');
+          await syncFavourites(localStorage, favouriteAccount);
+          if (signal.aborted) return;
+          syncFailed!.hidden = true;
+          render();
+          document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
+        })
+        // The changes stay pending until the next sync.
+        .catch(() => {
+          if (!signal.aborted) syncFailed!.hidden = false;
+        });
+    }
+
+    for (const button of buttons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const keys = setKeys(button);
+          const favourites = toggleFavourite(localStorage, keys);
+          if (signedIn()) addPending(localStorage, keys.map((key) => ({ key, favourite: favourites.has(key) })));
+          render();
+          document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
+          sync();
+        },
+        { signal },
+      );
+    }
+
+    hint.querySelector('.dismiss')!.addEventListener(
+      'click',
+      () => {
+        dismissHint(localStorage);
         render();
-        document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
-      })
-      // The changes stay pending until the next sync.
-      .catch(() => {
-        syncFailed.hidden = false;
-      });
-  }
+      },
+      { signal },
+    );
 
-  for (const button of buttons) {
-    button.addEventListener('click', () => {
-      const keys = setKeys(button);
-      const favourites = toggleFavourite(localStorage, keys);
-      if (signedIn()) addPending(localStorage, keys.map((key) => ({ key, favourite: favourites.has(key) })));
-      render();
-      document.dispatchEvent(new Event(FAVOURITES_CHANGE_EVENT));
-      sync();
-    });
-  }
-
-  hint.querySelector('.dismiss')!.addEventListener('click', () => {
-    dismissHint(localStorage);
-    render();
-  });
-
-  // A change in an other tab, and a page from the back-forward cache, show the current favourites.
-  // The pageshow event also comes after the first load of the page, so each page gets the favourites of the account.
-  addEventListener('storage', render);
-  addEventListener('pageshow', () => {
+    // A change in another tab, or a page restored from the back-forward cache, shows the current favourites.
+    addEventListener('storage', render, { signal });
+    addEventListener(
+      'pageshow',
+      (event) => {
+        if (!event.persisted) return;
+        render();
+        sync();
+      },
+      { signal },
+    );
+    addEventListener('online', sync, { signal });
     render();
     sync();
   });
-  addEventListener('online', sync);
-  render();
 </script>
 
 <style>
   .favourite-hint {
     position: fixed;
     right: 0;
-    bottom: var(--main-nav-height);
+    bottom: var(--bottom-chrome-height);
     left: 0;
-    z-index: 10;
+    z-index: 12;
   }
 
   .content {

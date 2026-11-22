@@ -1,158 +1,116 @@
 ---
-import type { MusicTab } from '../artist/music-player.ts';
+import type { MusicTab, PreviewPlayer } from '../artist/music-player.ts';
 import PlatformIcon from './PlatformIcon.astro';
 
 interface Props {
+  artistId: string;
+  artistName: string;
+  artistUrl: string;
   tabs: MusicTab[];
 }
 
-const { tabs } = Astro.props;
+const { artistId, artistName, artistUrl, tabs } = Astro.props;
+const players: PreviewPlayer[] = tabs.flatMap((tab) => (tab.player ? [{ service: tab.key, player: tab.player }] : []));
+const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
 ---
 
-<section class="player" data-music-player>
+<section class="listen" data-music-player data-track={trackData}>
   <h2>Listen</h2>
-  <div class="tabs" role="tablist" aria-label="Music service">
+  <ul class="pills">
     {
       tabs.map((tab, index) => (
-        <button
-          type="button"
-          role="tab"
-          id={`music-tab-${tab.key}`}
-          aria-controls={`music-panel-${tab.key}`}
-          aria-label={tab.label}
-          aria-selected={index === 0 ? 'true' : 'false'}
-          tabindex={index === 0 ? 0 : -1}
-        >
-          <PlatformIcon platform={tab.key} />
-          <span class="tab-label">{tab.label}</span>
-        </button>
+        <li>
+          {tab.player ? (
+            <button
+              type="button"
+              class="pill"
+              data-service={tab.key}
+              data-primary={index === 0 ? 'true' : 'false'}
+              aria-pressed="false"
+              aria-label={`Play ${artistName} on ${tab.label}`}
+            >
+              <PlatformIcon platform={tab.key} />
+              <span>{tab.label}</span>
+              <svg class="state icon-play" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                <path d="M8 5v14l11-7z"></path>
+              </svg>
+              <svg class="state icon-stop" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+              </svg>
+            </button>
+          ) : (
+            <a href={tab.url} class="pill" rel="noopener" target="_blank">
+              <PlatformIcon platform={tab.key} />
+              <span>{tab.label}</span>
+            </a>
+          )}
+        </li>
       ))
     }
-  </div>
-
-  {
-    tabs.map((tab, index) => (
-      <div
-        class="panel"
-        role="tabpanel"
-        id={`music-panel-${tab.key}`}
-        aria-labelledby={`music-tab-${tab.key}`}
-        hidden={index !== 0}
-        data-service={tab.key}
-        data-embed-src={tab.player?.kind === 'embed' ? tab.player.src : undefined}
-        data-autoplay-src={tab.player?.kind === 'embed' ? tab.player.autoplaySrc : undefined}
-        data-apple-lookup={tab.player?.kind === 'apple-top-song' ? tab.player.lookupUrl : undefined}
-      >
-        {tab.player && (
-          <div class="stage">
-            {tab.player.kind === 'apple-top-song' && <p class="note">Apple Music plays the top song of the artist.</p>}
-            <p class="status" data-status>
-              Loading the player…
-            </p>
-          </div>
-        )}
-      </div>
-    ))
-  }
+  </ul>
 </section>
 
 <script>
-  import { embedUrl } from '../artist/music-player.ts';
+  import { musicLabels, type MusicKey } from '../artist/artist-page.ts';
+  import {
+    PLAYER_CHANGE_EVENT,
+    getPreferredService,
+    isTrackPlaying,
+    playTrack,
+    stopPlayback,
+  } from '../player/global-player.ts';
+  import { onPageMount } from '../player/navigation.ts';
+  import type { PlayerTrack } from '../player/player-state.ts';
 
-  const titles: Record<string, string> = {
-    spotify: 'Spotify player',
-    apple_music: 'Apple Music player',
-    youtube: 'YouTube player',
-    soundcloud: 'SoundCloud player',
-  };
+  onPageMount((signal) => {
+    for (const root of document.querySelectorAll<HTMLElement>('[data-music-player]')) {
+      const track: PlayerTrack = JSON.parse(root.dataset.track ?? '{}');
+      const buttons = [...root.querySelectorAll<HTMLButtonElement>('button[data-service]')];
+      if (buttons.length === 0) continue;
 
-  for (const root of document.querySelectorAll<HTMLElement>('[data-music-player]')) {
-    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
-    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
-    function select(tab: HTMLButtonElement) {
-      for (const other of tabs) {
-        const selected = other === tab;
-        other.setAttribute('aria-selected', String(selected));
-        other.tabIndex = selected ? 0 : -1;
-      }
-      for (const panel of panels) {
-        const selected = panel.id === tab.getAttribute('aria-controls');
-        panel.hidden = !selected;
-        // Browsers play sound only after a user action, so only a click on a tab starts the music.
-        if (selected) void load(panel, { autoplay: true });
-        // A hidden player continues to play, so remove it.
-        if (!selected) unload(panel);
-      }
-    }
+      const available = buttons.map((button) => button.dataset.service as MusicKey);
 
-    async function load(panel: HTMLElement, { autoplay }: { autoplay: boolean }) {
-      const stage = panel.querySelector<HTMLElement>('.stage');
-      if (!stage || stage.querySelector('iframe')) return;
-      const status = stage.querySelector<HTMLElement>('[data-status]')!;
+      function render() {
+        const playingArtist = isTrackPlaying(track.artistId);
+        const preferred = getPreferredService();
+        const primaryService = preferred && available.includes(preferred) ? preferred : available[0];
 
-      let src = (autoplay && panel.dataset.autoplaySrc) || panel.dataset.embedSrc;
-      const lookupUrl = panel.dataset.appleLookup;
-      if (lookupUrl) {
-        showStatus(status, 'Loading the top song…');
-        src = await embedUrl({ kind: 'apple-top-song', lookupUrl });
-        if (panel.hidden) return;
-        if (!src) {
-          showStatus(status, 'Apple Music did not give a song for this artist.');
-          return;
+        for (const button of buttons) {
+          const service = button.dataset.service as MusicKey;
+          const label = musicLabels[service];
+          const active = isTrackPlaying(track.artistId, service);
+          button.setAttribute('aria-pressed', String(active));
+          button.dataset.primary = String(!playingArtist && service === primaryService);
+          button.setAttribute(
+            'aria-label',
+            active ? `Stop ${track.artistName} on ${label}` : `Play ${track.artistName} on ${label}`,
+          );
         }
-        status.hidden = true;
       }
 
-      // A second load can finish first when the user changes tabs during the lookup.
-      if (stage.querySelector('iframe')) return;
-      const iframe = document.createElement('iframe');
-      iframe.src = src!;
-      iframe.title = titles[panel.dataset.service ?? ''] ?? 'Music player';
-      iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-      stage.append(iframe);
-      stage.classList.add('loaded');
-    }
+      for (const button of buttons) {
+        button.addEventListener(
+          'click',
+          () => {
+            const service = button.dataset.service as MusicKey;
+            if (isTrackPlaying(track.artistId, service)) {
+              stopPlayback();
+            } else {
+              playTrack(track, { service, persistService: true });
+            }
+          },
+          { signal },
+        );
+      }
 
-    function unload(panel: HTMLElement) {
-      const stage = panel.querySelector<HTMLElement>('.stage');
-      if (!stage) return;
-      stage.querySelector('iframe')?.remove();
-      stage.classList.remove('loaded');
-      showStatus(stage.querySelector<HTMLElement>('[data-status]')!, 'Loading the player…');
+      document.addEventListener(PLAYER_CHANGE_EVENT, render, { signal });
+      render();
     }
-
-    function showStatus(status: HTMLElement, text: string) {
-      status.textContent = text;
-      status.hidden = false;
-    }
-
-    for (const tab of tabs) {
-      tab.addEventListener('click', () => select(tab));
-      tab.addEventListener('keydown', (event) => {
-        const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
-        if (!step) return;
-        const next = tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length]!;
-        next.focus();
-        select(next);
-      });
-    }
-
-    // The player loads a short time before it comes into view, so that it is ready when the user gets to it.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        observer.disconnect();
-        const panel = panels.find((candidate) => !candidate.hidden);
-        if (panel) void load(panel, { autoplay: false });
-      },
-      { rootMargin: '300px 0px' },
-    );
-    observer.observe(root);
-  }
+  });
 </script>
 
 <style>
-  .player {
+  .listen {
     display: grid;
     gap: 0.625rem;
   }
@@ -166,122 +124,62 @@ const { tabs } = Astro.props;
     text-transform: uppercase;
   }
 
-  .tabs {
+  .pills {
     display: flex;
-    gap: 0.25rem;
-    overflow-x: auto;
-    /* A scroll container with overflow-x also scrolls up and down, and then it catches the scroll of the page. */
-    overflow-y: hidden;
-    /* The line is a shadow inside the bar, so that the line of the selected tab can cover it. */
-    box-shadow: inset 0 -1px var(--color-line);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  [role='tab'] {
+  .pill {
     display: inline-flex;
-    flex: none;
     gap: 0.5rem;
     align-items: center;
-    min-height: 2.75rem;
+    height: 2.75rem;
     padding: 0 1rem;
-    border: 0;
-    border-bottom: 2px solid transparent;
-    background: none;
-    color: var(--color-text-muted);
+    border: 1px solid var(--color-control-line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text);
     font: inherit;
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
     cursor: pointer;
   }
 
-  [role='tab']:hover {
-    color: var(--color-text);
+  .pill :global(svg:first-child) {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
   }
 
-  [role='tab'][aria-selected='true'] {
-    border-bottom-color: var(--color-accent);
-    color: var(--color-text);
+  .pill:hover,
+  .pill:focus-visible {
+    border-color: var(--color-control-line-strong);
   }
 
-  /* On a narrow screen, the tabs show only the icons, so that all tabs fit. */
-  @media (max-width: 30rem) {
-    [role='tab'] {
-      flex: 1;
-      justify-content: center;
-    }
-
-    .tab-label {
-      display: none;
-    }
+  .pill[data-primary='true'] {
+    border-color: transparent;
+    background: var(--gradient-accent);
+    font-weight: 700;
   }
 
-  .panel {
-    padding-top: 1rem;
+  .pill[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-background);
+    font-weight: 700;
   }
 
-  /* Before the player loads, the box has the height of the player, so that the page does not move. */
-  .stage {
-    display: grid;
-    min-height: 352px;
-    gap: 0.75rem;
-    place-content: center;
-    padding: 2rem 1rem;
-    border: 1px solid var(--color-control-line);
-    border-radius: 0.5rem;
-    background: var(--color-control);
+  .state {
+    flex: none;
+    fill: currentColor;
   }
 
-  .stage.loaded {
-    display: block;
-    padding: 0;
-    border: 0;
-    background: none;
-  }
-
-  .status[hidden] {
+  .pill[aria-pressed='false'] .icon-stop,
+  .pill[aria-pressed='true'] .icon-play {
     display: none;
   }
-
-  .note,
-  .status {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 0.8125rem;
-    text-align: center;
-  }
-
-  .stage.loaded .note,
-  .stage.loaded .status {
-    display: none;
-  }
-
-  .stage :global(iframe) {
-    display: block;
-    width: 100%;
-    height: 352px;
-    border: 0;
-    border-radius: 0.75rem;
-  }
-
-  [data-service='youtube'] .stage :global(iframe) {
-    height: auto;
-    aspect-ratio: 16 / 9;
-  }
-
-  [data-service='youtube'] .stage {
-    min-height: auto;
-    aspect-ratio: 16 / 9;
-  }
-
-  [data-service='soundcloud'] .stage,
-  [data-service='soundcloud'] .stage :global(iframe) {
-    min-height: 400px;
-    height: 400px;
-  }
-
-  [data-service='apple_music'] .stage,
-  [data-service='apple_music'] .stage :global(iframe) {
-    min-height: 175px;
-    height: 175px;
-  }
-
 </style>

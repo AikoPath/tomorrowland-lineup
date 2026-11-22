@@ -7,12 +7,10 @@ import {
   listHeading,
   setLabel,
 } from '../../artist-list/artist-list.ts';
-import { musicLabels, type MusicKey } from '../../artist/artist-page.ts';
 import { previewPlayers } from '../../artist/music-player.ts';
 import { photoUrl } from '../../artist/photo.ts';
 import FavouriteButton from '../../components/FavouriteButton.astro';
 import PageHeader from '../../components/PageHeader.astro';
-import PlatformIcon from '../../components/PlatformIcon.astro';
 import { loadLineup } from '../../data/load.ts';
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../site.ts';
@@ -28,7 +26,6 @@ const options = filterOptions(lineup);
 const commonGenres = options.genres.slice(0, COMMON_GENRE_COUNT);
 const otherGenres = options.genres.slice(COMMON_GENRE_COUNT);
 // Escape "<", so that a genre in the data cannot close the script element.
-const musicServices = Object.entries(musicLabels) as [MusicKey, string][];
 const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceAll('<', '\\u003c');
 ---
 
@@ -97,31 +94,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     </form>
 
     <main>
-      <div class="list-bar">
-        <h2 class="heading" aria-live="polite">{listHeading(entries.length, [])}</h2>
-        {/* A preference, not a filter: it is not in the form, so it is not in the URL. */}
-        <label class="dropdown service">
-          {/* "▶ plays on Spotify" tells the user that the icon on the photos is a play button. */}
-          <span class="service-label">
-            <span class="play-badge" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="9" height="9"><path d="M8 5v14l11-7z"></path></svg>
-            </span>
-            plays on
-          </span>
-          <select name="music-service" aria-label="Play previews on">
-            <button type="button"><selectedcontent></selectedcontent></button>
-            {
-              musicServices.map(([key, label]) => (
-                <option value={key}>
-                  <PlatformIcon platform={key} />
-                  <span>{label}</span>
-                </option>
-              ))
-            }
-          </select>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
-        </label>
-      </div>
+      <h2 class="heading" aria-live="polite">{listHeading(entries.length, [])}</h2>
       <p class="empty" hidden>No artist matches the filters.</p>
       <ul class="artists">
         {
@@ -152,7 +125,9 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
                         class="play"
                         aria-pressed="false"
                         aria-label={`Play a preview of ${artist.name}`}
+                        data-artist-id={artist.id}
                         data-artist={artist.name}
+                        data-artist-url={artistUrl(artist.id)}
                         data-players={JSON.stringify(players)}
                       >
                         <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
@@ -195,235 +170,178 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     type ArtistFilter,
     type FilterData,
   } from '../../artist-list/artist-list.ts';
-  import { musicLabels, type MusicKey } from '../../artist/artist-page.ts';
-  import {
-    choosePreview,
-    embedUrl,
-    readMusicService,
-    saveMusicService,
-    spotifyUri,
-    type PreviewPlayer,
-  } from '../../artist/music-player.ts';
-  import { playSpotify } from '../../artist/spotify-iframe-api.ts';
+  import type { PreviewPlayer } from '../../artist/music-player.ts';
+  import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../../player/global-player.ts';
+  import { onPageMount } from '../../player/navigation.ts';
 
-  const form = document.querySelector<HTMLFormElement>('.filters')!;
-  const heading = document.querySelector<HTMLElement>('.heading')!;
-  const empty = document.querySelector<HTMLElement>('.empty')!;
-  const items = [...document.querySelectorAll<HTMLLIElement>('.artists li')];
-  const chips = [...form.querySelectorAll<HTMLButtonElement>('.chip[data-genre]')];
-  const otherGenres = document.getElementById('other-genres');
-  const moreButton = form.querySelector<HTMLButtonElement>('.more');
-  const data: FilterData[] = JSON.parse(document.getElementById('artist-filter-data')!.textContent!);
-  const fields = ['q', 'day', 'stage'] as const;
-  const genreParam = 'genre';
-  // The user can select more genres. An empty set shows the artists of all genres.
-  const selectedGenres = new Set<string>();
+  onPageMount((signal) => {
+    const dataElement = document.getElementById('artist-filter-data');
+    const form = document.querySelector<HTMLFormElement>('.filters');
+    if (!dataElement || !form) return;
 
-  function field(name: (typeof fields)[number]) {
-    return form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
-  }
+    const heading = document.querySelector<HTMLElement>('.heading')!;
+    const empty = document.querySelector<HTMLElement>('.empty')!;
+    const items = [...document.querySelectorAll<HTMLLIElement>('.artists li')];
+    const chips = [...form.querySelectorAll<HTMLButtonElement>('.chip[data-genre]')];
+    const otherGenres = document.getElementById('other-genres');
+    const moreButton = form.querySelector<HTMLButtonElement>('.more');
+    const data: FilterData[] = JSON.parse(dataElement.textContent!);
+    const fields = ['q', 'day', 'stage'] as const;
+    const genreParam = 'genre';
+    // The user can select more genres. An empty set shows the artists of all genres.
+    const selectedGenres = new Set<string>();
 
-  function selectedText(name: 'day' | 'stage'): string | undefined {
-    const select = field(name) as HTMLSelectElement | null;
-    return select?.value ? select.selectedOptions[0]?.textContent ?? undefined : undefined;
-  }
+    function field(name: (typeof fields)[number]) {
+      return form!.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
+    }
 
-  // The URL keeps the filters, so that a user can share a filtered list.
-  const params = new URLSearchParams(location.search);
-  for (const name of fields) {
-    const input = field(name);
-    const value = params.get(name);
-    if (input && value) input.value = value;
-  }
-  for (const genre of params.getAll(genreParam)) {
-    if (chips.some((chip) => chip.dataset.genre === genre)) selectedGenres.add(genre);
-  }
+    function selectedText(name: 'day' | 'stage'): string | undefined {
+      const select = field(name) as HTMLSelectElement | null;
+      return select?.value ? select.selectedOptions[0]?.textContent ?? undefined : undefined;
+    }
 
-  function showOtherGenres(show: boolean) {
-    if (!otherGenres || !moreButton) return;
-    otherGenres.classList.toggle('collapsed', !show);
-    moreButton.setAttribute('aria-expanded', String(show));
-    moreButton.textContent = show ? 'Fewer genres' : 'More genres';
-  }
+    // The URL keeps the filters, so that a user can share a filtered list.
+    const params = new URLSearchParams(location.search);
+    for (const name of fields) {
+      const input = field(name);
+      const value = params.get(name);
+      if (input && value) input.value = value;
+    }
+    for (const genre of params.getAll(genreParam)) {
+      if (chips.some((chip) => chip.dataset.genre === genre)) selectedGenres.add(genre);
+    }
 
-  function applyFilter() {
-    const filter: ArtistFilter = {
-      query: field('q')?.value ?? '',
-      date: field('day')?.value ?? '',
-      stage: field('stage')?.value ?? '',
-      genres: [...selectedGenres],
-    };
+    function showOtherGenres(show: boolean) {
+      if (!otherGenres || !moreButton) return;
+      otherGenres.classList.toggle('collapsed', !show);
+      moreButton.setAttribute('aria-expanded', String(show));
+      moreButton.textContent = show ? 'Fewer genres' : 'More genres';
+    }
+
+    function applyFilter() {
+      const filter: ArtistFilter = {
+        query: field('q')?.value ?? '',
+        date: field('day')?.value ?? '',
+        stage: field('stage')?.value ?? '',
+        genres: [...selectedGenres],
+      };
+
+      for (const chip of chips) {
+        const genre = chip.dataset.genre ?? '';
+        chip.setAttribute('aria-pressed', String(genre ? selectedGenres.has(genre) : selectedGenres.size === 0));
+      }
+
+      let shown = 0;
+      items.forEach((item, index) => {
+        const match = matchesFilter(data[index], filter);
+        item.hidden = !match;
+        if (match) shown += 1;
+      });
+      const activeFilters = [
+        selectedText('day'),
+        selectedText('stage'),
+        filter.genres.length > 0 && genresLabel(filter.genres),
+      ];
+      heading.textContent = listHeading(shown, activeFilters.filter((label): label is string => Boolean(label)));
+      empty.hidden = shown > 0;
+
+      const url = new URL(location.href);
+      for (const name of fields) {
+        const value = field(name)?.value.trim();
+        if (value) url.searchParams.set(name, value);
+        else url.searchParams.delete(name);
+      }
+      url.searchParams.delete(genreParam);
+      for (const genre of selectedGenres) url.searchParams.append(genreParam, genre);
+      history.replaceState(history.state, '', url);
+    }
 
     for (const chip of chips) {
-      const genre = chip.dataset.genre ?? '';
-      chip.setAttribute('aria-pressed', String(genre ? selectedGenres.has(genre) : selectedGenres.size === 0));
-    }
-
-    let shown = 0;
-    items.forEach((item, index) => {
-      const match = matchesFilter(data[index], filter);
-      item.hidden = !match;
-      if (match) shown += 1;
-      else stopPreview(item);
-    });
-    const activeFilters = [
-      selectedText('day'),
-      selectedText('stage'),
-      filter.genres.length > 0 && genresLabel(filter.genres),
-    ];
-    heading.textContent = listHeading(shown, activeFilters.filter((label): label is string => Boolean(label)));
-    empty.hidden = shown > 0;
-
-    const url = new URL(location.href);
-    for (const name of fields) {
-      const value = field(name)?.value.trim();
-      if (value) url.searchParams.set(name, value);
-      else url.searchParams.delete(name);
-    }
-    url.searchParams.delete(genreParam);
-    for (const genre of selectedGenres) url.searchParams.append(genreParam, genre);
-    history.replaceState(null, '', url);
-  }
-
-  for (const chip of chips) {
-    chip.addEventListener('click', () => {
-      const genre = chip.dataset.genre ?? '';
-      // The "All" chip clears the selection. A genre chip adds the genre or removes it.
-      if (!genre) selectedGenres.clear();
-      else if (selectedGenres.has(genre)) selectedGenres.delete(genre);
-      else selectedGenres.add(genre);
-      applyFilter();
-    });
-  }
-  moreButton?.addEventListener('click', () => showOtherGenres(Boolean(otherGenres?.classList.contains('collapsed'))));
-
-  const playerTitles: Record<string, string> = {
-    spotify: 'Spotify player',
-    apple_music: 'Apple Music player',
-    youtube: 'YouTube player',
-    soundcloud: 'SoundCloud player',
-  };
-
-  /** The compact form of the Spotify player. */
-  const SPOTIFY_PLAYER_HEIGHT = 152;
-
-  const serviceSelect = document.querySelector<HTMLSelectElement>('select[name="music-service"]')!;
-  let chosenService = readMusicService(localStorage);
-  if (chosenService) serviceSelect.value = chosenService;
-
-  function previewOf(button: HTMLButtonElement): PreviewPlayer | undefined {
-    const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
-    return choosePreview(players, chosenService);
-  }
-
-  // Only one preview plays at a time.
-  let playingItem: HTMLLIElement | undefined;
-  let playingService: MusicKey | undefined;
-
-  function stopPreview(item: HTMLLIElement) {
-    item.querySelector('.preview')?.remove();
-    const button = item.querySelector<HTMLButtonElement>('.play');
-    if (button) {
-      button.setAttribute('aria-pressed', 'false');
-      button.setAttribute('aria-label', `Play a preview of ${button.dataset.artist}`);
-    }
-    if (playingItem === item) {
-      playingItem = undefined;
-      playingService = undefined;
-    }
-  }
-
-  async function startPreview(item: HTMLLIElement, button: HTMLButtonElement) {
-    if (playingItem) stopPreview(playingItem);
-    const choice = previewOf(button);
-    if (!choice) return;
-    const { service, player } = choice;
-    playingItem = item;
-    playingService = service;
-    button.setAttribute('aria-pressed', 'true');
-    button.setAttribute('aria-label', `Stop the preview of ${button.dataset.artist}`);
-
-    const preview = document.createElement('div');
-    preview.className = 'preview';
-    preview.dataset.service = service;
-    if (chosenService && service !== chosenService) {
-      const note = document.createElement('p');
-      note.className = 'fallback';
-      note.textContent = `${button.dataset.artist} has no ${musicLabels[chosenService]} player. This is ${musicLabels[service]}.`;
-      preview.append(note);
-    }
-    // The players replace the content of the slot, so the note stays.
-    const slot = document.createElement('div');
-    preview.append(slot);
-    item.append(preview);
-
-    const uri = spotifyUri(player);
-    if (uri) {
-      const started = await playSpotify(slot, uri, SPOTIFY_PLAYER_HEIGHT, playerTitles.spotify!).then(
-        () => true,
-        () => false,
+      chip.addEventListener(
+        'click',
+        () => {
+          const genre = chip.dataset.genre ?? '';
+          // The "All" chip clears the selection. A genre chip adds the genre or removes it.
+          if (!genre) selectedGenres.clear();
+          else if (selectedGenres.has(genre)) selectedGenres.delete(genre);
+          else selectedGenres.add(genre);
+          applyFilter();
+        },
+        { signal },
       );
-      if (started) return;
-      // The API can fail to load, for example because of a content blocker. The embed then needs a click on "Play".
-      if (!preview.isConnected) return;
+    }
+    moreButton?.addEventListener(
+      'click',
+      () => showOtherGenres(Boolean(otherGenres?.classList.contains('collapsed'))),
+      { signal },
+    );
+
+    const playButtons = items
+      .map((item) => item.querySelector<HTMLButtonElement>('.play'))
+      .filter((button): button is HTMLButtonElement => Boolean(button));
+
+    function renderPlayerState() {
+      for (const button of playButtons) {
+        const playing = isTrackPlaying(button.dataset.artistId!);
+        button.setAttribute('aria-pressed', String(playing));
+        button.setAttribute(
+          'aria-label',
+          playing ? `Stop the preview of ${button.dataset.artist}` : `Play a preview of ${button.dataset.artist}`,
+        );
+      }
     }
 
-    if (player.kind === 'apple-top-song') slot.textContent = 'Loading the top song…';
-    const src = await embedUrl(player.kind === 'embed' ? { ...player, src: player.autoplaySrc ?? player.src } : player);
-    // The user can stop the preview or start another preview during the lookup.
-    if (!preview.isConnected) return;
-    if (!src) {
-      slot.textContent = 'Apple Music did not give a song for this artist.';
-      return;
+    function trackFromButton(button: HTMLButtonElement) {
+      const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
+      return {
+        artistId: button.dataset.artistId!,
+        artistName: button.dataset.artist!,
+        artistUrl: button.dataset.artistUrl!,
+        players,
+      };
     }
 
-    const iframe = document.createElement('iframe');
-    iframe.src = src;
-    iframe.title = playerTitles[service] ?? 'Music player';
-    iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-    slot.replaceChildren(iframe);
-  }
+    for (const button of playButtons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const visibleQueue = playButtons
+            .filter((candidate) => !candidate.closest<HTMLLIElement>('li')?.hidden)
+            .map(trackFromButton);
+          toggleTrack(trackFromButton(button), visibleQueue);
+        },
+        { signal },
+      );
+    }
 
-  for (const item of items) {
-    const button = item.querySelector<HTMLButtonElement>('.play');
-    button?.addEventListener('click', () => {
-      if (playingItem === item) stopPreview(item);
-      else void startPreview(item, button);
-    });
-  }
+    document.addEventListener(PLAYER_CHANGE_EVENT, renderPlayerState, { signal });
+    renderPlayerState();
 
-  serviceSelect.addEventListener('change', () => {
-    chosenService = serviceSelect.value as MusicKey;
-    saveMusicService(localStorage, chosenService);
-    // The preview that plays changes to the new service, when the artist has a player for it.
-    const button = playingItem?.querySelector<HTMLButtonElement>('.play');
-    if (playingItem && button && previewOf(button)?.service !== playingService) void startPreview(playingItem, button);
+    // Some image links in the data have a format that a browser cannot show, for example a Photoshop file.
+    function showInitials(image: HTMLImageElement) {
+      const span = document.createElement('span');
+      span.className = 'photo initials';
+      // Astro scopes the styles of the page with a data attribute, so the new element needs the same attribute.
+      for (const { name, value } of image.attributes) {
+        if (name.startsWith('data-astro-cid')) span.setAttribute(name, value);
+      }
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = image.dataset.initials ?? '';
+      image.replaceWith(span);
+    }
+
+    for (const image of document.querySelectorAll<HTMLImageElement>('.artists img.photo')) {
+      // The image can fail before this script runs.
+      if (image.complete && image.naturalWidth === 0) showInitials(image);
+      else image.addEventListener('error', () => showInitials(image), { signal });
+    }
+
+    form.addEventListener('input', applyFilter, { signal });
+    form.addEventListener('submit', (event) => event.preventDefault(), { signal });
+    // The browser can restore the form values when the user comes back to the page.
+    window.addEventListener('pageshow', applyFilter, { signal });
+    applyFilter();
   });
-
-  // Some image links in the data have a format that a browser cannot show, for example a Photoshop file.
-  function showInitials(image: HTMLImageElement) {
-    const span = document.createElement('span');
-    span.className = 'photo initials';
-    // Astro scopes the styles of the page with a data attribute, so the new element needs the same attribute.
-    for (const { name, value } of image.attributes) {
-      if (name.startsWith('data-astro-cid')) span.setAttribute(name, value);
-    }
-    span.setAttribute('aria-hidden', 'true');
-    span.textContent = image.dataset.initials ?? '';
-    image.replaceWith(span);
-  }
-
-  for (const image of document.querySelectorAll<HTMLImageElement>('.artists img.photo')) {
-    // The image can fail before this script runs.
-    if (image.complete && image.naturalWidth === 0) showInitials(image);
-    else image.addEventListener('error', () => showInitials(image));
-  }
-
-  form.addEventListener('input', applyFilter);
-  form.addEventListener('submit', (event) => event.preventDefault());
-  // The browser can restore the form values when the user comes back to the page.
-  window.addEventListener('pageshow', applyFilter);
-  applyFilter();
 </script>
 
 <style>
@@ -432,7 +350,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
 
     max-width: 52rem;
     margin: 0 auto;
-    padding: 1.75rem 0 3rem;
+    padding-top: 1.75rem;
   }
 
   .header {
@@ -605,59 +523,14 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     font-weight: 700;
   }
 
-  .list-bar {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.25rem 0.5rem;
-  }
-
   .heading {
     margin: 0;
+    padding: 1rem 1.25rem 0.5rem;
     color: var(--color-text-muted);
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-  }
-
-  .service {
-    flex: none;
-    gap: 0.5rem;
-  }
-
-  .service-label {
-    display: inline-flex;
-    gap: 0.375rem;
-    align-items: center;
-    color: var(--color-text-muted);
-    font-size: 0.8125rem;
-    white-space: nowrap;
-  }
-
-  .service select {
-    height: 2.25rem;
-    padding-left: 0.625rem;
-  }
-
-  .service > svg {
-    right: 0.625rem;
-  }
-
-  /* The icon of the service shows in the open list and in the button. A browser with no customizable select shows only the text. */
-  .service option,
-  .service selectedcontent {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .service option :global(svg),
-  .service selectedcontent :global(svg) {
-    width: 1rem;
-    height: 1rem;
-    flex: none;
   }
 
   .empty {
@@ -769,30 +642,20 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   }
 
   /* A round button on the lower right part of the photo, as in the design. */
-  .play,
-  .play-badge {
+  .play {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
     display: grid;
     width: 1.5rem;
     height: 1.5rem;
     flex: none;
     place-items: center;
+    padding: 0;
+    border: 0;
     border-radius: 50%;
     background: var(--color-text);
     color: var(--color-background);
-  }
-
-  /* Smaller than the play buttons, so that it does not look like a button. */
-  .play-badge {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-
-  .play {
-    position: absolute;
-    right: 0.25rem;
-    bottom: 0.25rem;
-    padding: 0;
-    border: 0;
     cursor: pointer;
   }
 
@@ -803,8 +666,7 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
     content: '';
   }
 
-  .play svg,
-  .play-badge svg {
+  .play svg {
     fill: currentColor;
     stroke: none;
   }
@@ -816,36 +678,5 @@ const filterData = JSON.stringify(entries.map((entry) => entry.filter)).replaceA
   .play[aria-pressed='false'] .icon-stop,
   .play[aria-pressed='true'] .icon-play {
     display: none;
-  }
-
-  .artists :global(.preview) {
-    padding: 0 1.25rem 0.75rem;
-    color: var(--color-text-muted);
-    font-size: 0.8125rem;
-  }
-
-  .artists :global(.preview .fallback) {
-    margin: 0 0 0.5rem;
-  }
-
-  .artists :global(.preview iframe) {
-    display: block;
-    width: 100%;
-    height: 152px;
-    border: 0;
-    border-radius: 0.75rem;
-  }
-
-  .artists :global(.preview[data-service='youtube'] iframe) {
-    height: auto;
-    aspect-ratio: 16 / 9;
-  }
-
-  .artists :global(.preview[data-service='soundcloud'] iframe) {
-    height: 166px;
-  }
-
-  .artists :global(.preview[data-service='apple_music'] iframe) {
-    height: 175px;
   }
 </style>

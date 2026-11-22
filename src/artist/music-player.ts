@@ -29,6 +29,15 @@ export function previewPlayers(artist: Artist): PreviewPlayer[] {
   return musicTabs(artist).flatMap((tab) => (tab.player ? [{ service: tab.key, player: tab.player }] : []));
 }
 
+/** The first artist of a set that has an embeddable player, for the play button on a set card. */
+export function playableSetArtist(artists: Artist[]): { artist: Artist; players: PreviewPlayer[] } | undefined {
+  for (const artist of artists) {
+    const players = previewPlayers(artist);
+    if (players.length > 0) return { artist, players };
+  }
+  return undefined;
+}
+
 /** The player of the service that the user chose. When the artist has no player for that service, the first player. */
 export function choosePreview(players: PreviewPlayer[], service: MusicKey | undefined): PreviewPlayer | undefined {
   return players.find((candidate) => candidate.service === service) ?? players[0];
@@ -54,6 +63,30 @@ export function spotifyUri(player: Player): string | undefined {
   if (player.kind !== 'embed') return undefined;
   const id = player.src.match(/^https:\/\/open\.spotify\.com\/embed\/artist\/([A-Za-z0-9]+)$/)?.[1];
   return id && `spotify:artist:${id}`;
+}
+
+/** For example `https://soundcloud.com/afrojack` from a SoundCloud widget embed URL. */
+export function soundcloudUrl(player: Player): string | undefined {
+  if (player.kind !== 'embed') return undefined;
+  try {
+    const url = new URL(player.src);
+    if (url.hostname !== 'w.soundcloud.com') return undefined;
+    return url.searchParams.get('url') ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** For example `UULF5thKP1rA7SjbfBhQMOaWGg` from a YouTube uploads playlist embed URL. */
+export function youtubePlaylistId(player: Player): string | undefined {
+  if (player.kind !== 'embed') return undefined;
+  try {
+    const url = new URL(player.src);
+    if (url.hostname !== 'www.youtube-nocookie.com') return undefined;
+    return url.searchParams.get('list') ?? undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Gives no URL when Apple Music has no song for the artist or the lookup fails. */

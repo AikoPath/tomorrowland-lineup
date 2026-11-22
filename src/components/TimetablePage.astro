@@ -1,12 +1,14 @@
 ---
 import type { Lineup } from '../data/schema';
 import { genreLabel } from '../artist-list/artist-list';
+import { playableSetArtist } from '../artist/music-player';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
 import { LINEUP_URL, artistUrl, dayUrl } from '../urls';
 import FavouriteButton from './FavouriteButton.astro';
 import PageHeader from './PageHeader.astro';
+import SiteFooter from './SiteFooter.astro';
 
 interface Props {
   lineup: Lineup;
@@ -22,17 +24,20 @@ const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
-<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup">
+<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup" footer={false}>
   {
     Astro.url.pathname === LINEUP_URL && (
       <script is:inline define:vars={{ otherDates }}>
-        // The en-CA locale gives the local date as YYYY-MM-DD. The stage selection in the URL stays.
-        const today = new Date().toLocaleDateString('en-CA');
-        if (otherDates.includes(today)) location.replace(`/${today}/${location.search}`);
+        // On cold load, redirect before paint. On soft navigation, the module script uses ClientRouter.navigate so music keeps playing.
+        if (!window.__astroSoftNav) {
+          // The en-CA locale gives the local date as YYYY-MM-DD. The stage selection in the URL stays.
+          const today = new Date().toLocaleDateString('en-CA');
+          if (otherDates.includes(today)) location.replace(`/${today}/${location.search}`);
+        }
       </script>
     )
   }
-  <div class="page">
+  <div class="page" data-redirect-dates={Astro.url.pathname === LINEUP_URL ? otherDates.join(' ') : undefined}>
     <div class="title-row">
       <PageHeader lineup={lineup} title="Line-up" />
       <button
@@ -88,6 +93,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
     <main
       class="timetable"
+      data-date={date}
       style={`--stages: ${timetable.columns.length}; --length: ${timetable.length};`}
       aria-label={`Line-up ${dayLabel(date)}`}
     >
@@ -100,42 +106,78 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
       {
         timetable.columns.map(({ stage, sets }) => (
           <ol class="stage" data-stage={stage.id} aria-label={stage.name}>
-            {sets.map((set) => (
-              <li
-                class:list={['set', { photo: set.image, single: set.artists.length === 1 }]}
-                data-set-key={set.key}
-                style={`--offset: ${set.offset}; --length: ${set.length}`}
-              >
-                {set.image && <img src={set.image} alt="" loading="lazy" decoding="async" />}
-                <span class="artists">
-                  {set.artists.map((artist, index) => (
-                    <>
-                      {index > 0 && <span class="b2b"> b2b </span>}
-                      <a href={artistUrl(artist.id)}>{artist.name}</a>
-                    </>
-                  ))}
-                </span>
-                <span class="time">
-                  <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
-                </span>
-                {set.genres.length > 0 && <span class="genre">{set.genres.map(genreLabel).join(', ')}</span>}
-                <FavouriteButton
-                  class="set-favourite"
-                  setKey={set.key}
-                  subject={set.artists.map((artist) => artist.name).join(' b2b ')}
-                />
-              </li>
-            ))}
+            {sets.map((set) => {
+              const playable = playableSetArtist(set.artists);
+              const short = set.length < 55;
+              return (
+                <li
+                  class:list={[
+                    'set',
+                    { photo: set.image, single: set.artists.length === 1, playable: Boolean(playable), short },
+                  ]}
+                  data-set-key={set.key}
+                  style={`--offset: ${set.offset}; --length: ${set.length}`}
+                >
+                  {set.image && <img src={set.image} alt="" loading="lazy" decoding="async" />}
+                  <span class="artists">
+                    {set.artists.map((artist, index) => (
+                      <>
+                        {index > 0 && <span class="b2b"> b2b </span>}
+                        <a href={artistUrl(artist.id)}>{artist.name}</a>
+                      </>
+                    ))}
+                  </span>
+                  <span class="time">
+                    <time datetime={set.start}>{set.start}</time>–<time datetime={set.end}>{set.end}</time>
+                  </span>
+                  {set.genres.length > 0 && <span class="genre">{set.genres.map(genreLabel).join(', ')}</span>}
+                  <FavouriteButton
+                    class="set-favourite"
+                    setKey={set.key}
+                    subject={set.artists.map((artist) => artist.name).join(' b2b ')}
+                  />
+                  {playable && (
+                    <button
+                      type="button"
+                      class="set-play"
+                      aria-pressed="false"
+                      aria-label={`Play a preview of ${playable.artist.name}`}
+                      data-artist-id={playable.artist.id}
+                      data-artist={playable.artist.name}
+                      data-artist-url={artistUrl(playable.artist.id)}
+                      data-players={JSON.stringify(playable.players)}
+                    >
+                      <svg class="icon-play" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                        <path d="M8 5v14l11-7z"></path>
+                      </svg>
+                      <svg class="icon-stop" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                        <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+                      </svg>
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         ))
       }
+      <div class="timetable-footer">
+        <div class="timetable-footer-inner">
+          <SiteFooter />
+        </div>
+      </div>
     </main>
   </div>
 </Base>
 
 <script>
+  import { navigate } from 'astro:transitions/client';
+  import type { PreviewPlayer } from '../artist/music-player.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
+  import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../player/global-player.ts';
+  import { onPageMount } from '../player/navigation.ts';
   import { isSetDimmed, readHighlight, withHighlight } from '../timetable/favourite-highlight.ts';
+  import { readScrollPosition, saveScrollPosition } from '../timetable/scroll-position.ts';
   import {
     daySelection,
     isStageShown,
@@ -144,99 +186,172 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     withStageSelection,
   } from '../timetable/stage-filter.ts';
 
-  const timetable = document.querySelector<HTMLElement>('.timetable')!;
-  const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
-  const noFavourites = document.querySelector<HTMLElement>('.no-favourites')!;
-  const chips = [...document.querySelectorAll<HTMLButtonElement>('.stage-chips button')];
-  const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
-  const sets = [...timetable.querySelectorAll<HTMLElement>('.set')];
-  const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
-  const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
-  const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
+  onPageMount((signal) => {
+    const page = document.querySelector<HTMLElement>('.page');
+    const timetable = document.querySelector<HTMLElement>('.timetable');
+    if (!page || !timetable) return;
 
-  let selection = readStageSelection(location.search, stageIds);
-  let highlight = readHighlight(location.search);
-
-  function withFilters(url: URL): URL {
-    return withHighlight(withStageSelection(url, selection), highlight);
-  }
-
-  /** The sets that are favourites, in a column that shows. */
-  function shownFavourites(): HTMLElement[] {
-    return sets.filter((set) => !set.classList.contains('dimmed') && !set.closest<HTMLElement>('.stage')!.hidden);
-  }
-
-  function render() {
-    const shown = daySelection(selection, dayStageIds);
-    for (const chip of chips) {
-      const stage = chip.dataset.stage!;
-      const pressed = stage ? shown.includes(stage) : shown.length === 0;
-      chip.setAttribute('aria-pressed', String(pressed));
+    const redirectDates = page.dataset.redirectDates?.split(' ').filter(Boolean) ?? [];
+    if (redirectDates.length > 0) {
+      const today = new Date().toLocaleDateString('en-CA');
+      if (redirectDates.includes(today)) {
+        void navigate(`/${today}/${location.search}`, { history: 'replace' });
+        return;
+      }
     }
-    for (const column of columns) column.hidden = !isStageShown(shown, column.dataset.stage!);
-    const shownCount = shown.length === 0 ? dayStageIds.length : shown.length;
-    timetable.style.setProperty('--stages', String(shownCount));
 
-    favouritesSwitch.setAttribute('aria-checked', String(highlight));
-    timetable.classList.toggle('highlight', highlight);
-    const favourites = readFavourites(localStorage);
-    for (const set of sets) set.classList.toggle('dimmed', isSetDimmed(highlight, favourites, set.dataset.setKey!));
-    noFavourites.hidden = !highlight || shownFavourites().length > 0;
-    noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = shown.length > 0;
-    noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = shown.length === 0;
+    const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
+    const noFavourites = document.querySelector<HTMLElement>('.no-favourites')!;
+    const chips = [...document.querySelectorAll<HTMLButtonElement>('.stage-chips button')];
+    const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
+    const sets = [...timetable.querySelectorAll<HTMLElement>('.set')];
+    const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
+    const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
+    const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
+    const date = timetable.dataset.date!;
 
-    history.replaceState(null, '', withFilters(new URL(location.href)));
-    for (const link of dayLinks) link.href = withFilters(new URL(link.href)).href;
-  }
+    let selection = readStageSelection(location.search, stageIds);
+    let highlight = readHighlight(location.search);
 
-  /** Scrolls the timetable to the earliest favourite set, below the stage names and right of the hours. */
-  function scrollToFirstFavourite() {
-    const [first] = shownFavourites().sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-    if (!first) return;
-    const box = timetable.getBoundingClientRect();
-    const set = first.getBoundingClientRect();
-    const header = timetable.querySelector<HTMLElement>('.corner')!.getBoundingClientRect();
-    timetable.scrollTo({
-      top: timetable.scrollTop + set.top - box.top - header.height - 8,
-      left: timetable.scrollLeft + set.left - box.left - header.width - 8,
-      behavior: 'smooth',
-    });
-  }
+    function withFilters(url: URL): URL {
+      return withHighlight(withStageSelection(url, selection), highlight);
+    }
 
-  // A browser cannot show some image files, for example a PSD file. Then the card has no photo.
-  function removePhoto(image: HTMLImageElement) {
-    image.closest('.set')?.classList.remove('photo');
-    image.remove();
-  }
-  for (const image of timetable.querySelectorAll<HTMLImageElement>('.set img')) {
-    if (image.complete && image.naturalWidth === 0) removePhoto(image);
-    else image.addEventListener('error', () => removePhoto(image));
-  }
+    /** The sets that are favourites, in a column that shows. */
+    function shownFavourites(): HTMLElement[] {
+      return sets.filter((set) => !set.classList.contains('dimmed') && !set.closest<HTMLElement>('.stage')!.hidden);
+    }
 
-  for (const chip of chips) {
-    chip.addEventListener('click', () => {
-      const stage = chip.dataset.stage!;
-      selection = stage ? toggleStage(selection, stage, stageIds) : [];
-      render();
-    });
-  }
-  favouritesSwitch.addEventListener('click', () => {
-    highlight = !highlight;
+    function render() {
+      const shown = daySelection(selection, dayStageIds);
+      for (const chip of chips) {
+        const stage = chip.dataset.stage!;
+        const pressed = stage ? shown.includes(stage) : shown.length === 0;
+        chip.setAttribute('aria-pressed', String(pressed));
+      }
+      for (const column of columns) column.hidden = !isStageShown(shown, column.dataset.stage!);
+      const shownCount = shown.length === 0 ? dayStageIds.length : shown.length;
+      timetable!.style.setProperty('--stages', String(shownCount));
+
+      favouritesSwitch.setAttribute('aria-checked', String(highlight));
+      timetable!.classList.toggle('highlight', highlight);
+      const favourites = readFavourites(localStorage);
+      for (const set of sets) set.classList.toggle('dimmed', isSetDimmed(highlight, favourites, set.dataset.setKey!));
+      noFavourites.hidden = !highlight || shownFavourites().length > 0;
+      noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = shown.length > 0;
+      noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = shown.length === 0;
+
+      history.replaceState(history.state, '', withFilters(new URL(location.href)));
+      for (const link of dayLinks) link.href = withFilters(new URL(link.href)).href;
+    }
+
+    /** Scrolls the timetable to the earliest favourite set, below the stage names and right of the hours. */
+    function scrollToFirstFavourite() {
+      const [first] = shownFavourites().sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
+      if (!first) return;
+      const box = timetable!.getBoundingClientRect();
+      const set = first.getBoundingClientRect();
+      const header = timetable!.querySelector<HTMLElement>('.corner')!.getBoundingClientRect();
+      timetable!.scrollTo({
+        top: timetable!.scrollTop + set.top - box.top - header.height - 8,
+        left: timetable!.scrollLeft + set.left - box.left - header.width - 8,
+        behavior: 'smooth',
+      });
+    }
+
+    // A browser cannot show some image files, for example a PSD file. Then the card has no photo.
+    function removePhoto(image: HTMLImageElement) {
+      image.closest('.set')?.classList.remove('photo');
+      image.remove();
+    }
+    for (const image of timetable.querySelectorAll<HTMLImageElement>('.set img')) {
+      if (image.complete && image.naturalWidth === 0) removePhoto(image);
+      else image.addEventListener('error', () => removePhoto(image), { signal });
+    }
+
+    for (const chip of chips) {
+      chip.addEventListener(
+        'click',
+        () => {
+          const stage = chip.dataset.stage!;
+          selection = stage ? toggleStage(selection, stage, stageIds) : [];
+          render();
+        },
+        { signal },
+      );
+    }
+    favouritesSwitch.addEventListener(
+      'click',
+      () => {
+        highlight = !highlight;
+        render();
+        if (highlight) scrollToFirstFavourite();
+      },
+      { signal },
+    );
+    // A heart click, a sync with the account or a change in another tab changes the favourite sets.
+    document.addEventListener(FAVOURITES_CHANGE_EVENT, render, { signal });
+    addEventListener('storage', render, { signal });
+
+    const playButtons = [...timetable.querySelectorAll<HTMLButtonElement>('.set-play')];
+    function renderPlayButtons() {
+      for (const button of playButtons) {
+        const playing = isTrackPlaying(button.dataset.artistId!);
+        button.setAttribute('aria-pressed', String(playing));
+        button.setAttribute(
+          'aria-label',
+          playing ? `Stop the preview of ${button.dataset.artist}` : `Play a preview of ${button.dataset.artist}`,
+        );
+      }
+    }
+    function trackFromButton(button: HTMLButtonElement) {
+      const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
+      return {
+        artistId: button.dataset.artistId!,
+        artistName: button.dataset.artist!,
+        artistUrl: button.dataset.artistUrl!,
+        players,
+      };
+    }
+    for (const button of playButtons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const visibleQueue = playButtons
+            .filter((candidate) => !candidate.closest<HTMLElement>('.stage')?.hidden)
+            .map(trackFromButton);
+          toggleTrack(trackFromButton(button), visibleQueue);
+        },
+        { signal },
+      );
+    }
+    document.addEventListener(PLAYER_CHANGE_EVENT, renderPlayButtons, { signal });
+    renderPlayButtons();
+
+    function saveScroll() {
+      saveScrollPosition(sessionStorage, date, { left: timetable!.scrollLeft, top: timetable!.scrollTop });
+    }
+    // A full page load fires pagehide. A page change in the app fires no pagehide, but aborts the signal before the swap.
+    addEventListener('pagehide', saveScroll, { signal });
+    signal.addEventListener('abort', saveScroll);
+
     render();
-    if (highlight) scrollToFirstFavourite();
+    // The timetable scrolls in its own box, which browsers do not restore on a fresh load.
+    const savedScroll = readScrollPosition(sessionStorage, date);
+    if (savedScroll) {
+      timetable.scrollLeft = savedScroll.left;
+      timetable.scrollTop = savedScroll.top;
+    } else if (highlight) {
+      scrollToFirstFavourite();
+    }
   });
-  // A heart click, a sync with the account or a change in an other tab changes the favourite sets.
-  document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
-  addEventListener('storage', render);
-  render();
-  if (highlight) scrollToFirstFavourite();
 </script>
 
 <style>
   .page {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - var(--main-nav-height));
+    height: calc(100dvh - var(--bottom-chrome-height));
   }
 
   /* The switch is next to the title. It does not make the line above the title narrower. */
@@ -408,14 +523,27 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     --stage-column: minmax(10rem, 1fr);
     --header-row: 2.5rem;
 
+    container-type: inline-size;
     display: grid;
     grid-template-columns: var(--hour-column) repeat(var(--stages), var(--stage-column));
-    grid-template-rows: var(--header-row) calc(var(--length) * var(--minute));
+    grid-template-rows: var(--header-row) calc(var(--length) * var(--minute)) auto;
     flex: 1;
     min-height: 0;
     overflow: auto;
     overscroll-behavior: contain;
     border-top: 1px solid var(--color-divider);
+  }
+
+  /* The footer sits in the timetable scroll box so scrolling down reaches it in one motion and scrolling up hides it right away. */
+  .timetable-footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .timetable-footer-inner {
+    position: sticky;
+    left: 0;
+    width: 100cqi;
   }
 
   .timetable [hidden] {
@@ -568,6 +696,62 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     z-index: 1;
   }
 
+  .set-play {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    z-index: 1;
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--color-control-line-strong);
+    border-radius: 50%;
+    background: var(--color-bar-translucent);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  /* Larger invisible tap area so playing a set does not accidentally open the artist page. */
+  .set-play::before {
+    position: absolute;
+    inset: -0.5rem;
+    content: '';
+  }
+
+  .set-play svg {
+    fill: currentColor;
+  }
+
+  .set-play:hover,
+  .set-play:focus-visible {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .set-play[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-background);
+  }
+
+  .set-play[aria-pressed='false'] .icon-stop,
+  .set-play[aria-pressed='true'] .icon-play {
+    display: none;
+  }
+
+  /* Short sets (< 55 min) cannot stack heart and play vertically, so play sits to the left of the heart. */
+  .short.playable .artists {
+    padding-right: 4rem;
+  }
+
+  .short .set-play {
+    top: 0.5rem;
+    right: 2.75rem;
+    bottom: auto;
+  }
+
   .time {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
@@ -575,5 +759,10 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
   .genre {
     color: var(--color-text-muted);
+  }
+
+  /* Keep genre text clear of the bottom-right play button on regular cards. */
+  .playable:not(.short) .genre {
+    padding-right: 2.125rem;
   }
 </style>

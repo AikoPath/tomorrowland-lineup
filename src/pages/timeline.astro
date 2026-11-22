@@ -149,132 +149,151 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   import { sessionEmail } from '../account/session.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
+  import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
   import { activeDayIndex, initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
 
-  const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
-  const panels = document.querySelector<HTMLElement>('.panels')!;
-  const dayPanels = [...panels.querySelectorAll<HTMLElement>('.day-panel')];
-  const count = document.querySelector<HTMLElement>('.count')!;
-  const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note')!;
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  onPageMount((signal) => {
+    const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note');
+    if (!overlapTemplate) return;
 
-  function favouriteDates(favourites: Set<string>): Set<string> {
-    return new Set([...favourites].map((key) => key.split('/')[0]));
-  }
+    const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
+    const panels = document.querySelector<HTMLElement>('.panels')!;
+    const dayPanels = [...panels.querySelectorAll<HTMLElement>('.day-panel')];
+    const count = document.querySelector<HTMLElement>('.count')!;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
-  const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
-  let activeIndex = -1;
-
-  function updateCount() {
-    const day = days[activeIndex];
-    count.textContent = day ? setCountLabel(Number(dayPanels[activeIndex].dataset.count ?? 0), day.date) : '';
-  }
-
-  function setActiveDay(index: number) {
-    if (index === activeIndex || !days[index]) return;
-    activeIndex = index;
-    dayButtons.forEach((button, i) => button.setAttribute('aria-selected', String(i === index)));
-    updateCount();
-  }
-
-  function render() {
-    const favourites = readFavourites(localStorage);
-    for (const panel of dayPanels) {
-      for (const note of panel.querySelectorAll('.overlap')) note.remove();
-      const shown = [...panel.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
-        row.hidden = !favourites.has(row.dataset.key!);
-        return !row.hidden;
-      });
-      shown.slice(1).forEach((row, index) => {
-        const earlier = shown[index];
-        const minutes = overlapMinutes(
-          { start: earlier.dataset.start!, end: earlier.dataset.end! },
-          { start: row.dataset.start!, end: row.dataset.end! },
-        );
-        if (minutes === 0) return;
-        const note = overlapTemplate.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
-        note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
-        row.before(note);
-      });
-      panel.dataset.count = String(shown.length);
-      panel.querySelector<HTMLElement>('.empty')!.hidden = shown.length > 0;
+    function favouriteDates(favourites: Set<string>): Set<string> {
+      return new Set([...favourites].map((key) => key.split('/')[0]));
     }
-    updateCount();
-  }
 
-  dayButtons.forEach((button, index) => {
-    button.addEventListener('click', () => {
-      panels.scrollTo({
-        left: index * panels.clientWidth,
-        behavior: reducedMotion.matches ? 'instant' : 'smooth',
-      });
+    const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
+    let activeIndex = -1;
+
+    function updateCount() {
+      const day = days[activeIndex];
+      count.textContent = day ? setCountLabel(Number(dayPanels[activeIndex].dataset.count ?? 0), day.date) : '';
+    }
+
+    function setActiveDay(index: number) {
+      if (index === activeIndex || !days[index]) return;
+      activeIndex = index;
+      dayButtons.forEach((button, i) => button.setAttribute('aria-selected', String(i === index)));
+      updateCount();
+    }
+
+    function render() {
+      const favourites = readFavourites(localStorage);
+      for (const panel of dayPanels) {
+        for (const note of panel.querySelectorAll('.overlap')) note.remove();
+        const shown = [...panel.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
+          row.hidden = !favourites.has(row.dataset.key!);
+          return !row.hidden;
+        });
+        shown.slice(1).forEach((row, index) => {
+          const earlier = shown[index];
+          const minutes = overlapMinutes(
+            { start: earlier.dataset.start!, end: earlier.dataset.end! },
+            { start: row.dataset.start!, end: row.dataset.end! },
+          );
+          if (minutes === 0) return;
+          const note = overlapTemplate.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
+          note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
+          row.before(note);
+        });
+        panel.dataset.count = String(shown.length);
+        panel.querySelector<HTMLElement>('.empty')!.hidden = shown.length > 0;
+      }
+      updateCount();
+    }
+
+    dayButtons.forEach((button, index) => {
+      button.addEventListener(
+        'click',
+        () => {
+          panels.scrollTo({
+            left: index * panels.clientWidth,
+            behavior: reducedMotion.matches ? 'instant' : 'smooth',
+          });
+        },
+        { signal },
+      );
     });
-  });
 
-  panels.addEventListener(
-    'scroll',
-    () => setActiveDay(activeDayIndex(panels.scrollLeft, panels.clientWidth, days.length)),
-    { passive: true },
-  );
+    panels.addEventListener(
+      'scroll',
+      () => setActiveDay(activeDayIndex(panels.scrollLeft, panels.clientWidth, days.length)),
+      { passive: true, signal },
+    );
 
-  const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
-  const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
-  const signOutButton = document.querySelector<HTMLButtonElement>('.device-note .sign-out');
+    const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
+    const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
+    const signOutButton = document.querySelector<HTMLButtonElement>('.device-note .sign-out');
 
-  function renderAccount() {
-    const email = ACCOUNT_AVAILABLE ? sessionEmail(localStorage) : null;
-    deviceNote.textContent = email ? `Saved to your account ${email}.` : 'Saved on this device only.';
-    if (signInLink) signInLink.hidden = email !== null;
-    if (signOutButton) signOutButton.hidden = email === null;
-  }
+    function renderAccount() {
+      const email = ACCOUNT_AVAILABLE ? sessionEmail(localStorage) : null;
+      deviceNote.textContent = email ? `Saved to your account ${email}.` : 'Saved on this device only.';
+      if (signInLink) signInLink.hidden = email !== null;
+      if (signOutButton) signOutButton.hidden = email === null;
+    }
 
-  signOutButton?.addEventListener('click', async () => {
-    signOutButton.disabled = true;
-    try {
-      const { signOut } = await import('../account/supabase.ts');
-      await signOut();
-    } finally {
-      signOutButton.disabled = false;
-      renderAccount();
+    signOutButton?.addEventListener(
+      'click',
+      async () => {
+        signOutButton.disabled = true;
+        try {
+          const { signOut } = await import('../account/supabase.ts');
+          await signOut();
+        } finally {
+          if (!signal.aborted) {
+            signOutButton.disabled = false;
+            renderAccount();
+          }
+        }
+      },
+      { signal },
+    );
+
+    // A change in another tab, and a page from the back-forward cache, show the current favourites and account.
+    document.addEventListener(FAVOURITES_CHANGE_EVENT, render, { signal });
+    for (const type of ['storage', 'pageshow']) {
+      addEventListener(
+        type,
+        () => {
+          render();
+          renderAccount();
+        },
+        { signal },
+      );
+    }
+    render();
+    if (days.length > 0) {
+      const startDate = initialDate(
+        days,
+        festivalNow(new Date(), FESTIVAL_TIME_ZONE),
+        favouriteDates(readFavourites(localStorage)),
+      );
+      const startIndex = Math.max(
+        0,
+        days.findIndex((day) => day.date === startDate),
+      );
+      panels.scrollTo({ left: startIndex * panels.clientWidth, behavior: 'instant' });
+      setActiveDay(startIndex);
+    }
+    renderAccount();
+
+    // With no network, a photo that the service worker did not save cannot load.
+    function showInitials(image: HTMLImageElement) {
+      const span = document.createElement('span');
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = image.dataset.initials ?? '';
+      image.replaceWith(span);
+    }
+    for (const image of document.querySelectorAll<HTMLImageElement>('.photo img')) {
+      if (image.complete && image.naturalWidth === 0) showInitials(image);
+      else image.addEventListener('error', () => showInitials(image), { signal });
     }
   });
-
-  // A change in an other tab, and a page from the back-forward cache, show the current favourites and account.
-  document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
-  for (const type of ['storage', 'pageshow']) {
-    addEventListener(type, () => {
-      render();
-      renderAccount();
-    });
-  }
-  render();
-  if (days.length > 0) {
-    const startDate = initialDate(
-      days,
-      festivalNow(new Date(), FESTIVAL_TIME_ZONE),
-      favouriteDates(readFavourites(localStorage)),
-    );
-    const startIndex = Math.max(
-      0,
-      days.findIndex((day) => day.date === startDate),
-    );
-    panels.scrollTo({ left: startIndex * panels.clientWidth, behavior: 'instant' });
-    setActiveDay(startIndex);
-  }
-  renderAccount();
-
-  // With no network, a photo that the service worker did not save cannot load.
-  function showInitials(image: HTMLImageElement) {
-    const span = document.createElement('span');
-    span.setAttribute('aria-hidden', 'true');
-    span.textContent = image.dataset.initials ?? '';
-    image.replaceWith(span);
-  }
-  for (const image of document.querySelectorAll<HTMLImageElement>('.photo img')) {
-    if (image.complete && image.naturalWidth === 0) showInitials(image);
-    else image.addEventListener('error', () => showInitials(image));
-  }
 </script>
 
 <style>
@@ -282,7 +301,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    height: calc(100dvh - var(--main-nav-height));
+    height: calc(100dvh - var(--bottom-chrome-height));
     padding-top: 1.75rem;
   }
 

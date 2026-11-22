@@ -6,6 +6,9 @@
 
 export interface SpotifyController {
   play(): void;
+  loadUri?(uri: string): void;
+  loadEntity?(uri: string): void;
+  destroy?(): void;
   addListener(event: 'ready', callback: () => void): void;
 }
 
@@ -31,6 +34,7 @@ function loadApi(): Promise<SpotifyIframeApi> {
     const script = document.createElement('script');
     script.src = 'https://open.spotify.com/embed/iframe-api/v1';
     script.async = true;
+    script.dataset.astroTransitionPersist = 'spotify-iframe-api';
     script.onerror = () => {
       // A later click can try again, for example after a network problem.
       apiPromise = undefined;
@@ -41,8 +45,13 @@ function loadApi(): Promise<SpotifyIframeApi> {
   return apiPromise;
 }
 
-/** Puts a Spotify player into `element` and starts it. */
-export async function playSpotify(element: HTMLElement, uri: string, height: number, title: string): Promise<void> {
+/** Puts a Spotify player into `element` and starts it, returning the controller so later plays can reuse the iframe. */
+export async function playSpotify(
+  element: HTMLElement,
+  uri: string,
+  height: number,
+  title: string,
+): Promise<SpotifyController> {
   const api = await loadApi();
   const slot = document.createElement('div');
   element.replaceChildren(slot);
@@ -51,7 +60,16 @@ export async function playSpotify(element: HTMLElement, uri: string, height: num
       controller.addListener('ready', () => controller.play());
       const iframe = element.querySelector('iframe');
       if (iframe) iframe.title = title;
-      resolve();
+      resolve(controller);
     });
   });
+}
+
+/** Switches an existing Spotify controller to a new artist URI without recreating the iframe. */
+export function loadSpotifyUri(controller: SpotifyController, uri: string): boolean {
+  const loader = controller.loadEntity ?? controller.loadUri;
+  if (!loader) return false;
+  loader.call(controller, uri);
+  controller.play();
+  return true;
 }

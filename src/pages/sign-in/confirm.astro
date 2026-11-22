@@ -22,49 +22,63 @@ import { SIGN_IN_URL } from '../../urls.ts';
 </SignInScreen>
 
 <script>
+  import { navigate } from 'astro:transitions/client';
   import { isOwnSignIn, takeSignInRequest } from '../../account/sign-in-request.ts';
   import { addDeviceFavouritesToPending, syncFavourites } from '../../favourites/sync.ts';
+  import { onPageMount } from '../../player/navigation.ts';
   import { SIGN_IN_URL } from '../../urls.ts';
 
-  const tokenHash = new URLSearchParams(location.search).get('token_hash');
-  // The token must not stay in the browser history.
-  history.replaceState(null, '', location.pathname);
-  const requestedEmail = takeSignInRequest(localStorage);
+  onPageMount((signal) => {
+    const progress = document.querySelector<HTMLElement>('.progress');
+    const question = document.querySelector<HTMLElement>('.question');
+    if (!progress || !question) return;
 
-  const progress = document.querySelector<HTMLElement>('.progress')!;
-  const question = document.querySelector<HTMLElement>('.question')!;
+    const tokenHash = new URLSearchParams(location.search).get('token_hash');
+    // The token must not stay in the browser history.
+    history.replaceState(history.state, '', location.pathname);
+    const requestedEmail = takeSignInRequest(localStorage);
 
-  try {
-    if (!tokenHash) throw new Error('The link has no token.');
-    const { confirmSignIn, favouriteAccount, signOut, signedInEmail } = await import('../../account/supabase.ts');
-    await confirmSignIn(tokenHash);
+    void (async () => {
+      try {
+        if (!tokenHash) throw new Error('The link has no token.');
+        const { confirmSignIn, favouriteAccount, signOut, signedInEmail } = await import('../../account/supabase.ts');
+        await confirmSignIn(tokenHash);
+        if (signal.aborted) return;
 
-    async function addFavourites() {
-      addDeviceFavouritesToPending(localStorage);
-      // With no network connection, the favourites stay pending. The next page sends them.
-      await syncFavourites(localStorage, favouriteAccount).catch(() => {});
-      location.replace(SIGN_IN_URL);
-    }
+        async function addFavourites() {
+          addDeviceFavouritesToPending(localStorage);
+          // With no network connection, the favourites stay pending. The next page sends them.
+          await syncFavourites(localStorage, favouriteAccount).catch(() => {});
+          if (!signal.aborted) void navigate(SIGN_IN_URL, { history: 'replace' });
+        }
 
-    const email = await signedInEmail();
-    if (isOwnSignIn(requestedEmail, email)) {
-      await addFavourites();
-    } else {
-      // The link can come from a different person. The favourites go to the account only after the user agrees.
-      progress.hidden = true;
-      question.querySelector('.email')!.textContent = email;
-      question.hidden = false;
-      question.querySelector('.continue')!.addEventListener('click', addFavourites);
-      question.querySelector('.sign-out')!.addEventListener('click', async () => {
-        await signOut();
-        location.replace(SIGN_IN_URL);
-      });
-    }
-  } catch {
-    progress.hidden = true;
-    question.hidden = true;
-    document.querySelector<HTMLElement>('.error')!.hidden = false;
-  }
+        const email = await signedInEmail();
+        if (signal.aborted) return;
+        if (isOwnSignIn(requestedEmail, email)) {
+          await addFavourites();
+        } else {
+          // The link can come from a different person. The favourites go to the account only after the user agrees.
+          progress.hidden = true;
+          question.querySelector('.email')!.textContent = email;
+          question.hidden = false;
+          question.querySelector('.continue')!.addEventListener('click', addFavourites, { signal });
+          question.querySelector('.sign-out')!.addEventListener(
+            'click',
+            async () => {
+              await signOut();
+              if (!signal.aborted) void navigate(SIGN_IN_URL, { history: 'replace' });
+            },
+            { signal },
+          );
+        }
+      } catch {
+        if (signal.aborted) return;
+        progress.hidden = true;
+        question.hidden = true;
+        document.querySelector<HTMLElement>('.error')!.hidden = false;
+      }
+    })();
+  });
 </script>
 
 <style>
