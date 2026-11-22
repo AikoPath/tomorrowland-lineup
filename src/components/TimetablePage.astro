@@ -147,14 +147,13 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   } from '../timetable/stage-filter.ts';
 
   const timetable = document.querySelector<HTMLElement>('.timetable')!;
-  const stageChips = document.querySelector<HTMLElement>('.stage-chips')!;
   const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
   const noFavourites = document.querySelector<HTMLElement>('.no-favourites')!;
-  const chips = [...stageChips.querySelectorAll<HTMLButtonElement>('button')];
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('.stage-chips button')];
   const columns = [...timetable.querySelectorAll<HTMLElement>('[data-stage]')];
   const sets = [...timetable.querySelectorAll<HTMLElement>('.set')];
   const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
-  const stageIds = stageChips.dataset.stageIds!.split(' ');
+  const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
   const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
   const date = timetable.dataset.date!;
 
@@ -189,8 +188,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     noFavourites.querySelector<HTMLElement>('.no-favourites-day')!.hidden = shown.length > 0;
     noFavourites.querySelector<HTMLElement>('.no-favourites-stages')!.hidden = shown.length === 0;
 
-    const nextUrl = withFilters(new URL(location.href));
-    if (nextUrl.href !== location.href) history.replaceState(history.state, '', nextUrl);
+    history.replaceState(null, '', withFilters(new URL(location.href)));
     for (const link of dayLinks) link.href = withFilters(new URL(link.href)).href;
   }
 
@@ -206,38 +204,6 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
       left: timetable.scrollLeft + set.left - box.left - header.width - 8,
       behavior: 'smooth',
     });
-  }
-
-  function saveScroll() {
-    saveScrollPosition(sessionStorage, date, {
-      left: timetable.scrollLeft,
-      top: timetable.scrollTop,
-      chipsLeft: stageChips.scrollLeft,
-    });
-  }
-
-  let scrollTimer: number | undefined;
-  function scheduleSaveScroll() {
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(saveScroll, 100);
-  }
-
-  function isBackNavigation(): boolean {
-    const entry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-    return entry?.type === 'back_forward';
-  }
-
-  // The timetable scrolls in its own box, which browsers do not restore on a fresh load.
-  function restoreScroll() {
-    const saved = readScrollPosition(sessionStorage, date);
-    if (saved) {
-      timetable.scrollLeft = saved.left;
-      timetable.scrollTop = saved.top;
-      stageChips.scrollLeft = saved.chipsLeft;
-    }
-    if (highlight && (!saved || (saved.left === 0 && saved.top === 0 && !isBackNavigation()))) {
-      scrollToFirstFavourite();
-    }
   }
 
   // A browser cannot show some image files, for example a PSD file. Then the card has no photo.
@@ -262,29 +228,21 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     render();
     if (highlight) scrollToFirstFavourite();
   });
-  timetable.addEventListener('scroll', scheduleSaveScroll, { passive: true });
-  stageChips.addEventListener('scroll', scheduleSaveScroll, { passive: true });
   addEventListener('pagehide', () => {
-    clearTimeout(scrollTimer);
-    saveScroll();
-  });
-  addEventListener('pageshow', (event) => {
-    if (!event.persisted) return;
-    render();
-    if (timetable.scrollLeft === 0 && timetable.scrollTop === 0) {
-      const saved = readScrollPosition(sessionStorage, date);
-      if (saved) {
-        timetable.scrollLeft = saved.left;
-        timetable.scrollTop = saved.top;
-        stageChips.scrollLeft = saved.chipsLeft;
-      }
-    }
+    saveScrollPosition(sessionStorage, date, { left: timetable.scrollLeft, top: timetable.scrollTop });
   });
   // A heart click, a sync with the account or a change in an other tab changes the favourite sets.
   document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
   addEventListener('storage', render);
   render();
-  restoreScroll();
+  // The timetable scrolls in its own box, which browsers do not restore on a fresh load.
+  const savedScroll = readScrollPosition(sessionStorage, date);
+  if (savedScroll) {
+    timetable.scrollLeft = savedScroll.left;
+    timetable.scrollTop = savedScroll.top;
+  } else if (highlight) {
+    scrollToFirstFavourite();
+  }
 </script>
 
 <style>
