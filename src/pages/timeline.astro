@@ -129,105 +129,124 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   import { sessionEmail } from '../account/session.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
+  import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
   import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
 
-  const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
-  const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
-  const count = document.querySelector<HTMLElement>('.count')!;
-  const empty = document.querySelector<HTMLElement>('.empty')!;
-  const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note')!;
+  onPageMount((signal) => {
+    const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note');
+    if (!overlapTemplate) return;
 
-  function favouriteDates(favourites: Set<string>): Set<string> {
-    return new Set([...favourites].map((key) => key.split('/')[0]));
-  }
+    const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
+    const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
+    const count = document.querySelector<HTMLElement>('.count')!;
+    const empty = document.querySelector<HTMLElement>('.empty')!;
 
-  const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
-  let selectedDate =
-    days.length > 0
-      ? initialDate(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE), favouriteDates(readFavourites(localStorage)))
-      : undefined;
-
-  function render() {
-    const favourites = readFavourites(localStorage);
-    for (const button of dayButtons) button.setAttribute('aria-pressed', String(button.dataset.date === selectedDate));
-
-    for (const list of lists) {
-      list.hidden = list.dataset.date !== selectedDate;
-      for (const note of list.querySelectorAll('.overlap')) note.remove();
-      const shown = [...list.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
-        row.hidden = !favourites.has(row.dataset.key!);
-        return !row.hidden;
-      });
-      if (list.hidden) continue;
-
-      shown.slice(1).forEach((row, index) => {
-        const earlier = shown[index];
-        const minutes = overlapMinutes(
-          { start: earlier.dataset.start!, end: earlier.dataset.end! },
-          { start: row.dataset.start!, end: row.dataset.end! },
-        );
-        if (minutes === 0) return;
-        const note = overlapTemplate.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
-        note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
-        row.before(note);
-      });
-      count.textContent = selectedDate ? setCountLabel(shown.length, selectedDate) : '';
-      empty.hidden = shown.length > 0;
+    function favouriteDates(favourites: Set<string>): Set<string> {
+      return new Set([...favourites].map((key) => key.split('/')[0]));
     }
-  }
 
-  for (const button of dayButtons) {
-    button.addEventListener('click', () => {
-      selectedDate = button.dataset.date;
-      render();
-    });
-  }
+    const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
+    let selectedDate =
+      days.length > 0
+        ? initialDate(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE), favouriteDates(readFavourites(localStorage)))
+        : undefined;
 
-  const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
-  const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
-  const signOutButton = document.querySelector<HTMLButtonElement>('.device-note .sign-out');
+    function render() {
+      const favourites = readFavourites(localStorage);
+      for (const button of dayButtons) button.setAttribute('aria-pressed', String(button.dataset.date === selectedDate));
 
-  function renderAccount() {
-    const email = ACCOUNT_AVAILABLE ? sessionEmail(localStorage) : null;
-    deviceNote.textContent = email ? `Saved to your account ${email}.` : 'Saved on this device only.';
-    if (signInLink) signInLink.hidden = email !== null;
-    if (signOutButton) signOutButton.hidden = email === null;
-  }
+      for (const list of lists) {
+        list.hidden = list.dataset.date !== selectedDate;
+        for (const note of list.querySelectorAll('.overlap')) note.remove();
+        const shown = [...list.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
+          row.hidden = !favourites.has(row.dataset.key!);
+          return !row.hidden;
+        });
+        if (list.hidden) continue;
 
-  signOutButton?.addEventListener('click', async () => {
-    signOutButton.disabled = true;
-    try {
-      const { signOut } = await import('../account/supabase.ts');
-      await signOut();
-    } finally {
-      signOutButton.disabled = false;
-      renderAccount();
+        shown.slice(1).forEach((row, index) => {
+          const earlier = shown[index];
+          const minutes = overlapMinutes(
+            { start: earlier.dataset.start!, end: earlier.dataset.end! },
+            { start: row.dataset.start!, end: row.dataset.end! },
+          );
+          if (minutes === 0) return;
+          const note = overlapTemplate!.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
+          note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
+          row.before(note);
+        });
+        count.textContent = selectedDate ? setCountLabel(shown.length, selectedDate) : '';
+        empty.hidden = shown.length > 0;
+      }
+    }
+
+    for (const button of dayButtons) {
+      button.addEventListener(
+        'click',
+        () => {
+          selectedDate = button.dataset.date;
+          render();
+        },
+        { signal },
+      );
+    }
+
+    const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
+    const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
+    const signOutButton = document.querySelector<HTMLButtonElement>('.device-note .sign-out');
+
+    function renderAccount() {
+      const email = ACCOUNT_AVAILABLE ? sessionEmail(localStorage) : null;
+      deviceNote.textContent = email ? `Saved to your account ${email}.` : 'Saved on this device only.';
+      if (signInLink) signInLink.hidden = email !== null;
+      if (signOutButton) signOutButton.hidden = email === null;
+    }
+
+    signOutButton?.addEventListener(
+      'click',
+      async () => {
+        signOutButton.disabled = true;
+        try {
+          const { signOut } = await import('../account/supabase.ts');
+          await signOut();
+        } finally {
+          if (!signal.aborted) {
+            signOutButton.disabled = false;
+            renderAccount();
+          }
+        }
+      },
+      { signal },
+    );
+
+    // A change in another tab, and a page from the back-forward cache, show the current favourites and account.
+    document.addEventListener(FAVOURITES_CHANGE_EVENT, render, { signal });
+    for (const type of ['storage', 'pageshow']) {
+      addEventListener(
+        type,
+        () => {
+          render();
+          renderAccount();
+        },
+        { signal },
+      );
+    }
+    render();
+    renderAccount();
+
+    // With no network, a photo that the service worker did not save cannot load.
+    function showInitials(image: HTMLImageElement) {
+      const span = document.createElement('span');
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = image.dataset.initials ?? '';
+      image.replaceWith(span);
+    }
+    for (const image of document.querySelectorAll<HTMLImageElement>('.photo img')) {
+      if (image.complete && image.naturalWidth === 0) showInitials(image);
+      else image.addEventListener('error', () => showInitials(image), { signal });
     }
   });
-
-  // A change in an other tab, and a page from the back-forward cache, show the current favourites and account.
-  document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
-  for (const type of ['storage', 'pageshow']) {
-    addEventListener(type, () => {
-      render();
-      renderAccount();
-    });
-  }
-  render();
-  renderAccount();
-
-  // With no network, a photo that the service worker did not save cannot load.
-  function showInitials(image: HTMLImageElement) {
-    const span = document.createElement('span');
-    span.setAttribute('aria-hidden', 'true');
-    span.textContent = image.dataset.initials ?? '';
-    image.replaceWith(span);
-  }
-  for (const image of document.querySelectorAll<HTMLImageElement>('.photo img')) {
-    if (image.complete && image.naturalWidth === 0) showInitials(image);
-    else image.addEventListener('error', () => showInitials(image));
-  }
 </script>
 
 <style>

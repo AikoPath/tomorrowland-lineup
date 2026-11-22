@@ -26,13 +26,17 @@
   --gradient-photo: linear-gradient(90deg, hsl(334 26% 5% / 85%), hsl(334 26% 5% / 55%));
   /* The shadow below an open list, for example the list of a dropdown. */
   --shadow-popover: 0 0.75rem 2rem hsl(334 26% 2% / 70%);
+  /* The shadow above the persistent music player dock. */
+  --shadow-dock: 0 -0.5rem 1.5rem hsl(334 26% 2% / 60%);
 
   /* The note about two favourite sets that overlap, in design/project/FavTimeline.dc.html */
   --color-warning: hsl(33 100% 56%);
   --color-warning-background: hsl(33 100% 46% / 14%);
 
-  /* The fixed bottom bar covers this height at the bottom of each page. */
+  /* The fixed bottom bar and optional music player dock cover this height at the bottom of each page. */
   --main-nav-height: calc(4.75rem + env(safe-area-inset-bottom));
+  --player-dock-height: 0px;
+  --bottom-chrome-height: calc(var(--main-nav-height) + var(--player-dock-height));
 }
 
 *,
@@ -48,7 +52,13 @@ body {
   /* Astro sets --font-body from the fonts config in astro.config.mjs. */
   font-family: var(--font-body);
   line-height: 1.4;
-  padding-bottom: var(--main-nav-height);
+  padding-bottom: var(--bottom-chrome-height);
+}
+
+/* A bare page has no bottom bar. :root calculates --bottom-chrome-height, so this rule must set it again. */
+body.bare {
+  --main-nav-height: 0px;
+  --bottom-chrome-height: var(--player-dock-height);
 }
 
 a {

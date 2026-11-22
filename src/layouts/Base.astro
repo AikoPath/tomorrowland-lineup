@@ -1,6 +1,8 @@
 ---
 import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
 import FavouriteHint from '../components/FavouriteHint.astro';
+import GlobalPlayer from '../components/GlobalPlayer.astro';
 import MainNav, { type MainPage } from '../components/MainNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { BACKGROUND_COLOR } from '../site';
@@ -19,7 +21,7 @@ interface Props {
 const { title, mainPage, bare = false, footer = true } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="en" transition:animate="none">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -31,20 +33,68 @@ const { title, mainPage, bare = false, footer = true } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <Font cssVariable="--font-body" preload />
     <title>{title}</title>
+    <ClientRouter />
   </head>
   <body class:list={{ bare }}>
-    <slot />
-    {
-      !bare && (
-        <>
-          {footer && <SiteFooter />}
-          <FavouriteHint />
-          <MainNav current={mainPage} />
-        </>
-      )
-    }
+    <div id="page-shell">
+      <slot />
+      {
+        !bare && (
+          <>
+            {footer && <SiteFooter />}
+            <FavouriteHint />
+            <MainNav current={mainPage} />
+          </>
+        )
+      }
+    </div>
+    <GlobalPlayer />
     <script>
+      import { swapFunctions } from 'astro:transitions/client';
+      import { recordNavigationFrom } from '../player/navigation.ts';
       import { SAVE_PHOTOS_MESSAGE, SERVICE_WORKER_URL } from '../urls';
+
+      // Swap only #page-shell and keep <body> + #global-player untouched so an active music iframe never reloads.
+      document.addEventListener('astro:before-swap', (event) => {
+        recordNavigationFrom(event.from);
+        window.__astroSoftNav = true;
+
+        event.swap = () => {
+          const doc = event.newDocument;
+          const dockHeight = document.documentElement.style.getPropertyValue('--player-dock-height');
+          swapFunctions.deselectScripts(doc);
+          swapFunctions.swapRootAttributes(doc);
+          if (dockHeight) document.documentElement.style.setProperty('--player-dock-height', dockHeight);
+          swapFunctions.swapHeadElements(doc);
+          const restoreFocus = swapFunctions.saveFocus();
+
+          for (const { name } of [...document.body.attributes]) {
+            if (!doc.body.hasAttribute(name)) document.body.removeAttribute(name);
+          }
+          for (const { name, value } of [...doc.body.attributes]) {
+            document.body.setAttribute(name, value);
+          }
+
+          for (const announcer of document.body.querySelectorAll(':scope > .astro-route-announcer')) {
+            announcer.remove();
+          }
+
+          const oldShell = document.getElementById('page-shell');
+          const newShell = doc.getElementById('page-shell');
+          if (oldShell && newShell) {
+            oldShell.replaceWith(newShell);
+            // Astro emits page-level <script> tags outside <Base> as direct children of <body>.
+            // Move any not-yet-executed ones into #page-shell so Astro's router runs them.
+            for (const script of [...doc.body.querySelectorAll<HTMLScriptElement>(':scope > script')]) {
+              if (script.dataset.astroExec === undefined) newShell.append(script);
+            }
+          } else {
+            swapFunctions.swapBodyElement(doc.body, document.body);
+          }
+
+          restoreFocus();
+        };
+      });
 
       // The service worker starts after the page loads, so the page gets the network first.
       // After that, the service worker saves the artist photos. See src/pwa/sw.js.
@@ -62,9 +112,3 @@ const { title, mainPage, bare = false, footer = true } = Astro.props;
     </script>
   </body>
 </html>
-
-<style>
-  .bare {
-    padding-bottom: 0;
-  }
-</style>
