@@ -106,3 +106,16 @@ export function startsInText(start: string, now: string): string | undefined {
     .join(' ');
   return `Starts in ${text}`;
 }
+
+/**
+ * Whether the back link on an artist page should use the browser history instead of opening the home page.
+ * A direct visit, a new tab or a link from another site opens the home page.
+ */
+export function canGoBack(referrer: string, origin: string, historyLength: number): boolean {
+  if (historyLength <= 1 || !referrer) return false;
+  try {
+    return new URL(referrer).origin === origin;
+  } catch {
+    return false;
+  }
+}

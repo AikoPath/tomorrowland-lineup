@@ -139,9 +139,25 @@ const musicTabs = toMusicTabs(artist).filter((tab) => tab.player);
 </Base>
 
 <script>
-  import { startsInText } from '../../artist/artist-page.ts';
+  import { canGoBack, startsInText } from '../../artist/artist-page.ts';
   import { festivalNow } from '../../now/now-next.ts';
   import { FESTIVAL_TIME_ZONE } from '../../site.ts';
+
+  const backLink = document.querySelector<HTMLAnchorElement>('.back');
+  backLink?.addEventListener('click', (event) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      !canGoBack(document.referrer, location.origin, history.length)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    history.back();
+  });
 
   const countdowns = [...document.querySelectorAll<HTMLElement>('[data-starts-at]')];
 

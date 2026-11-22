@@ -88,6 +88,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 
     <main
       class="timetable"
+      data-date={date}
       style={`--stages: ${timetable.columns.length}; --length: ${timetable.length};`}
       aria-label={`Line-up ${dayLabel(date)}`}
     >
@@ -136,6 +137,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
 <script>
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { isSetDimmed, readHighlight, withHighlight } from '../timetable/favourite-highlight.ts';
+  import { readScrollPosition, saveScrollPosition } from '../timetable/scroll-position.ts';
   import {
     daySelection,
     isStageShown,
@@ -153,6 +155,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
   const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
   const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
+  const date = timetable.dataset.date!;
 
   let selection = readStageSelection(location.search, stageIds);
   let highlight = readHighlight(location.search);
@@ -225,11 +228,21 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     render();
     if (highlight) scrollToFirstFavourite();
   });
+  addEventListener('pagehide', () => {
+    saveScrollPosition(sessionStorage, date, { left: timetable.scrollLeft, top: timetable.scrollTop });
+  });
   // A heart click, a sync with the account or a change in an other tab changes the favourite sets.
   document.addEventListener(FAVOURITES_CHANGE_EVENT, render);
   addEventListener('storage', render);
   render();
-  if (highlight) scrollToFirstFavourite();
+  // The timetable scrolls in its own box, which browsers do not restore on a fresh load.
+  const savedScroll = readScrollPosition(sessionStorage, date);
+  if (savedScroll) {
+    timetable.scrollLeft = savedScroll.left;
+    timetable.scrollTop = savedScroll.top;
+  } else if (highlight) {
+    scrollToFirstFavourite();
+  }
 </script>
 
 <style>
