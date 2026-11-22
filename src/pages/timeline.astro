@@ -1,6 +1,7 @@
 ---
 import FavouriteButton from '../components/FavouriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import { loadLineup } from '../data/load.ts';
 import Base from '../layouts/Base.astro';
 import { initials } from '../now/now-next.ts';
@@ -15,7 +16,7 @@ const days = timelineDays(lineup);
 const clockTime = (localTime: string) => localTime.slice(11, 16);
 ---
 
-<Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline">
+<Base title={`My timeline · ${SITE_NAME}`} mainPage="timeline" footer={false}>
   <div class="page">
     <div class="top">
       <PageHeader lineup={lineup} title="My timeline">
@@ -120,6 +121,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         </li>
       </template>
     </main>
+    <SiteFooter />
   </div>
 </Base>
 
