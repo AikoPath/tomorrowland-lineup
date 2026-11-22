@@ -1,5 +1,7 @@
 name: Palmera
 image: https://artist-lineup-cdn.tomorrowland.com/114044780-xx.jpeg
+genres:
+  - electronic
 music:
   apple_music: https://music.apple.com/us/artist/palmera/1622425604
   spotify: https://open.spotify.com/artist/5ohmRGtUoPs6xsQsAzgSyX

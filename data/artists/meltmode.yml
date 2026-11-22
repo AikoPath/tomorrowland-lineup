@@ -1,5 +1,7 @@
 name: Meltmode
 image: https://i.scdn.co/image/ab6761610000e5eb2b9681d58dad82898cc95ebf
+genres:
+  - house
 music:
   spotify: https://open.spotify.com/artist/5D5Dw5bvHldofzzBJ33tc1
   apple_music: https://music.apple.com/us/artist/1676665285

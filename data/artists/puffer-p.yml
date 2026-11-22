@@ -1,5 +1,7 @@
 name: Puffer P
 image: https://artist-lineup-cdn.tomorrowland.com/240498781-PUFFER-P03.jpg
+genres:
+  - trance
 music:
   apple_music: https://music.apple.com/us/artist/puffer-p/1628872764
   spotify: https://open.spotify.com/artist/31ZHkmInxq7Z2NdNPTTP1r

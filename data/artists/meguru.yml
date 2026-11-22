@@ -1,4 +1,6 @@
 name: Meguru
 image: https://artist-lineup-cdn.tomorrowland.com/126480307-%E7%85%A7%E7%89%87%205-17-25%20%E4%B8%8A%E5%8D%8812%2012%2015.jpg
+genres:
+  - hardcore
 music:
   apple_music: https://music.apple.com/us/artist/meguru/1835797461

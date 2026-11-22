@@ -1,5 +1,7 @@
 name: Amémé
 image: https://artist-lineup-cdn.tomorrowland.com/127453685-AMEMEPRESS_MAIN-1_APPRVLREQD.jpg
+genres:
+  - afro house
 music:
   spotify: https://open.spotify.com/artist/1txb9Qg5lJ3KATxPcIYyvO
   apple_music: https://music.apple.com/gb/artist/1485443391

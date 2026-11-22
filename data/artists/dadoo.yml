@@ -1,5 +1,7 @@
 name: DaDoo
 image: https://i.scdn.co/image/ab6761610000e5eb730f817995d50e55765d6c52
+genres:
+  - dance
 music:
   apple_music: https://music.apple.com/us/artist/dadoo/1880673927
   spotify: https://open.spotify.com/artist/2csCEzwLXMFocohGlGYbWB
