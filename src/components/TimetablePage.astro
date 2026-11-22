@@ -414,7 +414,8 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     flex: 1;
     min-height: 0;
     overflow: auto;
-    overscroll-behavior: contain;
+    /* Keep horizontal overscroll inside the grid, while vertical scroll continues to the page footer. */
+    overscroll-behavior-x: contain;
     border-top: 1px solid var(--color-divider);
   }
 
