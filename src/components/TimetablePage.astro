@@ -7,6 +7,7 @@ import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
 import { LINEUP_URL, artistUrl, dayUrl } from '../urls';
 import FavouriteButton from './FavouriteButton.astro';
 import PageHeader from './PageHeader.astro';
+import SiteFooter from './SiteFooter.astro';
 
 interface Props {
   lineup: Lineup;
@@ -22,7 +23,7 @@ const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
-<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup">
+<Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup" footer={false}>
   {
     Astro.url.pathname === LINEUP_URL && (
       <script is:inline define:vars={{ otherDates }}>
@@ -129,6 +130,11 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
           </ol>
         ))
       }
+      <div class="timetable-footer">
+        <div class="timetable-footer-inner">
+          <SiteFooter />
+        </div>
+      </div>
     </main>
   </div>
 </Base>
@@ -408,15 +414,27 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     --stage-column: minmax(10rem, 1fr);
     --header-row: 2.5rem;
 
+    container-type: inline-size;
     display: grid;
     grid-template-columns: var(--hour-column) repeat(var(--stages), var(--stage-column));
-    grid-template-rows: var(--header-row) calc(var(--length) * var(--minute));
+    grid-template-rows: var(--header-row) calc(var(--length) * var(--minute)) auto;
     flex: 1;
     min-height: 0;
     overflow: auto;
-    /* Keep horizontal overscroll inside the grid, while vertical scroll continues to the page footer. */
-    overscroll-behavior-x: contain;
+    overscroll-behavior: contain;
     border-top: 1px solid var(--color-divider);
+  }
+
+  /* The footer sits in the timetable scroll box so scrolling down reaches it in one motion and scrolling up hides it right away. */
+  .timetable-footer {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .timetable-footer-inner {
+    position: sticky;
+    left: 0;
+    width: 100cqi;
   }
 
   .timetable [hidden] {
