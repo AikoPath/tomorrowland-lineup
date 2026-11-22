@@ -24,11 +24,19 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
       {
         days.length > 0 && (
-          <div class="days" role="group" aria-label="Festival days">
+          <div class="days" role="tablist" aria-label="Festival days">
             {days.map(({ date, end }) => {
               const { weekday, dayAndMonth } = dayLabelParts(date);
               return (
-                <button type="button" data-date={date} data-end={end} aria-pressed="false">
+                <button
+                  type="button"
+                  role="tab"
+                  id={`tab-${date}`}
+                  aria-controls={`day-${date}`}
+                  aria-selected="false"
+                  data-date={date}
+                  data-end={end}
+                >
                   <span class="weekday">{weekday}</span>
                   <span class="date">{dayAndMonth}</span>
                 </button>
@@ -56,58 +64,70 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     </div>
 
     <main>
-      {
-        days.map(({ date, sets }) => (
-          <ol class="sets" data-date={date} hidden>
-            {sets.map((set) => {
-              const names = set.artists.map((artist) => artist.name).join(' b2b ');
-              return (
-                <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
-                  <span class="time">
-                    <time class="start" datetime={set.start}>
-                      {clockTime(set.start)}
-                    </time>
-                    <time class="end" datetime={set.end}>
-                      {clockTime(set.end)}
-                    </time>
-                  </span>
-                  <span class:list={['details', { single: set.artists.length === 1 }]}>
-                    <span class="photo">
-                      {set.image ? (
-                        <img
-                          src={set.image}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          data-initials={initials(set.artists[0].name)}
-                        />
-                      ) : (
-                        <span aria-hidden="true">{initials(set.artists[0].name)}</span>
-                      )}
-                    </span>
-                    <span class="text">
-                      <span class="artists">
-                        {set.artists.map((artist, index) => (
-                          <>
-                            {index > 0 && <span class="b2b"> b2b </span>}
-                            <a href={artistUrl(artist.id)}>{artist.name}</a>
-                          </>
-                        ))}
+      <div class="panels">
+        {
+          days.map(({ date, sets }) => (
+            <section
+              class="day-panel"
+              id={`day-${date}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${date}`}
+              data-date={date}
+            >
+              <ol class="sets">
+                {sets.map((set) => {
+                  const names = set.artists.map((artist) => artist.name).join(' b2b ');
+                  return (
+                    <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
+                      <span class="time">
+                        <time class="start" datetime={set.start}>
+                          {clockTime(set.start)}
+                        </time>
+                        <time class="end" datetime={set.end}>
+                          {clockTime(set.end)}
+                        </time>
                       </span>
-                      <span class="stage">{set.stageName}</span>
-                    </span>
-                  </span>
-                  <FavouriteButton setKey={set.key} subject={names} />
-                </li>
-              );
-            })}
-          </ol>
-        ))
-      }
+                      <span class:list={['details', { single: set.artists.length === 1 }]}>
+                        <span class="photo">
+                          {set.image ? (
+                            <img
+                              src={set.image}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              data-initials={initials(set.artists[0].name)}
+                            />
+                          ) : (
+                            <span aria-hidden="true">{initials(set.artists[0].name)}</span>
+                          )}
+                        </span>
+                        <span class="text">
+                          <span class="artists">
+                            {set.artists.map((artist, index) => (
+                              <>
+                                {index > 0 && <span class="b2b"> b2b </span>}
+                                <a href={artistUrl(artist.id)}>{artist.name}</a>
+                              </>
+                            ))}
+                          </span>
+                          <span class="stage">{set.stageName}</span>
+                        </span>
+                      </span>
+                      <FavouriteButton setKey={set.key} subject={names} />
+                    </li>
+                  );
+                })}
+              </ol>
 
-      <p class="empty" hidden>
-        No favourite sets on this day. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save it.
-      </p>
+              <p class="empty" hidden>
+                No favourite sets on this day. Tap the heart on a set in the <a href={LINEUP_URL}>line-up</a> to save
+                it.
+              </p>
+            </section>
+          ))
+        }
+      </div>
+
       <noscript>
         <p class="empty">Turn on JavaScript to see your favourite sets.</p>
       </noscript>
@@ -131,40 +151,45 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   import { festivalNow } from '../now/now-next.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
-  import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
+  import { activeDayIndex, initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
 
   onPageMount((signal) => {
     const overlapTemplate = document.querySelector<HTMLTemplateElement>('#overlap-note');
     if (!overlapTemplate) return;
 
     const dayButtons = [...document.querySelectorAll<HTMLButtonElement>('.days button')];
-    const lists = [...document.querySelectorAll<HTMLOListElement>('.sets')];
+    const panels = document.querySelector<HTMLElement>('.panels')!;
+    const dayPanels = [...panels.querySelectorAll<HTMLElement>('.day-panel')];
     const count = document.querySelector<HTMLElement>('.count')!;
-    const empty = document.querySelector<HTMLElement>('.empty')!;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
     function favouriteDates(favourites: Set<string>): Set<string> {
       return new Set([...favourites].map((key) => key.split('/')[0]));
     }
 
     const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
-    let selectedDate =
-      days.length > 0
-        ? initialDate(days, festivalNow(new Date(), FESTIVAL_TIME_ZONE), favouriteDates(readFavourites(localStorage)))
-        : undefined;
+    let activeIndex = -1;
+
+    function updateCount() {
+      const day = days[activeIndex];
+      count.textContent = day ? setCountLabel(Number(dayPanels[activeIndex].dataset.count ?? 0), day.date) : '';
+    }
+
+    function setActiveDay(index: number) {
+      if (index === activeIndex || !days[index]) return;
+      activeIndex = index;
+      dayButtons.forEach((button, i) => button.setAttribute('aria-selected', String(i === index)));
+      updateCount();
+    }
 
     function render() {
       const favourites = readFavourites(localStorage);
-      for (const button of dayButtons) button.setAttribute('aria-pressed', String(button.dataset.date === selectedDate));
-
-      for (const list of lists) {
-        list.hidden = list.dataset.date !== selectedDate;
-        for (const note of list.querySelectorAll('.overlap')) note.remove();
-        const shown = [...list.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
+      for (const panel of dayPanels) {
+        for (const note of panel.querySelectorAll('.overlap')) note.remove();
+        const shown = [...panel.querySelectorAll<HTMLLIElement>('.set')].filter((row) => {
           row.hidden = !favourites.has(row.dataset.key!);
           return !row.hidden;
         });
-        if (list.hidden) continue;
-
         shown.slice(1).forEach((row, index) => {
           const earlier = shown[index];
           const minutes = overlapMinutes(
@@ -172,25 +197,34 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
             { start: row.dataset.start!, end: row.dataset.end! },
           );
           if (minutes === 0) return;
-          const note = overlapTemplate!.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
+          const note = overlapTemplate.content.firstElementChild!.cloneNode(true) as HTMLLIElement;
           note.querySelector('span')!.textContent = `These two sets overlap by ${minutes} min`;
           row.before(note);
         });
-        count.textContent = selectedDate ? setCountLabel(shown.length, selectedDate) : '';
-        empty.hidden = shown.length > 0;
+        panel.dataset.count = String(shown.length);
+        panel.querySelector<HTMLElement>('.empty')!.hidden = shown.length > 0;
       }
+      updateCount();
     }
 
-    for (const button of dayButtons) {
+    dayButtons.forEach((button, index) => {
       button.addEventListener(
         'click',
         () => {
-          selectedDate = button.dataset.date;
-          render();
+          panels.scrollTo({
+            left: index * panels.clientWidth,
+            behavior: reducedMotion.matches ? 'instant' : 'smooth',
+          });
         },
         { signal },
       );
-    }
+    });
+
+    panels.addEventListener(
+      'scroll',
+      () => setActiveDay(activeDayIndex(panels.scrollLeft, panels.clientWidth, days.length)),
+      { passive: true, signal },
+    );
 
     const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
     const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
@@ -233,6 +267,19 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
       );
     }
     render();
+    if (days.length > 0) {
+      const startDate = initialDate(
+        days,
+        festivalNow(new Date(), FESTIVAL_TIME_ZONE),
+        favouriteDates(readFavourites(localStorage)),
+      );
+      const startIndex = Math.max(
+        0,
+        days.findIndex((day) => day.date === startDate),
+      );
+      panels.scrollTo({ left: startIndex * panels.clientWidth, behavior: 'instant' });
+      setActiveDay(startIndex);
+    }
     renderAccount();
 
     // With no network, a photo that the service worker did not save cannot load.
@@ -254,6 +301,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    height: calc(100dvh - var(--bottom-chrome-height));
     padding-top: 1.75rem;
   }
 
@@ -295,13 +343,13 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     font-size: 0.75rem;
   }
 
-  .days button[aria-pressed='true'] {
+  .days button[aria-selected='true'] {
     border-color: var(--color-text);
     background: var(--color-text);
     color: var(--color-background);
   }
 
-  .days button[aria-pressed='true'] .date {
+  .days button[aria-selected='true'] .date {
     color: inherit;
     font-weight: 700;
   }
@@ -342,7 +390,29 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   }
 
   main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
     border-top: 1px solid var(--color-divider);
+  }
+
+  .panels {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .day-panel {
+    flex: 0 0 100%;
+    width: 100%;
+    overflow-y: auto;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   ol {

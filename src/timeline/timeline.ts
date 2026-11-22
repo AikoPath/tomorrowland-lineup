@@ -87,3 +87,9 @@ export function initialDate(days: { date: string; end: string }[], now: string, 
   if (festivalStarted && currentDay) return currentDay.date;
   return (days.find((day) => favouriteDates.has(day.date)) ?? days[0]).date;
 }
+
+/** The index of the day panel closest to the horizontal scroll position of the tab strip. */
+export function activeDayIndex(scrollLeft: number, panelWidth: number, dayCount: number): number {
+  if (dayCount <= 1 || panelWidth <= 0) return 0;
+  return Math.min(dayCount - 1, Math.max(0, Math.round(scrollLeft / panelWidth)));
+}
