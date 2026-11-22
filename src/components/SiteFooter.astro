@@ -1,11 +1,14 @@
 ---
 // The site uses the Tomorrowland name and logo, so the footer tells users that Tomorrowland did not make it.
+import { DONATION_URL } from '../site.ts';
 ---
 
 <footer class="site-footer">
   <p>Unofficial fan site. Not affiliated with Tomorrowland.</p>
   <p>
     Made with <span class="heart" aria-hidden="true">♥</span><span class="sr-only">love</span> in Singapore
+    <span class="separator" aria-hidden="true">·</span>
+    <a class="donation" href={DONATION_URL} target="_blank" rel="noopener noreferrer">Support this project</a>
   </p>
 </footer>
 
@@ -19,6 +22,20 @@
 
   p {
     margin: 0;
+  }
+
+  .separator {
+    margin-inline: 0.4em;
+  }
+
+  .donation {
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+  }
+
+  .donation:hover {
+    color: var(--color-text);
+    text-decoration-color: var(--color-accent);
   }
 
   .heart {
