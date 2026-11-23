@@ -102,9 +102,13 @@ test('startsInText gives no text when the set has started', () => {
 });
 
 test('canGoBack is true only when the previous page is on the same site in this tab', () => {
-  assert.equal(canGoBack('https://example.com/2026-12-12/?stage=core', 'https://example.com', 2), true);
-  assert.equal(canGoBack('https://example.com/', 'https://example.com', 1), false);
-  assert.equal(canGoBack('', 'https://example.com', 2), false);
-  assert.equal(canGoBack('https://other.example.com/', 'https://example.com', 2), false);
-  assert.equal(canGoBack('not-a-url', 'https://example.com', 2), false);
+  assert.equal(canGoBack('https://example.com/2026-12-12/?stage=core', 'https://example.com', 2, 0), true);
+  assert.equal(canGoBack('https://example.com/', 'https://example.com', 1, 0), false);
+  assert.equal(canGoBack('', 'https://example.com', 2, 0), false);
+  assert.equal(canGoBack('https://other.example.com/', 'https://example.com', 2, undefined), false);
+  assert.equal(canGoBack('not-a-url', 'https://example.com', 2, 0), false);
+});
+
+test('canGoBack is true after a navigation in the app, when the referrer is empty', () => {
+  assert.equal(canGoBack('', 'https://example.com', 3, 2), true);
 });
