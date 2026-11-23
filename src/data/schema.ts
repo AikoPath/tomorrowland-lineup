@@ -50,9 +50,9 @@ export const artistSchema = z.strictObject({
       soundcloud: linkTo('soundcloud.com').optional(),
     })
     .optional(),
-  /** The tracks of the `music.youtube` video, one track on each line. */
+  /** The tracks of a recent set of the artist, one track on each line. */
   setlist: z.string().trim().min(1).optional(),
-  /** The name of the set in `setlist`, for example the title of the video. */
+  /** The name of the set in `setlist`, for example `Artist @ Festival 2026`. */
   setlist_name: z.string().trim().min(1).optional(),
 });
 

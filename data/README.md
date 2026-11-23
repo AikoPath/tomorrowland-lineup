@@ -68,8 +68,8 @@ setlist: |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
 | `music.youtube` | Use the `/watch?v=…` link of one DJ set video. The player plays this video.     |
-| `setlist`       | The tracks of the `music.youtube` video, one track on each line.                |
-| `setlist_name`  | The name of the set in `setlist`, for example the title of the video.           |
+| `setlist`       | The tracks of a recent set of the artist, one track on each line.               |
+| `setlist_name`  | The name of the set in `setlist`.                                               |
 
 ### Images
 
