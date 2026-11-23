@@ -1,5 +1,5 @@
 ---
-import type { MusicTab, PreviewPlayer } from '../artist/music-player.ts';
+import { youtubeVideoId, type MusicTab, type PreviewPlayer } from '../artist/music-player.ts';
 import PlatformIcon from './PlatformIcon.astro';
 
 interface Props {
@@ -12,6 +12,8 @@ interface Props {
 const { artistId, artistName, artistUrl, tabs } = Astro.props;
 const players: PreviewPlayer[] = tabs.flatMap((tab) => (tab.player ? [{ service: tab.key, player: tab.player }] : []));
 const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
+const youtubePlayer = players.find((item) => item.service === 'youtube')?.player;
+const videoId = youtubePlayer && youtubeVideoId(youtubePlayer);
 ---
 
 <section class="listen" data-music-player data-track={trackData}>
@@ -48,6 +50,18 @@ const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
       ))
     }
   </ul>
+  {
+    videoId && (
+      <div class="video" data-video-box>
+        <button type="button" class="video-play" aria-label={`Play the video of ${artistName}`}>
+          <img src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`} alt="" loading="lazy" />
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+        </button>
+      </div>
+    )
+  }
 </section>
 
 <script>
@@ -57,6 +71,7 @@ const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
     getPreferredService,
     isTrackPlaying,
     playTrack,
+    setVideoBox,
     stopPlayback,
   } from '../player/global-player.ts';
   import { onPageMount } from '../player/navigation.ts';
@@ -69,6 +84,14 @@ const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
       if (buttons.length === 0) continue;
 
       const available = buttons.map((button) => button.dataset.service as MusicKey);
+
+      // The YouTube player of the dock moves into the video box. Without CSS anchor positioning, the video plays in the dock.
+      const videoPlay = root.querySelector<HTMLButtonElement>('[data-video-box] button');
+      if (videoPlay && CSS.supports('anchor-name: --artist-video')) {
+        setVideoBox(track.artistId);
+        signal.addEventListener('abort', () => setVideoBox(undefined));
+      }
+      videoPlay?.addEventListener('click', () => playTrack(track, { service: 'youtube' }), { signal });
 
       function render() {
         const playingArtist = isTrackPlaying(track.artistId);
@@ -86,6 +109,8 @@ const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
             active ? `Stop ${track.artistName} on ${label}` : `Play ${track.artistName} on ${label}`,
           );
         }
+        // The YouTube player covers the button while the video plays.
+        if (videoPlay) videoPlay.disabled = isTrackPlaying(track.artistId, 'youtube');
       }
 
       for (const button of buttons) {
@@ -171,6 +196,55 @@ const trackData = JSON.stringify({ artistId, artistName, artistUrl, players });
     background: var(--color-accent);
     color: var(--color-background);
     font-weight: 700;
+  }
+
+  .video {
+    anchor-name: --artist-video;
+    aspect-ratio: 16 / 9;
+    margin-top: 0.375rem;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+  }
+
+  .video-play {
+    position: relative;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+    place-items: center;
+  }
+
+  .video-play:disabled {
+    cursor: default;
+  }
+
+  /* The YouTube image has black bars at the top and the bottom. The box cuts them off. */
+  .video-play img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video-play svg {
+    position: relative;
+    box-sizing: content-box;
+    padding: 0.875rem 0.875rem 0.875rem 1.125rem;
+    border-radius: 50%;
+    background: var(--gradient-accent);
+    fill: currentColor;
+  }
+
+  .video-play:hover svg,
+  .video-play:focus-visible svg {
+    transform: scale(1.08);
   }
 
   .state {

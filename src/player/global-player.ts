@@ -56,6 +56,8 @@ let youtubeHandle: YouTubeHandle | undefined;
 let preferredService: MusicKey | undefined =
   typeof localStorage !== 'undefined' ? readMusicService(localStorage) : undefined;
 let loadToken = 0;
+/** The artist whose page shows a video box. The YouTube player of that artist moves into the box. */
+let videoBoxArtistId: string | undefined;
 
 function clearActiveHandles() {
   spotifyController?.destroy?.();
@@ -101,12 +103,14 @@ function renderChrome() {
     root.hidden = true;
     delete root.dataset.service;
     delete root.dataset.minimized;
+    delete root.dataset.inVideoBox;
     updateDockHeight();
     return;
   }
 
   root.hidden = false;
   root.dataset.service = current.service;
+  root.dataset.inVideoBox = String(current.service === 'youtube' && current.track.artistId === videoBoxArtistId);
   root.dataset.minimized = String(current.minimized);
 
   artistLink.href = current.track.artistUrl;
@@ -258,6 +262,15 @@ async function loadEmbed(service: MusicKey, player: Player, token: number) {
   mountOrReuseIframe(slot, src, service);
   showStatus(undefined);
   updateDockHeight();
+}
+
+/**
+ * Shows the YouTube player of the artist in the video box of the artist page, and not in the dock.
+ * The iframe stays in the dock element, so it continues to play when the user goes to a different page.
+ */
+export function setVideoBox(artistId: string | undefined): void {
+  videoBoxArtistId = artistId;
+  renderChrome();
 }
 
 export function getPreferredService(): MusicKey | undefined {
