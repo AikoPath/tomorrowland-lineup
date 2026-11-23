@@ -18,8 +18,8 @@ const youtubePlayer: PreviewPlayer = {
   service: 'youtube',
   player: {
     kind: 'embed',
-    src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc',
-    autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc&autoplay=1',
+    src: 'https://www.youtube-nocookie.com/embed/abc',
+    autoplaySrc: 'https://www.youtube-nocookie.com/embed/abc?autoplay=1',
   },
 };
 

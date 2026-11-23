@@ -39,13 +39,13 @@ social:
   website: https://exampleartist.com
 music:
   spotify: https://open.spotify.com/artist/xxxx
-  youtube: https://www.youtube.com/channel/UCxxxx
+  youtube: https://www.youtube.com/watch?v=xxxx
 ```
 
 - Only `name` is necessary. Add the other keys when you know the values.
 - Write genres in lowercase.
 - Use only https links to the platform of the key.
-- For `music.youtube`, use the `/channel/UC…` form of the link.
+- For `music.youtube`, use the `/watch?v=…` link of one DJ set video.
 - Do not copy image files into the repo. Use a link to the Tomorrowland image.
 
 The import from Tomorrowland does not change a value that you write in an artist file.

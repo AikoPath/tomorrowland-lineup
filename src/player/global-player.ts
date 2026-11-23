@@ -5,7 +5,7 @@ import {
   saveMusicService,
   soundcloudUrl,
   spotifyUri,
-  youtubePlaylistId,
+  youtubeVideoId,
   type Player,
 } from '../artist/music-player.ts';
 import { createSoundCloudHandle, type SoundCloudHandle } from '../artist/soundcloud-widget-api.ts';
@@ -211,17 +211,17 @@ async function loadEmbed(service: MusicKey, player: Player, token: number) {
     return;
   }
 
-  // 3. YouTube: reuse the live YT.Player iframe via loadPlaylist().
-  const ytPlaylist = youtubePlaylistId(player);
-  if (ytPlaylist) {
-    if (activeProvider === 'youtube' && youtubeHandle?.loadPlaylist(ytPlaylist)) {
+  // 3. YouTube: reuse the live YT.Player iframe via loadVideoById().
+  const ytVideo = youtubeVideoId(player);
+  if (ytVideo) {
+    if (activeProvider === 'youtube' && youtubeHandle?.loadVideo(ytVideo)) {
       updateDockHeight();
       return;
     }
 
     clearActiveHandles();
     slot.replaceChildren();
-    const handle = await playYouTube(slot, ytPlaylist, playerTitles.youtube).catch(() => undefined);
+    const handle = await playYouTube(slot, ytVideo, playerTitles.youtube).catch(() => undefined);
     if (token !== loadToken) {
       handle?.destroy();
       if (!current) slot.replaceChildren();
