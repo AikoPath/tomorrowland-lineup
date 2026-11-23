@@ -122,6 +122,16 @@ const musicTabs = toMusicTabs(artist);
       }
 
       {
+        artist.setlist && (
+          <section>
+            <h2>Recent set list</h2>
+            {artist.setlist_name && <p class="setlist-name">{artist.setlist_name}</p>}
+            <p class="setlist">{artist.setlist}</p>
+          </section>
+        )
+      }
+
+      {
         socialLinks.length > 0 && (
           <section>
             <h2>Follow</h2>
@@ -596,6 +606,19 @@ const musicTabs = toMusicTabs(artist);
   .set-b2b a {
     font-weight: 700;
     text-underline-offset: 0.2em;
+  }
+
+  .setlist-name {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+  }
+
+  .setlist {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    white-space: pre-line;
   }
 
   .pill {
