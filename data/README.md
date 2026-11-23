@@ -56,8 +56,8 @@ music:
   youtube: https://www.youtube.com/watch?v=xxxx
   soundcloud: https://soundcloud.com/exampleartist
 setlist: |
-  0:12 Example Artist - Intro
-  3:45 Other Artist - Example Track
+  Example Artist - Intro
+  Other Artist - Example Track
 ```
 
 | Key             | Rule                                                                            |
