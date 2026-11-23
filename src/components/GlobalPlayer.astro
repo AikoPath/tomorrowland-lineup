@@ -313,4 +313,53 @@ const musicServices = Object.entries(musicLabels) as [MusicKey, string][];
     min-height: min(160px, 45vw);
     height: min(160px, 45vw);
   }
+
+  /*
+   * On the artist page, the YouTube player of the artist covers the video box of the page (see MusicPlayer.astro).
+   * The iframe does not move in the DOM, because a moved iframe loads again and stops.
+   * The dock is below the top bar and the navigation bar of the page, so that the video goes behind them when the page scrolls.
+   */
+  @supports (anchor-name: --artist-video) {
+    .global-player[data-in-video-box='true'] {
+      z-index: 1;
+      border-top: 0;
+    }
+
+    /* The bar of the dock covers the video when the video scrolls behind it. */
+    .global-player[data-in-video-box='true'] .header {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--color-control-line);
+      background: var(--color-bar);
+    }
+
+    .global-player[data-in-video-box='true'] .body {
+      padding-bottom: 0;
+    }
+
+    /* The Listen buttons of the page change the service, and the dock has no player to minimize. */
+    .global-player[data-in-video-box='true'] .services,
+    .global-player[data-in-video-box='true'] .toggle {
+      display: none;
+    }
+
+    .global-player[data-in-video-box='true'] .slot {
+      position: fixed;
+      position-anchor: --artist-video;
+      top: anchor(top);
+      left: anchor(left);
+      width: anchor-size(width);
+      min-height: 0;
+      height: anchor-size(height);
+      /* The player shows also when the dock is minimized. */
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .global-player[data-in-video-box='true'] .slot :global(iframe) {
+      min-height: 0;
+      height: 100%;
+      border-radius: 0.5rem;
+    }
+  }
 </style>
