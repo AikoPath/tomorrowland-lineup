@@ -11,7 +11,7 @@ import {
   saveMusicService,
   soundcloudUrl,
   spotifyUri,
-  youtubePlaylistId,
+  youtubeVideoId,
   type MusicServiceStorage,
   type PreviewPlayer,
 } from './music-player.ts';
@@ -22,7 +22,7 @@ test('musicTabs gives one tab with an embed player for each music link, in the o
     name: 'AFROJACK',
     music: {
       soundcloud: 'https://soundcloud.com/afrojack?utm_source=x',
-      youtube: 'https://www.youtube.com/channel/UC5thKP1rA7SjbfBhQMOaWGg',
+      youtube: 'https://www.youtube.com/watch?v=09k23KLQqgo',
       spotify: 'https://open.spotify.com/artist/4D75GcNG95ebPtNvoNVXhz?si=abc',
     },
   });
@@ -37,11 +37,11 @@ test('musicTabs gives one tab with an embed player for each music link, in the o
     {
       key: 'youtube',
       label: 'YouTube',
-      url: 'https://www.youtube.com/channel/UC5thKP1rA7SjbfBhQMOaWGg',
+      url: 'https://www.youtube.com/watch?v=09k23KLQqgo',
       player: {
         kind: 'embed',
-        src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULF5thKP1rA7SjbfBhQMOaWGg',
-        autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULF5thKP1rA7SjbfBhQMOaWGg&autoplay=1',
+        src: 'https://www.youtube-nocookie.com/embed/09k23KLQqgo',
+        autoplaySrc: 'https://www.youtube-nocookie.com/embed/09k23KLQqgo?autoplay=1',
       },
     },
     {
@@ -126,8 +126,8 @@ const youtubePreview: PreviewPlayer = {
   service: 'youtube',
   player: {
     kind: 'embed',
-    src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc',
-    autoplaySrc: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc&autoplay=1',
+    src: 'https://www.youtube-nocookie.com/embed/abc',
+    autoplaySrc: 'https://www.youtube-nocookie.com/embed/abc?autoplay=1',
   },
 };
 
@@ -144,7 +144,7 @@ test('previewPlayers gives the player of each music link that has one, in the or
       music: {
         soundcloud: 'https://soundcloud.com/example',
         spotify: 'https://open.spotify.com/user/example',
-        youtube: 'https://www.youtube.com/channel/UCabc',
+        youtube: 'https://www.youtube.com/watch?v=abc',
       },
     }).map((preview) => preview.service),
     ['youtube', 'soundcloud'],
@@ -188,7 +188,7 @@ test('spotifyUri gives the URI of the artist of a Spotify embed', () => {
     spotifyUri({ kind: 'embed', src: 'https://open.spotify.com/embed/artist/4D75GcNG95ebPtNvoNVXhz' }),
     'spotify:artist:4D75GcNG95ebPtNvoNVXhz',
   );
-  assert.equal(spotifyUri({ kind: 'embed', src: 'https://www.youtube-nocookie.com/embed/videoseries?list=UULFabc' }), undefined);
+  assert.equal(spotifyUri({ kind: 'embed', src: 'https://www.youtube-nocookie.com/embed/abc' }), undefined);
   assert.equal(spotifyUri({ kind: 'apple-top-song', lookupUrl: 'https://itunes.apple.com/lookup?id=1' }), undefined);
 });
 
@@ -219,7 +219,7 @@ test('soundcloudUrl extracts the artist URL from a SoundCloud embed player', () 
   assert.equal(soundcloudUrl(spotifyPreview.player), undefined);
 });
 
-test('youtubePlaylistId extracts the uploads playlist ID from a YouTube embed player', () => {
-  assert.equal(youtubePlaylistId(youtubePreview.player), 'UULFabc');
-  assert.equal(youtubePlaylistId(spotifyPreview.player), undefined);
+test('youtubeVideoId extracts the video ID from a YouTube embed player', () => {
+  assert.equal(youtubeVideoId(youtubePreview.player), 'abc');
+  assert.equal(youtubeVideoId(spotifyPreview.player), undefined);
 });

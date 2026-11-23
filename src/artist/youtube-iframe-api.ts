@@ -1,12 +1,12 @@
 /**
- * The YouTube IFrame Player API lets us switch artist upload playlists inside the same iframe
- * via `loadPlaylist(...)` without destroying and recreating the iframe.
+ * The YouTube IFrame Player API lets us switch artist videos inside the same iframe
+ * via `loadVideoById(...)` without destroying and recreating the iframe.
  * https://developers.google.com/youtube/iframe_api_reference
  */
 
 interface YouTubePlayer {
   playVideo(): void;
-  loadPlaylist(options: { list: string; listType: 'playlist'; index?: number; startSeconds?: number }): void;
+  loadVideoById(videoId: string): void;
   destroy(): void;
 }
 
@@ -17,6 +17,7 @@ interface YouTubeApi {
       host?: string;
       width?: string | number;
       height?: string | number;
+      videoId?: string;
       playerVars?: Record<string, string | number>;
       events?: { onReady?: (event: { target: YouTubePlayer }) => void };
     },
@@ -59,14 +60,14 @@ function loadApi(): Promise<YouTubeApi> {
 }
 
 export interface YouTubeHandle {
-  loadPlaylist(playlistId: string): boolean;
+  loadVideo(videoId: string): boolean;
   destroy(): void;
 }
 
-/** Mounts a privacy-enhanced YouTube player and returns a handle that switches playlists in-place. */
+/** Mounts a privacy-enhanced YouTube player and returns a handle that switches videos in-place. */
 export async function playYouTube(
   element: HTMLElement,
-  playlistId: string,
+  videoId: string,
   title: string,
 ): Promise<YouTubeHandle> {
   const yt = await loadApi();
@@ -75,27 +76,26 @@ export async function playYouTube(
 
   let ready = false;
   let destroyed = false;
-  let pendingPlaylistId: string | undefined;
+  let pendingVideoId: string | undefined;
 
   const player = new yt.Player(host, {
     host: 'https://www.youtube-nocookie.com',
     width: '100%',
     height: '100%',
+    videoId,
     playerVars: {
       autoplay: 1,
       playsinline: 1,
-      listType: 'playlist',
-      list: playlistId,
       origin: location.origin,
     },
     events: {
       onReady: (event) => {
         if (destroyed) return;
         ready = true;
-        if (pendingPlaylistId) {
-          const next = pendingPlaylistId;
-          pendingPlaylistId = undefined;
-          event.target.loadPlaylist({ list: next, listType: 'playlist', index: 0, startSeconds: 0 });
+        if (pendingVideoId) {
+          const next = pendingVideoId;
+          pendingVideoId = undefined;
+          event.target.loadVideoById(next);
         } else {
           event.target.playVideo();
         }
@@ -107,13 +107,13 @@ export async function playYouTube(
   if (iframe) iframe.title = title;
 
   return {
-    loadPlaylist(nextPlaylistId: string): boolean {
+    loadVideo(nextVideoId: string): boolean {
       if (destroyed || !element.querySelector('iframe')) return false;
       if (!ready) {
-        pendingPlaylistId = nextPlaylistId;
+        pendingVideoId = nextVideoId;
         return true;
       }
-      player.loadPlaylist({ list: nextPlaylistId, listType: 'playlist', index: 0, startSeconds: 0 });
+      player.loadVideoById(nextVideoId);
       return true;
     },
     destroy() {

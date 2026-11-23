@@ -14,7 +14,7 @@ const validFiles = {
     'social:',
     '  instagram: https://www.instagram.com/amelie_lens',
     'music:',
-    '  youtube: https://www.youtube.com/channel/UCabc123',
+    '  youtube: https://www.youtube.com/watch?v=abcdefghijk',
   ].join('\n'),
   'artists/charlotte-de-witte.yml': 'name: Charlotte de Witte\n',
   'sets/2026-12-11.yml': [
@@ -90,13 +90,13 @@ test('rejects a link to the wrong platform', async () => {
   assert.deepEqual(problems, ['artists/charlotte-de-witte.yml: music.spotify: Expected an https link to open.spotify.com']);
 });
 
-test('rejects a YouTube link without a channel ID', async () => {
+test('rejects a YouTube link without a video ID', async () => {
   const problems = await problemsFor({
     ...validFiles,
     'artists/charlotte-de-witte.yml': 'name: C\nmusic:\n  youtube: https://www.youtube.com/@charlottedewitte\n',
   });
   assert.deepEqual(problems, [
-    'artists/charlotte-de-witte.yml: music.youtube: Use the https://www.youtube.com/channel/UC… form',
+    'artists/charlotte-de-witte.yml: music.youtube: Use the https://www.youtube.com/watch?v=… form',
   ]);
 });
 

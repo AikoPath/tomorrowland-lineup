@@ -15,11 +15,11 @@ function linkTo(...domains: string[]) {
   });
 }
 
-// The YouTube player embeds a channel by its ID, and only /channel/ links contain the ID.
-const youtubeChannel = linkTo('youtube.com').refine(
-  (url) => /^\/channel\/UC[\w-]+\/?$/.test(new URL(url).pathname),
-  'Use the https://www.youtube.com/channel/UC… form',
-);
+// The YouTube player embeds one video by its ID, and the watch link has the ID in the "v" parameter.
+const youtubeVideo = linkTo('youtube.com').refine((url) => {
+  const { pathname, searchParams } = new URL(url);
+  return pathname === '/watch' && /^[\w-]{11}$/.test(searchParams.get('v') ?? '');
+}, 'Use the https://www.youtube.com/watch?v=… form');
 
 export const artistSchema = z.strictObject({
   name: z.string().trim().min(1),
@@ -46,7 +46,7 @@ export const artistSchema = z.strictObject({
     .strictObject({
       spotify: linkTo('open.spotify.com').optional(),
       apple_music: linkTo('music.apple.com').optional(),
-      youtube: youtubeChannel.optional(),
+      youtube: youtubeVideo.optional(),
       soundcloud: linkTo('soundcloud.com').optional(),
     })
     .optional(),

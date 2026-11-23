@@ -77,13 +77,13 @@ export function soundcloudUrl(player: Player): string | undefined {
   }
 }
 
-/** For example `UULF5thKP1rA7SjbfBhQMOaWGg` from a YouTube uploads playlist embed URL. */
-export function youtubePlaylistId(player: Player): string | undefined {
+/** For example `XzXsGMhiTns` from a YouTube video embed URL. */
+export function youtubeVideoId(player: Player): string | undefined {
   if (player.kind !== 'embed') return undefined;
   try {
     const url = new URL(player.src);
     if (url.hostname !== 'www.youtube-nocookie.com') return undefined;
-    return url.searchParams.get('list') ?? undefined;
+    return url.pathname.match(/^\/embed\/([\w-]+)$/)?.[1];
   } catch {
     return undefined;
   }
@@ -112,12 +112,10 @@ function playerFor(key: MusicKey, url: URL): Player | undefined {
       return { kind: 'embed', src: src.href, autoplaySrc: autoplaySrc.href };
     }
     case 'youtube': {
-      // The playlist "UULF" + the channel ID without "UC" has the uploads of the channel with no Shorts.
-      // The player cannot play most Shorts, so the full uploads playlist ("UU") often starts with an error.
-      const channelId = url.pathname.match(/\/channel\/UC([\w-]+)/)?.[1];
-      if (!channelId) return undefined;
-      const src = `https://www.youtube-nocookie.com/embed/videoseries?list=UULF${channelId}`;
-      return { kind: 'embed', src, autoplaySrc: `${src}&autoplay=1` };
+      const videoId = url.searchParams.get('v');
+      if (!videoId) return undefined;
+      const src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+      return { kind: 'embed', src, autoplaySrc: `${src}?autoplay=1` };
     }
     case 'apple_music':
       return appleTopSongPlayer(url);

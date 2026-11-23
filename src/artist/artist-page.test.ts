@@ -58,7 +58,7 @@ test('artistLinks gives the social links and the music links in a fixed order, w
     id: 'amelie-lens',
     name: 'Amelie Lens',
     social: { website: 'https://amelielens.com', instagram: 'https://www.instagram.com/amelie_lens' },
-    music: { youtube: 'https://www.youtube.com/channel/UCabc', spotify: 'https://open.spotify.com/artist/abc' },
+    music: { youtube: 'https://www.youtube.com/watch?v=abc', spotify: 'https://open.spotify.com/artist/abc' },
   });
   assert.deepEqual(links, {
     social: [
@@ -67,7 +67,7 @@ test('artistLinks gives the social links and the music links in a fixed order, w
     ],
     music: [
       { key: 'spotify', label: 'Spotify', url: 'https://open.spotify.com/artist/abc' },
-      { key: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/channel/UCabc' },
+      { key: 'youtube', label: 'YouTube', url: 'https://www.youtube.com/watch?v=abc' },
     ],
   });
 });

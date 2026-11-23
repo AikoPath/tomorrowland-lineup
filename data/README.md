@@ -53,7 +53,7 @@ social:
 music:
   spotify: https://open.spotify.com/artist/xxxx
   apple_music: https://music.apple.com/artist/xxxx
-  youtube: https://www.youtube.com/channel/UCxxxx
+  youtube: https://www.youtube.com/watch?v=xxxx
   soundcloud: https://soundcloud.com/exampleartist
 ```
 
@@ -63,7 +63,7 @@ music:
 | `genres`        | A list of lowercase genre names.                                                |
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
-| `music.youtube` | Use the `/channel/UC…` form. The YouTube player needs the channel ID.           |
+| `music.youtube` | Use the `/watch?v=…` link of one DJ set video. The player plays this video.     |
 
 ### Images
 
