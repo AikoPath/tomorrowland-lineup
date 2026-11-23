@@ -96,10 +96,10 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                       data-artist-url={artistUrl(playable.artist.id)}
                       data-players={JSON.stringify(playable.players)}
                     >
-                      <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                      <svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
                         <path d="M8 5v14l11-7z"></path>
                       </svg>
-                      <svg class="icon-stop" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                      <svg class="icon-stop" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
                         <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
                       </svg>
                     </button>
@@ -553,10 +553,11 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
   /* The round play button at the end of a row, as in the Explore design. */
   .play {
+    position: relative;
     display: grid;
     flex: none;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
     padding: 0;
     place-items: center;
     border: 1px solid var(--color-text);
@@ -564,6 +565,13 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     background: transparent;
     color: var(--color-text);
     cursor: pointer;
+  }
+
+  /* The visible circle is small, so a larger invisible area receives the touch. */
+  .play::before {
+    position: absolute;
+    inset: -0.625rem;
+    content: '';
   }
 
   .play svg {
