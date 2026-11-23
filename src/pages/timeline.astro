@@ -1,5 +1,4 @@
 ---
-import FavouriteButton from '../components/FavouriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { loadLineup } from '../data/load.ts';
@@ -7,6 +6,7 @@ import Base from '../layouts/Base.astro';
 import { initials } from '../now/now-next.ts';
 import { SITE_NAME } from '../site.ts';
 import { timelineDays } from '../timeline/timeline.ts';
+import { playableSetArtist } from '../artist/music-player.ts';
 import { dayLabelParts } from '../timetable/layout.ts';
 import { ACCOUNT_AVAILABLE } from '../account/available.ts';
 import { LINEUP_URL, SIGN_IN_URL, artistUrl } from '../urls.ts';
@@ -48,7 +48,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         days.map(({ date, sets }) => (
           <ol class="sets" data-date={date}>
             {sets.map((set) => {
-              const names = set.artists.map((artist) => artist.name).join(' b2b ');
+              const playable = playableSetArtist(set.artists);
               return (
                 <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
                   <span class="time">
@@ -85,7 +85,25 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                       <span class="stage">{set.stageName}</span>
                     </span>
                   </span>
-                  <FavouriteButton setKey={set.key} subject={names} />
+                  {playable && (
+                    <button
+                      type="button"
+                      class="play"
+                      aria-pressed="false"
+                      aria-label={`Play a preview of ${playable.artist.name}`}
+                      data-artist-id={playable.artist.id}
+                      data-artist={playable.artist.name}
+                      data-artist-url={artistUrl(playable.artist.id)}
+                      data-players={JSON.stringify(playable.players)}
+                    >
+                      <svg class="icon-play" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                        <path d="M8 5v14l11-7z"></path>
+                      </svg>
+                      <svg class="icon-stop" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                        <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -129,9 +147,11 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
 <script>
   import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+  import type { PreviewPlayer } from '../artist/music-player.ts';
   import { sessionEmail } from '../account/session.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
+  import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../player/global-player.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
   import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
@@ -204,6 +224,42 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
       },
       { signal },
     );
+
+    const playButtons = [...main.querySelectorAll<HTMLButtonElement>('.play')];
+    function renderPlayButtons() {
+      for (const button of playButtons) {
+        const playing = isTrackPlaying(button.dataset.artistId!);
+        button.setAttribute('aria-pressed', String(playing));
+        button.setAttribute(
+          'aria-label',
+          playing ? `Stop the preview of ${button.dataset.artist}` : `Play a preview of ${button.dataset.artist}`,
+        );
+      }
+    }
+    function trackFromButton(button: HTMLButtonElement) {
+      const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
+      return {
+        artistId: button.dataset.artistId!,
+        artistName: button.dataset.artist!,
+        artistUrl: button.dataset.artistUrl!,
+        players,
+      };
+    }
+    // The previous and next buttons of the player go through the favourite sets of all days, in timeline order.
+    for (const button of playButtons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const favouriteQueue = playButtons
+            .filter((candidate) => !candidate.closest<HTMLLIElement>('.set')?.hidden)
+            .map(trackFromButton);
+          toggleTrack(trackFromButton(button), favouriteQueue);
+        },
+        { signal },
+      );
+    }
+    document.addEventListener(PLAYER_CHANGE_EVENT, renderPlayButtons, { signal });
+    renderPlayButtons();
 
     const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
     const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
@@ -404,7 +460,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     gap: 0.75rem;
     align-items: center;
     min-height: 4.25rem;
-    padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+    padding: 0.5rem 1.25rem;
     border-bottom: 1px solid var(--color-divider);
   }
 
@@ -493,6 +549,44 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   .stage {
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+  }
+
+  /* The round play button at the end of a row, as in the Explore design. */
+  .play {
+    position: relative;
+    display: grid;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--color-text);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  /* The visible circle is small, so a larger invisible area receives the touch. */
+  .play::before {
+    position: absolute;
+    inset: -0.625rem;
+    content: '';
+  }
+
+  .play svg {
+    fill: currentColor;
+  }
+
+  .play[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-background);
+  }
+
+  .play[aria-pressed='false'] .icon-stop,
+  .play[aria-pressed='true'] .icon-play {
+    display: none;
   }
 
   .overlap {
