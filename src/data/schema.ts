@@ -50,6 +50,8 @@ export const artistSchema = z.strictObject({
       soundcloud: linkTo('soundcloud.com').optional(),
     })
     .optional(),
+  /** The tracks of the `music.youtube` video, one track on each line. */
+  setlist: z.string().trim().min(1).optional(),
 });
 
 export const stagesSchema = z.array(

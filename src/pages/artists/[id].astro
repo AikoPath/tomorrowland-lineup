@@ -122,6 +122,15 @@ const musicTabs = toMusicTabs(artist);
       }
 
       {
+        artist.setlist && (
+          <section>
+            <h2>Set list</h2>
+            <p class="setlist">{artist.setlist}</p>
+          </section>
+        )
+      }
+
+      {
         socialLinks.length > 0 && (
           <section>
             <h2>Follow</h2>
@@ -596,6 +605,13 @@ const musicTabs = toMusicTabs(artist);
   .set-b2b a {
     font-weight: 700;
     text-underline-offset: 0.2em;
+  }
+
+  .setlist {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    white-space: pre-line;
   }
 
   .pill {

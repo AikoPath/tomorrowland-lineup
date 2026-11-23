@@ -55,6 +55,9 @@ music:
   apple_music: https://music.apple.com/artist/xxxx
   youtube: https://www.youtube.com/watch?v=xxxx
   soundcloud: https://soundcloud.com/exampleartist
+setlist: |
+  0:12 Example Artist - Intro
+  3:45 Other Artist - Example Track
 ```
 
 | Key             | Rule                                                                            |
@@ -64,6 +67,7 @@ music:
 | `social.*`      | An https link to the platform of the key. `x` also accepts `twitter.com` links. |
 | `music.*`       | An https link to the artist page. A link to a song or album shows no player.    |
 | `music.youtube` | Use the `/watch?v=…` link of one DJ set video. The player plays this video.     |
+| `setlist`       | The tracks of the `music.youtube` video, one track on each line.                |
 
 ### Images
 
