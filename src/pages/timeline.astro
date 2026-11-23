@@ -1,5 +1,4 @@
 ---
-import FavouriteButton from '../components/FavouriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { loadLineup } from '../data/load.ts';
@@ -49,7 +48,6 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         days.map(({ date, sets }) => (
           <ol class="sets" data-date={date}>
             {sets.map((set) => {
-              const names = set.artists.map((artist) => artist.name).join(' b2b ');
               const playable = playableSetArtist(set.artists);
               return (
                 <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
@@ -62,38 +60,17 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                     </time>
                   </span>
                   <span class:list={['details', { single: set.artists.length === 1 }]}>
-                    <span class="media">
-                      <span class="photo">
-                        {set.image ? (
-                          <img
-                            src={set.image}
-                            alt=""
-                            loading="lazy"
-                            decoding="async"
-                            data-initials={initials(set.artists[0].name)}
-                          />
-                        ) : (
-                          <span aria-hidden="true">{initials(set.artists[0].name)}</span>
-                        )}
-                      </span>
-                      {playable && (
-                        <button
-                          type="button"
-                          class="play"
-                          aria-pressed="false"
-                          aria-label={`Play a preview of ${playable.artist.name}`}
-                          data-artist-id={playable.artist.id}
-                          data-artist={playable.artist.name}
-                          data-artist-url={artistUrl(playable.artist.id)}
-                          data-players={JSON.stringify(playable.players)}
-                        >
-                          <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                            <path d="M8 5v14l11-7z"></path>
-                          </svg>
-                          <svg class="icon-stop" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                            <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
-                          </svg>
-                        </button>
+                    <span class="photo">
+                      {set.image ? (
+                        <img
+                          src={set.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          data-initials={initials(set.artists[0].name)}
+                        />
+                      ) : (
+                        <span aria-hidden="true">{initials(set.artists[0].name)}</span>
                       )}
                     </span>
                     <span class="text">
@@ -108,7 +85,25 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                       <span class="stage">{set.stageName}</span>
                     </span>
                   </span>
-                  <FavouriteButton setKey={set.key} subject={names} />
+                  {playable && (
+                    <button
+                      type="button"
+                      class="play"
+                      aria-pressed="false"
+                      aria-label={`Play a preview of ${playable.artist.name}`}
+                      data-artist-id={playable.artist.id}
+                      data-artist={playable.artist.name}
+                      data-artist-url={artistUrl(playable.artist.id)}
+                      data-players={JSON.stringify(playable.players)}
+                    >
+                      <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path d="M8 5v14l11-7z"></path>
+                      </svg>
+                      <svg class="icon-stop" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+                      </svg>
+                    </button>
+                  )}
                 </li>
               );
             })}
@@ -465,7 +460,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     gap: 0.75rem;
     align-items: center;
     min-height: 4.25rem;
-    padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+    padding: 0.5rem 1.25rem;
     border-bottom: 1px solid var(--color-divider);
   }
 
@@ -511,49 +506,6 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     font-weight: 700;
   }
 
-  .media {
-    position: relative;
-    flex: none;
-  }
-
-  /* A round button on the lower right part of the photo, as on the Explore page. It is above the link of the row. */
-  .play {
-    position: absolute;
-    right: 0.25rem;
-    bottom: 0.25rem;
-    z-index: 1;
-    display: grid;
-    width: 1.5rem;
-    height: 1.5rem;
-    place-items: center;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--color-text);
-    color: var(--color-background);
-    cursor: pointer;
-  }
-
-  /* The visible circle is small, so a larger invisible area receives the touch. */
-  .play::before {
-    position: absolute;
-    inset: -0.625rem;
-    content: '';
-  }
-
-  .play svg {
-    fill: currentColor;
-  }
-
-  .play[aria-pressed='true'] {
-    background: var(--color-accent);
-  }
-
-  .play[aria-pressed='false'] .icon-stop,
-  .play[aria-pressed='true'] .icon-play {
-    display: none;
-  }
-
   .photo img {
     width: 100%;
     height: 100%;
@@ -597,6 +549,36 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   .stage {
     color: var(--color-text-muted);
     font-size: 0.8125rem;
+  }
+
+  /* The round play button at the end of a row, as in the Explore design. */
+  .play {
+    display: grid;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid var(--color-text);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .play svg {
+    fill: currentColor;
+  }
+
+  .play[aria-pressed='true'] {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-background);
+  }
+
+  .play[aria-pressed='false'] .icon-stop,
+  .play[aria-pressed='true'] .icon-play {
+    display: none;
   }
 
   .overlap {
