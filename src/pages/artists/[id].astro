@@ -124,7 +124,8 @@ const musicTabs = toMusicTabs(artist);
       {
         artist.setlist && (
           <section>
-            <h2>Previous set list (no guarantee)</h2>
+            <h2>Recent set list</h2>
+            {artist.setlist_name && <p class="setlist-name">{artist.setlist_name}</p>}
             <p class="setlist">{artist.setlist}</p>
           </section>
         )
@@ -605,6 +606,12 @@ const musicTabs = toMusicTabs(artist);
   .set-b2b a {
     font-weight: 700;
     text-underline-offset: 0.2em;
+  }
+
+  .setlist-name {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
   }
 
   .setlist {

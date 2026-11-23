@@ -52,6 +52,8 @@ export const artistSchema = z.strictObject({
     .optional(),
   /** The tracks of the `music.youtube` video, one track on each line. */
   setlist: z.string().trim().min(1).optional(),
+  /** The name of the set in `setlist`, for example the title of the video. */
+  setlist_name: z.string().trim().min(1).optional(),
 });
 
 export const stagesSchema = z.array(
