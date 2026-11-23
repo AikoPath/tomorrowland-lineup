@@ -7,6 +7,7 @@ import Base from '../layouts/Base.astro';
 import { initials } from '../now/now-next.ts';
 import { SITE_NAME } from '../site.ts';
 import { timelineDays } from '../timeline/timeline.ts';
+import { playableSetArtist } from '../artist/music-player.ts';
 import { dayLabelParts } from '../timetable/layout.ts';
 import { ACCOUNT_AVAILABLE } from '../account/available.ts';
 import { LINEUP_URL, SIGN_IN_URL, artistUrl } from '../urls.ts';
@@ -49,6 +50,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
           <ol class="sets" data-date={date}>
             {sets.map((set) => {
               const names = set.artists.map((artist) => artist.name).join(' b2b ');
+              const playable = playableSetArtist(set.artists);
               return (
                 <li class="set" data-key={set.key} data-start={set.start} data-end={set.end} hidden>
                   <span class="time">
@@ -60,17 +62,38 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
                     </time>
                   </span>
                   <span class:list={['details', { single: set.artists.length === 1 }]}>
-                    <span class="photo">
-                      {set.image ? (
-                        <img
-                          src={set.image}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          data-initials={initials(set.artists[0].name)}
-                        />
-                      ) : (
-                        <span aria-hidden="true">{initials(set.artists[0].name)}</span>
+                    <span class="media">
+                      <span class="photo">
+                        {set.image ? (
+                          <img
+                            src={set.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            data-initials={initials(set.artists[0].name)}
+                          />
+                        ) : (
+                          <span aria-hidden="true">{initials(set.artists[0].name)}</span>
+                        )}
+                      </span>
+                      {playable && (
+                        <button
+                          type="button"
+                          class="play"
+                          aria-pressed="false"
+                          aria-label={`Play a preview of ${playable.artist.name}`}
+                          data-artist-id={playable.artist.id}
+                          data-artist={playable.artist.name}
+                          data-artist-url={artistUrl(playable.artist.id)}
+                          data-players={JSON.stringify(playable.players)}
+                        >
+                          <svg class="icon-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path d="M8 5v14l11-7z"></path>
+                          </svg>
+                          <svg class="icon-stop" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path d="M7 6h4v12H7zM13 6h4v12h-4z"></path>
+                          </svg>
+                        </button>
                       )}
                     </span>
                     <span class="text">
@@ -129,9 +152,11 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
 <script>
   import { ACCOUNT_AVAILABLE } from '../account/available.ts';
+  import type { PreviewPlayer } from '../artist/music-player.ts';
   import { sessionEmail } from '../account/session.ts';
   import { FAVOURITES_CHANGE_EVENT, readFavourites } from '../favourites/favourites.ts';
   import { festivalNow } from '../now/now-next.ts';
+  import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../player/global-player.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
   import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
@@ -204,6 +229,42 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
       },
       { signal },
     );
+
+    const playButtons = [...main.querySelectorAll<HTMLButtonElement>('.play')];
+    function renderPlayButtons() {
+      for (const button of playButtons) {
+        const playing = isTrackPlaying(button.dataset.artistId!);
+        button.setAttribute('aria-pressed', String(playing));
+        button.setAttribute(
+          'aria-label',
+          playing ? `Stop the preview of ${button.dataset.artist}` : `Play a preview of ${button.dataset.artist}`,
+        );
+      }
+    }
+    function trackFromButton(button: HTMLButtonElement) {
+      const players: PreviewPlayer[] = JSON.parse(button.dataset.players ?? '[]');
+      return {
+        artistId: button.dataset.artistId!,
+        artistName: button.dataset.artist!,
+        artistUrl: button.dataset.artistUrl!,
+        players,
+      };
+    }
+    // The previous and next buttons of the player go through the favourite sets of all days, in timeline order.
+    for (const button of playButtons) {
+      button.addEventListener(
+        'click',
+        () => {
+          const favouriteQueue = playButtons
+            .filter((candidate) => !candidate.closest<HTMLLIElement>('.set')?.hidden)
+            .map(trackFromButton);
+          toggleTrack(trackFromButton(button), favouriteQueue);
+        },
+        { signal },
+      );
+    }
+    document.addEventListener(PLAYER_CHANGE_EVENT, renderPlayButtons, { signal });
+    renderPlayButtons();
 
     const deviceNote = document.querySelector<HTMLElement>('.device-note p')!;
     const signInLink = document.querySelector<HTMLElement>('.device-note .sign-in');
@@ -448,6 +509,49 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
     background: var(--color-card);
     font-size: 0.9375rem;
     font-weight: 700;
+  }
+
+  .media {
+    position: relative;
+    flex: none;
+  }
+
+  /* A round button on the lower right part of the photo, as on the Explore page. It is above the link of the row. */
+  .play {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    z-index: 1;
+    display: grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-text);
+    color: var(--color-background);
+    cursor: pointer;
+  }
+
+  /* The visible circle is small, so a larger invisible area receives the touch. */
+  .play::before {
+    position: absolute;
+    inset: -0.625rem;
+    content: '';
+  }
+
+  .play svg {
+    fill: currentColor;
+  }
+
+  .play[aria-pressed='true'] {
+    background: var(--color-accent);
+  }
+
+  .play[aria-pressed='false'] .icon-stop,
+  .play[aria-pressed='true'] .icon-play {
+    display: none;
   }
 
   .photo img {
