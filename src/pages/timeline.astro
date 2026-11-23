@@ -38,22 +38,6 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
           </div>
         )
       }
-
-      <div class="device-note">
-        <p>Saved on this device only.</p>
-        {
-          ACCOUNT_AVAILABLE && (
-            <>
-              <a class="account-action sign-in" href={SIGN_IN_URL}>
-                Sign in to keep them
-              </a>
-              <button type="button" class="account-action sign-out" hidden>
-                Sign out
-              </button>
-            </>
-          )
-        }
-      </div>
     </div>
     <noscript>
       <p class="empty">Turn on JavaScript to see your favourite sets.</p>
@@ -124,6 +108,22 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         </li>
       </template>
     </main>
+
+    <div class="device-note">
+      <p>Saved on this device only.</p>
+      {
+        ACCOUNT_AVAILABLE && (
+          <>
+            <a class="account-action sign-in" href={SIGN_IN_URL}>
+              Sign in to keep them
+            </a>
+            <button type="button" class="account-action sign-out" hidden>
+              Sign out
+            </button>
+          </>
+        )
+      }
+    </div>
   </div>
 </Base>
 
@@ -322,6 +322,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
   .device-note {
     display: flex;
+    margin: 0 1.25rem 0.75rem;
     gap: 0.75rem;
     align-items: center;
     min-height: 2.75rem;
