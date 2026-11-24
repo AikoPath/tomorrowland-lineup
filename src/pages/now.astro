@@ -67,7 +67,10 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
                     <div class="progress" aria-hidden="true">
                       <div class="progress-bar" />
                     </div>
-                    <span class="set-time" />
+                    <div class="set-time">
+                      <span class="set-start" />
+                      <span class="set-end" />
+                    </div>
                   </div>
                 </div>
                 <p class="idle">No set at this time</p>
@@ -167,7 +170,8 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
         } else image.remove();
         initials.textContent = firstArtist.image ? '' : firstArtist.initials;
         showNames(part('.current .names'), current.set.artists);
-        part('.set-time').textContent = setTime(current.set);
+        part('.set-start').textContent = clockLabel(current.set.start);
+        part('.set-end').textContent = clockLabel(current.set.end);
         part('.progress-bar').style.width = `${current.progress * 100}%`;
         part('.time-left').textContent = timeLeftLabel(current.minutesLeft);
       }
@@ -477,7 +481,10 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
   }
 
   .set-time {
+    display: flex;
+    justify-content: space-between;
     font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
   }
 
   .idle {
