@@ -158,7 +158,7 @@ const musicTabs = toMusicTabs(artist);
           event.ctrlKey ||
           event.shiftKey ||
           event.altKey ||
-          !canGoBack(document.referrer, location.origin, history.length)
+          !canGoBack(document.referrer, location.origin, history.length, history.state?.index)
         ) {
           return;
         }

@@ -110,8 +110,10 @@ export function startsInText(start: string, now: string): string | undefined {
 /**
  * Whether the back link on an artist page should use the browser history instead of opening the home page.
  * A direct visit, a new tab or a link from another site opens the home page.
+ * The referrer stays the same after a navigation in the app, so the history index of the ClientRouter shows those.
  */
-export function canGoBack(referrer: string, origin: string, historyLength: number): boolean {
+export function canGoBack(referrer: string, origin: string, historyLength: number, historyIndex: unknown): boolean {
+  if (typeof historyIndex === 'number' && historyIndex > 0) return true;
   if (historyLength <= 1 || !referrer) return false;
   try {
     return new URL(referrer).origin === origin;

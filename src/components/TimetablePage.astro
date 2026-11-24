@@ -5,6 +5,7 @@ import { playableSetArtist } from '../artist/music-player';
 import Base from '../layouts/Base.astro';
 import { SITE_NAME } from '../site';
 import { dayLabel, dayLabelParts, layoutDay } from '../timetable/layout';
+import { pickedDayKey } from '../picked-day';
 import { LINEUP_URL, artistUrl, dayUrl } from '../urls';
 import FavouriteButton from './FavouriteButton.astro';
 import PageHeader from './PageHeader.astro';
@@ -20,19 +21,26 @@ const { lineup, date } = Astro.props;
 const day = lineup.days.find((candidate) => candidate.date === date);
 if (!day) throw new Error(`The lineup has no day ${date}`);
 
-const otherDates = lineup.days.slice(1).map((otherDay) => otherDay.date);
+const dates = lineup.days.map((festivalDay) => festivalDay.date);
+const otherDates = dates.slice(1);
+const pickedKey = pickedDayKey('lineup');
 const timetable = layoutDay(day, lineup.stages, lineup.artists);
 ---
 
 <Base title={`Line-up ${dayLabel(date)} · ${SITE_NAME}`} mainPage="lineup" footer={false}>
   {
     Astro.url.pathname === LINEUP_URL && (
-      <script is:inline define:vars={{ otherDates }}>
+      <script is:inline define:vars={{ dates, otherDates, pickedKey }}>
         // On cold load, redirect before paint. On soft navigation, the module script uses ClientRouter.navigate so music keeps playing.
         if (!window.__astroSoftNav) {
+          // The day that the user picked in this app session comes first, then today.
           // The en-CA locale gives the local date as YYYY-MM-DD. The stage selection in the URL stays.
-          const today = new Date().toLocaleDateString('en-CA');
-          if (otherDates.includes(today)) location.replace(`/${today}/${location.search}`);
+          let picked;
+          try {
+            picked = JSON.parse(sessionStorage.getItem(pickedKey) ?? 'null')?.date;
+          } catch {}
+          const day = dates.includes(picked) ? picked : new Date().toLocaleDateString('en-CA');
+          if (otherDates.includes(day)) location.replace(`/${day}/${location.search}`);
         }
       </script>
     )
@@ -177,6 +185,7 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
   import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../player/global-player.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { isSetDimmed, readHighlight, withHighlight } from '../timetable/favourite-highlight.ts';
+  import { readPickedDay, savePickedDay } from '../picked-day.ts';
   import { readScrollPosition, saveScrollPosition } from '../timetable/scroll-position.ts';
   import {
     daySelection,
@@ -191,14 +200,18 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     const timetable = document.querySelector<HTMLElement>('.timetable');
     if (!page || !timetable) return;
 
+    const date = timetable.dataset.date!;
     const redirectDates = page.dataset.redirectDates?.split(' ').filter(Boolean) ?? [];
     if (redirectDates.length > 0) {
-      const today = new Date().toLocaleDateString('en-CA');
-      if (redirectDates.includes(today)) {
-        void navigate(`/${today}/${location.search}`, { history: 'replace' });
+      // The day that the user picked in this app session comes first, then today.
+      const picked = readPickedDay(sessionStorage, 'lineup', [date, ...redirectDates])?.date;
+      const day = picked ?? new Date().toLocaleDateString('en-CA');
+      if (redirectDates.includes(day)) {
+        void navigate(`/${day}/${location.search}`, { history: 'replace' });
         return;
       }
     }
+    savePickedDay(sessionStorage, 'lineup', { date });
 
     const favouritesSwitch = document.querySelector<HTMLButtonElement>('.favourites-switch')!;
     const noFavourites = document.querySelector<HTMLElement>('.no-favourites')!;
@@ -208,7 +221,6 @@ const timetable = layoutDay(day, lineup.stages, lineup.artists);
     const dayLinks = [...document.querySelectorAll<HTMLAnchorElement>('.days a')];
     const stageIds = document.querySelector<HTMLElement>('.stage-chips')!.dataset.stageIds!.split(' ');
     const dayStageIds = chips.map((chip) => chip.dataset.stage!).filter(Boolean);
-    const date = timetable.dataset.date!;
 
     let selection = readStageSelection(location.search, stageIds);
     let highlight = readHighlight(location.search);

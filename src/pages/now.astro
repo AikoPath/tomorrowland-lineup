@@ -106,6 +106,7 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     type NowDay,
     type NowSet,
   } from '../now/now-next.ts';
+  import { forgetPickedDay, readPickedDay, savePickedDay } from '../picked-day.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
 
@@ -192,6 +193,9 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
       earlier.disabled = minute <= day.start;
       later.disabled = minute >= day.end;
       stages.replaceChildren(...day.stages.map((_, index) => stageCard(day, index)));
+
+      if (followsClock) forgetPickedDay(sessionStorage, 'now');
+      else savePickedDay(sessionStorage, 'now', { date: day.date, minute });
     }
 
     dayButtons.forEach((button, index) =>
@@ -223,7 +227,19 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     }, 30_000);
     signal.addEventListener('abort', () => clearInterval(interval));
 
-    goToNow();
+    const picked = readPickedDay(
+      sessionStorage,
+      'now',
+      days.map(({ date }) => date),
+    );
+    if (picked?.minute === undefined) {
+      goToNow();
+    } else {
+      dayIndex = days.findIndex(({ date }) => date === picked.date);
+      minute = clampTime(days[dayIndex], picked.minute);
+      followsClock = false;
+      render();
+    }
   });
 </script>
 

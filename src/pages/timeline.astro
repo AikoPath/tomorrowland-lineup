@@ -154,6 +154,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
   import { PLAYER_CHANGE_EVENT, isTrackPlaying, toggleTrack } from '../player/global-player.ts';
   import { onPageMount } from '../player/navigation.ts';
   import { FESTIVAL_TIME_ZONE } from '../site.ts';
+  import { readPickedDay, savePickedDay } from '../picked-day.ts';
   import { initialDate, overlapMinutes, setCountLabel } from '../timeline/timeline.ts';
 
   onPageMount((signal) => {
@@ -171,7 +172,13 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
 
     const days = dayButtons.map((button) => ({ date: button.dataset.date!, end: button.dataset.end! }));
     const now = festivalNow(new Date(), FESTIVAL_TIME_ZONE);
-    const startDate = days.length > 0 ? initialDate(days, now, favouriteDates(readFavourites(localStorage))) : '';
+    const pickedDate = readPickedDay(
+      sessionStorage,
+      'timeline',
+      days.map(({ date }) => date),
+    )?.date;
+    const startDate =
+      days.length > 0 ? (pickedDate ?? initialDate(days, now, favouriteDates(readFavourites(localStorage)))) : '';
     let selectedIndex = days.findIndex(({ date }) => date === startDate);
     main.scrollLeft = selectedIndex * main.clientWidth;
 
@@ -221,6 +228,7 @@ const clockTime = (localTime: string) => localTime.slice(11, 16);
         if (index === selectedIndex) return;
         selectedIndex = index;
         showSelectedDay();
+        savePickedDay(sessionStorage, 'timeline', { date: days[selectedIndex].date });
       },
       { signal },
     );
