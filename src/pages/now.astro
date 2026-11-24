@@ -62,12 +62,12 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
                   <div class="current-text">
                     <div class="current-head">
                       <span class="names" />
-                      <span class="set-time" />
+                      <span class="time-left" />
                     </div>
                     <div class="progress" aria-hidden="true">
                       <div class="progress-bar" />
                     </div>
-                    <span class="time-left" />
+                    <span class="set-time" />
                   </div>
                 </div>
                 <p class="idle">No set at this time</p>
@@ -451,7 +451,7 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     color: var(--color-accent);
   }
 
-  .set-time,
+  .time-left,
   .next-time {
     flex: none;
     font-variant-numeric: tabular-nums;
@@ -470,13 +470,13 @@ const daysData = JSON.stringify(days).replaceAll('<', '\\u003c');
     background: var(--gradient-accent);
   }
 
-  .time-left,
+  .set-time,
   .idle,
   .none {
     color: var(--color-text-muted);
   }
 
-  .time-left {
+  .set-time {
     font-size: 0.8125rem;
   }
 
